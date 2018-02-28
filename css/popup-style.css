@@ -1,0 +1,49 @@
+body{
+    margin: 0 auto;
+    width: 270px;
+    background-color: #f7f7f7;
+}
+.popup-logo{
+    padding: 5px 60px 5px 60px;
+    border: none;
+}
+.main div{
+    width:100%;
+    float: left;
+    border-bottom: 1px solid #ccc;
+}
+.main div:last-child{
+    border-bottom: none;
+}
+
+.popup-description{
+    padding: 5px;
+}
+.popup-actions div{
+    width:100%;
+    height: 30px;
+    line-height: 2.5em;
+    cursor: pointer;
+    color: #888;
+    text-align: left;
+}
+.popup-actions div:hover{
+    background-color: #f0f0f0;
+}
+.popup-actions div b{
+    padding: 5px 5px 5px 5px;
+}
+.popup-more{
+    height: 30px;
+    line-height: 2.5em;
+    text-align: center!important;
+    cursor: pointer;
+}
+.popup-more div:hover{
+    background-color: #f0f0f0;
+}
+b{
+    font-weight: 200;
+    font-size: 14px;
+    color: #000; 
+}
