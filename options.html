@@ -1,15 +1,38 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta content='text/html; charset=utf-8' http-equiv='Content-Type'>
+        <link href="css/options-style.css" rel="stylesheet" type="text/css">
+        <script src="js/jquery.min.js"></script>
+        <script src="js/options.js"></script>
+        <title>Supreme Bot</title>
+    </head>
 <body>
     <div class="main-options">
-        <div class="nav-bar">
-            <div class="nav-options">
-                <b>Form data</b>
-            </div>
-            <div class="nav-options">
-                <b>Droplist</b>
-            </div>
-        </div>
         <div class="workspace-options" id="workspace-options">
-            <p>Workspace</p>
+            <!-- Панель навигации -->
+            <div class="nav-bar">
+                <div class="nav-options" id="nav-droplist">
+                    <b class="no-select">Droplist</b>
+                </div>
+                <div class="nav-options" id="nav-form">
+                    <b class="no-select">Form data</b>
+                </div>
+            </div>
+            
+            <!-- Рабочее поле данных форм -->
+            
+            <div class="data-options" id="content-form">
+                <p>form</p>
+            </div>
+            
+            <!-- Рабочее поле дроплиста -->
+            
+            <div class="data-options" id="content-droplist">
+                <p>droplist</p>
+            </div>
         </div>
+        <div class="clear"></div>
     </div>
 </body>
+</html>
