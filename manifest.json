@@ -10,6 +10,7 @@
         "persistent": false
     },
     "web_accessible_resources": [
+        "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/"
     ],  
     "browser_action": {
         "default_title": "Supreme Bot",
@@ -23,7 +24,7 @@
     ],
     "content_scripts": [
     {
-      "matches": [ "http://www.supremenewyork.com/shop/*" ],
+      "matches": [ "http://www.supremenewyork.com/shop/*" , "https://www.supremecommunity.com/*" ],
       "js": [ "js/jquery.min.js", "background.js" ],
       "css" : ["css/popup-style.css"],
             "html" : ["html/inject.html"],

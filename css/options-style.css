@@ -56,4 +56,88 @@ body{
 .data-options{
     min-height: 600px;
     display: none;
+    padding: 0% 15% 0% 15%;
+}
+
+/* Droplist styles */
+
+.droplist-title{
+    float: left;
+    width: 100%;
+    height: 30px;
+    text-align: center;
+    margin-bottom: 20px;
+}
+.droplist-title h1,h2{
+    font-family: 'Open Sans', 'Helvetica', 'Arial', sans-serif;
+    color: #252525;
+    font-weight: 300;
+    font-variant-ligatures: common-ligatures;
+    margin-top: 0;
+}
+h1{
+    font-size: 2.4em;
+}
+
+
+
+.item-container{
+    float:left;
+    width: calc(23% - 2px);
+    margin-left: 2%;
+    margin-bottom: 2%;
+    box-shadow: 0 0 10px 5px #6E6E6E;
+    padding: 10px 0px 0px 0px;
+    border-radius: 7px;
+    text-align: center;
+    border-top: 5px solid #ff0000;
+}
+.item-container div{
+    float:left;
+}
+
+.item-title{
+    width:100%;
+    text-align: center;
+    border-top: 1px dashed #ccc;
+    
+}
+.item-title h5{
+    color:#252525;
+    font-weight: 600;
+    font-family: 'Open Sans', 'Helvetica', 'Arial', sans-serif;
+    font-size: 1em;
+    padding: 0px 5px;
+    margin: 0 auto;
+    vertical-align: baseline;
+        margin-top: 10px;
+    margin-bottom: 10px;
+    min-height: 28px;
+}
+
+.item-other{
+    border-top: 1px solid #ccc;
+    width: 100%;
+}
+.item-other div{
+    width: 50%;
+    height: 30px;
+}
+.item-other div span{
+    line-height: 2.5;
+    font-weight: 700;
+}
+
+
+.item-price span{
+    color:#252525;
+}
+.item-addToCard{
+    background: linear-gradient(90deg, #5cb85b, #008000);
+    border-radius: 0px 0px 6px 0px;
+    cursor: pointer;
+}
+
+.item-addToCard span{
+    color:#fff;  
 }
