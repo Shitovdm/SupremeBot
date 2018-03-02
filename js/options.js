@@ -1,12 +1,12 @@
-
-function navbarSwitchOnDroplist(e){ //  Переключение на Droplist.
+/******************* Функции для дроплиста ********************/
+//  Переключение на Droplist.
+function navbarSwitchOnDroplist(e){ 
     //  Скрываем форму.
     $("#nav-form").css({
         "border-bottom" : "none",
         "background-color" : "inherit"
     }); 
     $("#content-form").css("display","none");
-    
     //  Показываем дроплист.
     $("#nav-droplist").css({
         "border-bottom" : "5px solid #ff0000",
@@ -14,15 +14,14 @@ function navbarSwitchOnDroplist(e){ //  Переключение на Droplist.
     });
     $("#content-droplist").css("display","block");
 }
-
-function navbarSwitchOnFormData(e){ //  Переключение на Form Data.
+//  Переключение на Form Data.
+function navbarSwitchOnFormData(e){ 
     //  Скрываем дроплист.
     $("#nav-droplist").css({ 
         "border-bottom" : "none",
         "background-color" : "inherit"
     });
     $("#content-droplist").css("display","none");
-    
     //  Показываем форму. 
     $("#nav-form").css({
         "border-bottom" : "5px solid #ff0000",
@@ -35,7 +34,7 @@ function addToCard(){
     alert("RABOTAet");
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     //  Активная вкладка по умочанию.
     $("#nav-droplist").css({
         "border-bottom" : "none",
@@ -47,6 +46,7 @@ document.addEventListener("DOMContentLoaded", function () {
     document.getElementById("nav-droplist").addEventListener("click", navbarSwitchOnDroplist);
     document.getElementById("nav-form").addEventListener("click", navbarSwitchOnFormData);
     
+    //  Загрузка дроплиста с крмьюнити.
     var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
     // Получаем и парсим код Steam страницы с предметом
     var xhr = new XMLHttpRequest();
@@ -100,3 +100,54 @@ document.addEventListener("DOMContentLoaded", function () {
     };
 });
 
+
+
+/******************* Функции для форм ********************/
+
+function saveCard(){
+    //  Получаем данные всех полей.
+    var cardData = {};
+    cardData.fullName = $("#full-name").val();
+    
+    
+    alert(cardData["fullName"]);
+    
+    for(var prop in cardData) {
+        if(cardData.hasOwnProperty(prop)){
+                    
+        }               
+    }
+    //  Проверяем поля на заполненность.
+    /*for(var i = 0; i < $(cardData).length; i++){
+        
+    }*/
+    if(cardData.fullName == ""){
+        console.log("Empty");
+    }else{
+        alert(cardData.fullName);
+    }
+    
+    
+    //  Сохраняем данные.
+    /*chrome.storage.local.set({'cardNumber': '7894 7894 1236 4512', 'CVV': '789'}, function(){ 
+        console.log("Saved!");
+    }); */
+}
+
+function deleteCard(){
+    chrome.storage.local.get(['foo', 'cardNumber'], function(items) {
+        console.log('Settings retrieved', items);
+    });
+}
+
+function clearStorage(){
+    chrome.storage.local.clear(function(items) {
+        console.log('Storage cleared', items);
+    });
+}
+
+document.addEventListener("DOMContentLoaded", function () { //  Дроплист
+    document.getElementById("save-button").addEventListener("click", saveCard);  //  
+    document.getElementById("delete-button").addEventListener("click", deleteCard);  //  
+    document.getElementById("clear-button").addEventListener("click", clearStorage);  // 
+});

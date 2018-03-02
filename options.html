@@ -23,16 +23,20 @@
             <!-- Рабочее поле данных форм -->
             
             <div class="data-options" id="content-form">
-
                 <div class="card-form">
                     <div class="full-form card-nav-bar">
-                        <div class="nav-card">
-                            <b>SELECT CARD</b>
+                        <div class="nav-card" id="select-card">
+                            <select>
+                                <option value="" disabled selected>SELECT CARD</option>
+                                <option>Leonid card</option>
+                                <option>KIWI card</option>
+                                <option>7895 4651 7842 7842</option>
+                            </select>
                         </div>
                         <div class="nav-card selected-bg">
                             <b>SHIPPING / PAYMENT</b>
                         </div>
-                        <div class="nav-card">
+                        <div class="nav-card" id="add-card">
                             <b>ADD CARD</b>
                         </div>
                     </div>
@@ -99,7 +103,6 @@
                                 <option>2027</option>
                                 <option>2028</option>
                             </select>
-                            
                             <img src="img/mini-card.gif">
                             <input type="text" class="field-small" id="cvv" placeholder="CVV">
                             <div class="clear"></div>
@@ -109,13 +112,14 @@
                         </div>
                         <div class="terms">
                             <input class="terms-checkbox" type="checkbox">
-                            <label>I have read ang agree to the <u>terms & conditions</u>,<br> and accept tje return policy</label>
+                            <label>I have read ang agree to the <u>terms & conditions</u>, and accept tje return policy</label>
                         </div>
                     </div>
                     <div class="clear"></div>
                     <div class="full-form bottom-side">
                         <input type="button" class="action-button" id="save-button" value="save card">
                         <input type="button" class="action-button" id="delete-button" value="delete">
+                        <input type="button" class="action-button" id="clear-button" value="clear">
                     </div>
                     <div class="clear"></div>
                 </div>

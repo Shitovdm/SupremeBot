@@ -54,7 +54,7 @@ body{
     
 }
 .data-options{
-    min-height: 600px;
+    min-height: 880px;
     display: none;
     padding: 0% 15% 0% 15%;
 }
@@ -156,18 +156,21 @@ h1{
 }
 
 /* Form data styles */
-
 .card-form{
     width:670px;
     margin-left: calc(50% - 335px);
 }
-
 .half-form{
     float:left;
     width: 313px;
     background-color: #f3f3f3;
     border:1px dashed #ccc;
     padding: 10px;
+}
+.half-form input{
+    color: #999;
+    font-size: 13px;
+    font-family: "Courier New", Courier, Monaco;
 }
 .right-side{
     border-left:none;
@@ -179,7 +182,6 @@ h1{
     margin-bottom: 8px;
     padding: 10px;
 }
-
 .field-middle{
     float: left;
     border:1px solid #ccc;
@@ -201,13 +203,11 @@ h1{
     border-radius: 3px;
 }
 .right-side .multi-form{
-    margin-bottom: 8px;
-        
+    margin-bottom: 8px;   
 }
 .right-side .multi-form input{
     width: 15%;
-    float: right;
-        
+    float: right;  
 }
 .right-side .multi-form img{
     float: right;
@@ -235,6 +235,9 @@ h1{
 }
 select{
     padding: 9px 10px!important;
+    color: #999;
+    font-size: 13px;
+    font-family: "Courier New", Courier, Monaco;
 }
 .select-year{
     margin-left: 8px;
@@ -246,17 +249,19 @@ select{
     margin:5px;
 }
 .terms{
-    margin-bottom: 23px;
+    margin-left: 5px;
+    margin-bottom: 25px;
+    color: #999;
+    font-size: 12px;
+    font-family: "Courier New", Courier, Monaco;
 }
 .bottom-side{
     border:1px dashed #ccc;
     border-top: none;
     width: 667px;
-
 }
 .bottom-side input{
     float:right;
-    margin-right: 10px;
     border-radius: 0px;
     border: none;
     color:#fff;
@@ -265,6 +270,7 @@ select{
     font-size: 11px;
     padding: 10px 30px;
     margin: 6px;
+    margin-left: 0px;
     cursor: pointer;
 }
 #delete-button{
@@ -279,7 +285,6 @@ select{
 #save-button:hover{
     background-color: #db0000;
 }
-
 .card-nav-bar{
     border:1px dashed #ccc;
     width: 667px;
@@ -300,7 +305,22 @@ select{
 .selected-bg{
     background-color: #636363;
     color: #fff;
+    user-select: none;
+    padding-bottom: 7px;
 }
 .selected-bg b{
-    color: #fff;
+    color: #fff; 
+}
+#select-card select{
+    border: none;
+    cursor:pointer;
+    padding: 0px 30px!important;
+    width: 212px;
+    text-transform: uppercase;
+    color: #999;
+    font-size: 12px;
+    font-family: "Courier New", Courier, Monaco;
+}
+#add-card{
+    cursor:pointer;
 }
