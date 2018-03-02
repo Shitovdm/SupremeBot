@@ -23,14 +23,108 @@
             <!-- Рабочее поле данных форм -->
             
             <div class="data-options" id="content-form">
-                <p>form</p>
+
+                <div class="card-form">
+                    <div class="full-form card-nav-bar">
+                        <div class="nav-card">
+                            <b>SELECT CARD</b>
+                        </div>
+                        <div class="nav-card selected-bg">
+                            <b>SHIPPING / PAYMENT</b>
+                        </div>
+                        <div class="nav-card">
+                            <b>ADD CARD</b>
+                        </div>
+                    </div>
+                    <div class="clear"></div>
+                    <div class="full-form top-side">
+                        <div class="card-form-title">
+                            <h4>billing/shipping information</h4>
+                        </div>
+                        <div class="card-form-title">
+                            <h4>credit card information</h4>
+                        </div>
+                    </div>
+                    <div class="clear"></div>
+                    <div class="half-form left-side">
+                        <input type="text" class="field-large" id="full-name" placeholder="full name">
+                        <input type="text" class="field-large" id="email" placeholder="e-mail">
+                        <input type="text" class="field-large" id="tel" placeholder="tel">
+                        <div class="multi-form">
+                            <input type="text" class="field-middle" id="address" placeholder="address">
+                            <input type="text" class="field-middle" id="address-2" placeholder="address 2">
+                        </div>
+                        <input type="text" class="field-large" id="address-3" placeholder="address 3">
+                        <input type="text" class="field-large" id="city" placeholder="city">
+                        <div class="multi-form">
+                            <input type="text" class="field-middle" id="postcode" placeholder="postcode">
+                            <input type="text" class="field-middle" id="country" placeholder="country">
+                        </div>
+                    </div>
+                    <div class="half-form right-side">
+                        <input type="text" class="field-large" id="card-name" placeholder="card name">
+                        <select class="field-large">
+                            <option>Visa</option>
+                            <option>American Express</option>
+                            <option>Mastercard</option>
+                            <option>Colo</option>
+                            <option>PayPal</option>
+                        </select>
+                        <input type="text" class="field-large" id="card-number" placeholder="number">
+                        <div class="multi-form">
+                            <select class="field-small">
+                                <option>01</option>
+                                <option>02</option>
+                                <option>03</option>
+                                <option>04</option>
+                                <option>05</option>
+                                <option>06</option>
+                                <option>07</option>
+                                <option>08</option>
+                                <option>09</option>
+                                <option>10</option>
+                                <option>11</option>
+                                <option>12</option>
+                            </select>
+                            <select class="field-small select-year">
+                                <option>2018</option>
+                                <option>2019</option>
+                                <option>2020</option>
+                                <option>2021</option>
+                                <option>2022</option>
+                                <option>2023</option>
+                                <option>2024</option>
+                                <option>2025</option>
+                                <option>2026</option>
+                                <option>2027</option>
+                                <option>2028</option>
+                            </select>
+                            
+                            <img src="img/mini-card.gif">
+                            <input type="text" class="field-small" id="cvv" placeholder="CVV">
+                            <div class="clear"></div>
+                        </div>
+                        <div class="balance-constraints">
+                            <input type="text" class="field-large" id="card-money" placeholder="approximate balance, $">
+                        </div>
+                        <div class="terms">
+                            <input class="terms-checkbox" type="checkbox">
+                            <label>I have read ang agree to the <u>terms & conditions</u>,<br> and accept tje return policy</label>
+                        </div>
+                    </div>
+                    <div class="clear"></div>
+                    <div class="full-form bottom-side">
+                        <input type="button" class="action-button" id="save-button" value="save card">
+                        <input type="button" class="action-button" id="delete-button" value="delete">
+                    </div>
+                    <div class="clear"></div>
+                </div>
             </div>
             
             <!-- Рабочее поле дроплиста -->
             
             <div class="data-options" id="content-droplist">
-               
-                
+                <img class="droplist-cart" alt="Go to cart" src="img/cart.jpg" width="70px;">
             </div>
         </div>
         <div class="clear"></div>

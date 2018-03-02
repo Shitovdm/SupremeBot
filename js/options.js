@@ -37,11 +37,11 @@ function addToCard(){
 
 document.addEventListener("DOMContentLoaded", function () {
     //  Активная вкладка по умочанию.
-    $("#nav-form").css({
+    $("#nav-droplist").css({
         "border-bottom" : "none",
         "background-color" : "inherit"
     }); 
-    $("#content-droplist").css("display","block");
+    $("#content-form").css("display","block");
     
     // Вешаем на вкладки события переключения.
     document.getElementById("nav-droplist").addEventListener("click", navbarSwitchOnDroplist);
@@ -88,8 +88,8 @@ document.addEventListener("DOMContentLoaded", function () {
                                         '<div class="item-price">'+
                                             '<span>'+$(itemsPrices[i]).text()+'</span>'+
                                         '</div>'+
-                                        '<div class="item-addToCard">'+
-                                            '<span id="item-'+i+'">Add to Card</span>'+
+                                        '<div class="item-addToCart">'+
+                                            '<span id="item-'+i+'">Add to Cart</span>'+
                                         '</div>'+
                                     '</div>';
                 document.getElementById("content-droplist").appendChild(newItem);

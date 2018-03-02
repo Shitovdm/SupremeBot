@@ -132,12 +132,175 @@ h1{
 .item-price span{
     color:#252525;
 }
-.item-addToCard{
+.item-addToCart{
     background: linear-gradient(90deg, #5cb85b, #008000);
     border-radius: 0px 0px 6px 0px;
     cursor: pointer;
 }
 
-.item-addToCard span{
+.item-addToCart span{
     color:#fff;  
+}
+.droplist-cart{
+    position: fixed;
+    top: 90px;
+    right: 5%;
+    cursor: pointer;
+}
+@keyframes cartScale { 
+   0% {transform: scale(1);}
+   50%{transform:scale(1.2);}
+}
+.droplist-cart:hover{
+    animation: cartScale 0.9s infinite ease-in-out;
+}
+
+/* Form data styles */
+
+.card-form{
+    width:670px;
+    margin-left: calc(50% - 335px);
+}
+
+.half-form{
+    float:left;
+    width: 313px;
+    background-color: #f3f3f3;
+    border:1px dashed #ccc;
+    padding: 10px;
+}
+.right-side{
+    border-left:none;
+}
+.field-large{
+    border:1px solid #ccc;
+    width: calc(100% - 22px);
+    border-radius: 3px;
+    margin-bottom: 8px;
+    padding: 10px;
+}
+
+.field-middle{
+    float: left;
+    border:1px solid #ccc;
+    width: calc(50% - 26px);
+    border-radius: 3px;
+    margin-bottom: 8px;
+    padding: 10px;
+}
+.field-middle:nth-child(odd){
+    margin-right: 8px;
+}
+.left-side .multi-form:last-child input{
+    margin-bottom:0px;
+}
+.field-small{
+    float: left;
+    padding: 10px;
+    border:1px solid #ccc;
+    border-radius: 3px;
+}
+.right-side .multi-form{
+    margin-bottom: 8px;
+        
+}
+.right-side .multi-form input{
+    width: 15%;
+    float: right;
+        
+}
+.right-side .multi-form img{
+    float: right;
+    padding: 6px;    
+}
+.full-form{
+    float: left;
+    width: 100%;
+}
+.top-side{
+    width:669px;
+    background-color: #636363;
+}
+.card-form-title{
+    float:left;
+    width: 50%;
+}
+.card-form-title h4{
+    margin: 5px;
+    color:#fff;
+    font-weight: 400;
+    font-family: 'Courier New',Courier,Monaco;
+    font-size: 11px;
+    margin-left:10px;
+}
+select{
+    padding: 9px 10px!important;
+}
+.select-year{
+    margin-left: 8px;
+}
+.balance-constraints{
+    margin-bottom: 20px;
+}
+.terms-checkbox{
+    margin:5px;
+}
+.terms{
+    margin-bottom: 23px;
+}
+.bottom-side{
+    border:1px dashed #ccc;
+    border-top: none;
+    width: 667px;
+
+}
+.bottom-side input{
+    float:right;
+    margin-right: 10px;
+    border-radius: 0px;
+    border: none;
+    color:#fff;
+    font-weight: 600;
+    font-family: 'Courier New',Courier,Monaco;
+    font-size: 11px;
+    padding: 10px 30px;
+    margin: 6px;
+    cursor: pointer;
+}
+#delete-button{
+    background-color: #000;
+}
+#delete-button:hover{
+    background-color: #40393a;
+}
+#save-button{
+    background-color: #ff0000;
+}
+#save-button:hover{
+    background-color: #db0000;
+}
+
+.card-nav-bar{
+    border:1px dashed #ccc;
+    width: 667px;
+}
+.nav-card{
+    float:left;
+    width: 222px;
+    text-align: center;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+.nav-card b{
+    text-transform: uppercase;
+    color: #999;
+    font-size: 12px;
+    font-family: "Courier New", Courier, Monaco;
+}
+.selected-bg{
+    background-color: #636363;
+    color: #fff;
+}
+.selected-bg b{
+    color: #fff;
 }
