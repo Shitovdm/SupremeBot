@@ -26,12 +26,13 @@ $(document).ready(function () {
      * @param {type} obj
      * @returns {undefined}
      */
+    
     function simulateClick(obj) {
         var evt = document.createEvent("MouseEvents");
         evt.initMouseEvent("click", true, true, window,
                 0, 0, 0, 0, 0, false, false, false, false, 0, null);
         var canceled = !obj.dispatchEvent(evt);
-        /*
+        
          
          if(canceled) {
          // A handler called preventDefault
@@ -40,7 +41,7 @@ $(document).ready(function () {
          // None of the handlers called preventDefault
          alert("not canceled");
          }
-         */
+         
     }
     
     //var what = document.querySelector('a[href="/shop/jackets/fa5uzyo2d/n5m2xirug"]');

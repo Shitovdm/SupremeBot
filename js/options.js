@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     // Вешаем на вкладки события переключения.
     document.getElementById("nav-droplist").addEventListener("click", navbarSwitchOnDroplist);
     document.getElementById("nav-form").addEventListener("click", navbarSwitchOnFormData);
-    
+    /*
     //  Загрузка дроплиста с крмьюнити.
     var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
     // Получаем и парсим код Steam страницы с предметом
@@ -98,6 +98,7 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
             //console.log($(itemsImgURL[1]).attr("src"));
         }
     };
+    */
 });
 
 
@@ -105,38 +106,62 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
 /******************* Функции для форм ********************/
 
 function saveCard(){
-    //  Получаем данные всех полей.
-    var cardData = {};
-    cardData.fullName = $("#full-name").val();
-    
-    
-    alert(cardData["fullName"]);
-    
-    for(var prop in cardData) {
-        if(cardData.hasOwnProperty(prop)){
-                    
-        }               
-    }
-    //  Проверяем поля на заполненность.
-    /*for(var i = 0; i < $(cardData).length; i++){
-        
-    }*/
-    if(cardData.fullName == ""){
-        console.log("Empty");
+    var cardIdentificator = $('#select-card-list').val();
+    if(cardIdentificator == null){
+        alert("No card selected!");
     }else{
-        alert(cardData.fullName);
-    }
-    
-    
-    //  Сохраняем данные.
-    /*chrome.storage.local.set({'cardNumber': '7894 7894 1236 4512', 'CVV': '789'}, function(){ 
-        console.log("Saved!");
-    }); */
-}
+        //  Remove all data about this card.
+        chrome.storage.local.remove([cardIdentificator], function() {
+            console.log('Card removed');
+        });
+        //  Get all data into fields.
+        var cardData = {};
+            cardData.fullName = $("#full-name").val();
+            cardData.email = $("#email").val();
+            cardData.tel = $("#tel").val();
+            cardData.address = $("#address").val();
+            cardData.address2 = $("#address-2").val();
+            cardData.address3 = $("#address-3").val();
+            cardData.city = $("#city").val();
+            cardData.postcode = $("#postcode").val();
+            cardData.country = $("#country").val();
+            cardData.identificator = $("#card-identificator").val();
+            cardData.cardType = $("#card-type").val();
+            cardData.cardNumber = $("#card-number").val();
+            cardData.cardMonth = $("#card-month").val();
+            cardData.cardYear = $("#card-year").val();
+            cardData.cardCVV = $("#card-cvv").val();
+            cardData.cardMoney = $("#card-money").val();
 
+        //  Search empty fields.
+        var emptyFlag = false;
+        for(var prop in cardData) {
+            if(cardData.hasOwnProperty(prop)){
+                //console.log(prop);
+                if( (prop != "address2") && (prop != "address3") ){
+                    if(cardData[prop] == ""){
+                        alert(prop + " is empty!");
+                        emptyFlag = true;
+                        break;
+                    }
+                }
+            }               
+        }
+        // If not empty fields.
+        if(!emptyFlag){
+            chrome.storage.local.set({ [cardData.identificator] : cardData} , function(){ 
+                console.log("Card saved!");
+            });
+        }
+    } 
+}
+/*
+ * Function delete selected card.
+ */
 function deleteCard(){
-    chrome.storage.local.get(['foo', 'cardNumber'], function(items) {
-        console.log('Settings retrieved', items);
+     var cardIdentificator = $('#select-card-list').val();
+    chrome.storage.local.remove([cardIdentificator], function() {
+        alert("Card <b>" + cardIdentificator + "</b> has been removed!");
     });
 }
 
@@ -146,8 +171,97 @@ function clearStorage(){
     });
 }
 
-document.addEventListener("DOMContentLoaded", function () { //  Дроплист
+function addCard(){
+    //  Get all form fields.
+    var cardData = {};
+        cardData.fullName = $("#full-name").val();
+        cardData.email = $("#email").val();
+        cardData.tel = $("#tel").val();
+        cardData.address = $("#address").val();
+        cardData.address2 = $("#address-2").val();
+        cardData.address3 = $("#address-3").val();
+        cardData.city = $("#city").val();
+        cardData.postcode = $("#postcode").val();
+        cardData.country = $("#country").val();
+        cardData.identificator = $("#card-identificator").val();
+        cardData.cardType = $("#card-type").val();
+        cardData.cardNumber = $("#card-number").val();
+        cardData.cardMonth = $("#card-month").val();
+        cardData.cardYear = $("#card-year").val();
+        cardData.cardCVV = $("#card-cvv").val();
+        cardData.cardMoney = $("#card-money").val();
+    //  If isset card name.
+    if(cardData.identificator != ""){
+        //  If whis card alredy in list.
+        var container = $("#select-card-list").children("option");
+        var coincidenceFlag = false;
+        for(var i = 1; i < $(container).length; i++){
+            if(cardData.identificator == $(container[i]).text()){
+                coincidenceFlag = true;
+                break;
+            }
+        }
+        if(!coincidenceFlag){   //  No matches found.
+            //  Add new card into local srorage and into card list.
+            var list = document.getElementById("select-card-list");
+            list.options[list.options.length] = new Option(cardData.identificator, cardData.identificator);
+            chrome.storage.local.set({ [cardData.identificator] : cardData} , function(){ 
+                alert("Card <b>" + cardData.identificator + "</b> has been addad!");
+            });
+        }else{
+            alert("A card with that name already exists!");
+        }
+    }else{
+        alert("Enter card name!");
+    }
+}
+
+//  Change card data.
+$(document).ready(function() {
+    //  Fill cards in list.
+    chrome.storage.local.get(function(cardData) {
+        console.log(cardData);
+        var list = document.getElementById("select-card-list");
+        for(var prop in cardData) {
+            if(cardData.hasOwnProperty(prop)){
+               list.options[list.options.length] = new Option(prop, prop);
+            }
+        }
+     });
+    
+    // Onchange card action.
+    $('#select-card-list').on("change",function() {
+        var card = $(this).val();    //  Value of select field.
+        console.log(card);
+        //  Loading card data from local storage.
+        chrome.storage.local.get(card, function(cardData) {
+            //  Placing data into form.
+            $("#full-name").val(cardData[card]["fullName"]);
+            $("#email").val(cardData[card]["email"]);
+            $("#tel").val(cardData[card]["tel"]);
+            $("#address").val(cardData[card]["address"]);
+            $("#address-2").val(cardData[card]["address2"]);
+            $("#address-3").val(cardData[card]["address3"]);
+            
+            $("#city").val(cardData[card]["city"]);
+            $("#postcode").val(cardData[card]["postcode"]);
+            $("#country").val(cardData[card]["country"]);
+            
+            $("#card-identificator").val(cardData[card]["identificator"]);
+            $("#card-type").val(cardData[card]["cardType"]);
+            $("#card-number").val(cardData[card]["cardNumber"]);
+            $("#card-month").val(cardData[card]["cardMonth"]);
+            $("#card-year").val(cardData[card]["cardYear"]);
+            $("#card-cvv").val(cardData[card]["cardCVV"]);
+            $("#card-money").val(cardData[card]["cardMoney"]);
+            
+        });
+    });
+});
+
+document.addEventListener("DOMContentLoaded", function () { //  For Droplist
     document.getElementById("save-button").addEventListener("click", saveCard);  //  
     document.getElementById("delete-button").addEventListener("click", deleteCard);  //  
     document.getElementById("clear-button").addEventListener("click", clearStorage);  // 
+    document.getElementById("add-card").addEventListener("click", addCard);  //
 });

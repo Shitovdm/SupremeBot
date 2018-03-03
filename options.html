@@ -26,11 +26,8 @@
                 <div class="card-form">
                     <div class="full-form card-nav-bar">
                         <div class="nav-card" id="select-card">
-                            <select>
+                            <select id="select-card-list">
                                 <option value="" disabled selected>SELECT CARD</option>
-                                <option>Leonid card</option>
-                                <option>KIWI card</option>
-                                <option>7895 4651 7842 7842</option>
                             </select>
                         </div>
                         <div class="nav-card selected-bg">
@@ -66,8 +63,8 @@
                         </div>
                     </div>
                     <div class="half-form right-side">
-                        <input type="text" class="field-large" id="card-name" placeholder="card name">
-                        <select class="field-large">
+                        <input type="text" class="field-large" id="card-identificator" placeholder="card name">
+                        <select class="field-large" id="card-type">
                             <option>Visa</option>
                             <option>American Express</option>
                             <option>Mastercard</option>
@@ -76,7 +73,7 @@
                         </select>
                         <input type="text" class="field-large" id="card-number" placeholder="number">
                         <div class="multi-form">
-                            <select class="field-small">
+                            <select class="field-small" id="card-month">
                                 <option>01</option>
                                 <option>02</option>
                                 <option>03</option>
@@ -90,7 +87,7 @@
                                 <option>11</option>
                                 <option>12</option>
                             </select>
-                            <select class="field-small select-year">
+                            <select class="field-small select-year" id="card-year">
                                 <option>2018</option>
                                 <option>2019</option>
                                 <option>2020</option>
@@ -104,7 +101,7 @@
                                 <option>2028</option>
                             </select>
                             <img src="img/mini-card.gif">
-                            <input type="text" class="field-small" id="cvv" placeholder="CVV">
+                            <input type="text" class="field-small" id="card-cvv" placeholder="CVV">
                             <div class="clear"></div>
                         </div>
                         <div class="balance-constraints">
@@ -112,11 +109,14 @@
                         </div>
                         <div class="terms">
                             <input class="terms-checkbox" type="checkbox">
-                            <label>I have read ang agree to the <u>terms & conditions</u>, and accept tje return policy</label>
+                            <label>I have read ang agree to the <u>terms & conditions</u>, and accept the return policy</label>
                         </div>
                     </div>
                     <div class="clear"></div>
                     <div class="full-form bottom-side">
+                        <div class="card-warning">
+                            <b>Carefully check the data before saving, the data is not forced to be checked.</b>
+                        </div>
                         <input type="button" class="action-button" id="save-button" value="save card">
                         <input type="button" class="action-button" id="delete-button" value="delete">
                         <input type="button" class="action-button" id="clear-button" value="clear">

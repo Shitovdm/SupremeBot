@@ -211,7 +211,8 @@ h1{
 }
 .right-side .multi-form img{
     float: right;
-    padding: 6px;    
+    padding: 6px;   
+    user-select: none;
 }
 .full-form{
     float: left;
@@ -255,6 +256,9 @@ select{
     font-size: 12px;
     font-family: "Courier New", Courier, Monaco;
 }
+.terms label{
+    user-select: none;
+}
 .bottom-side{
     border:1px dashed #ccc;
     border-top: none;
@@ -272,6 +276,20 @@ select{
     margin: 6px;
     margin-left: 0px;
     cursor: pointer;
+}
+.card-warning{
+    float: left;
+    width: 300px; 
+    margin: 5px;
+    margin-left:10px;
+    user-select: none;
+}
+.card-warning b{
+    color: #999;
+    font-size: 12px;
+    font-family: "Courier New", Courier, Monaco;
+    font-weight: 400;
+    line-height: 0em;
 }
 #delete-button{
     background-color: #000;
