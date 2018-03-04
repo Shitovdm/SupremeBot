@@ -71,7 +71,7 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
         }
     });
     //  Download droplist from comunity.
-    var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
+   /* var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
     // Получаем и парсим код Steam страницы с предметом
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
@@ -195,17 +195,13 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
                         });
                         
                         
-                         /*chrome.storage.local.remove('cart' , function() {
-                             console.log("remover");
-                         });*/
-                        
                         
                         
                     });
                 }
             }
         }
-    };
+    };*/
     
     
     document.getElementById("cart-preview").addEventListener("click", showCart);
@@ -242,61 +238,85 @@ function saveCard(){
     if(cardIdentificator == null){
         alert("No card selected!");
     }else{
-        //  Remove all data about this card.
-        chrome.storage.local.remove([cardIdentificator], function() {
-            console.log('Card removed');
-        });
-        //  Get all data into fields.
-        var cardData = {};
-            cardData.fullName = $("#full-name").val();
-            cardData.email = $("#email").val();
-            cardData.tel = $("#tel").val();
-            cardData.address = $("#address").val();
-            cardData.address2 = $("#address-2").val();
-            cardData.address3 = $("#address-3").val();
-            cardData.city = $("#city").val();
-            cardData.postcode = $("#postcode").val();
-            cardData.country = $("#country").val();
-            cardData.identificator = $("#card-identificator").val();
-            cardData.cardType = $("#card-type").val();
-            cardData.cardNumber = $("#card-number").val();
-            cardData.cardMonth = $("#card-month").val();
-            cardData.cardYear = $("#card-year").val();
-            cardData.cardCVV = $("#card-cvv").val();
-            cardData.cardMoney = $("#card-money").val();
-
-        //  Search empty fields.
-        var emptyFlag = false;
-        for(var prop in cardData) {
-            if(cardData.hasOwnProperty(prop)){
-                //console.log(prop);
-                if( (prop != "address2") && (prop != "address3") ){
-                    if(cardData[prop] == ""){
-                        alert(prop + " is empty! But entered data save.");
-                        //emptyFlag = true;
-                        break;
+        //  Read card array from storage;
+        chrome.storage.local.get("card", function(data) {
+            var newArray = {};
+            var tempArray = data["card"];
+            for(var key in tempArray){
+                if(tempArray.hasOwnProperty(key)){
+                    if(key != cardIdentificator){
+                        //  Add objects to new array.
+                        newArray[key] = tempArray[key];
                     }
                 }
-            }               
-        }
-        // If not empty fields.
-        //if(!emptyFlag){
-            chrome.storage.local.set({ [cardData.identificator] : cardData} , function(){ 
+            }
+            //  Get all data into fields.
+            var currentCard = {
+                fullName : $("#full-name").val(),
+                email : $("#email").val(),
+                tel : $("#tel").val(),
+                address : $("#address").val(),
+                address2 : $("#address-2").val(),
+                address3 : $("#address-3").val(),
+                city : $("#city").val(),
+                postcode : $("#postcode").val(),
+                country : $("#country").val(),
+                identificator : $("#card-identificator").val(),
+                cardType : $("#card-type").val(),
+                cardNumber : $("#card-number").val(),
+                cardMonth : $("#card-month").val(),
+                cardYear : $("#card-year").val(),
+                cardCVV : $("#card-cvv").val(),
+                cardMoney : $("#card-money").val()
+            };
+            //  Search empty fields.
+            for(var prop in currentCard) {
+                if(currentCard.hasOwnProperty(prop)){
+                    //console.log(prop);
+                    if( (prop != "address2") && (prop != "address3") ){
+                        if(currentCard[prop] == ""){
+                            alert(prop + " is empty! But entered data save.");
+                            break;
+                        }
+                    }
+                }               
+            }
+            //  Add saved card;
+            newArray[$("#card-identificator").val()] = currentCard;
+            //  Delete old array.
+            chrome.storage.local.remove( "card", function() {
+                console.log('Card removed');
+            });
+            //  Save new array.
+            chrome.storage.local.set({ "card" :  newArray} , function(){ 
                 console.log("Card saved!");
             });
-        //}
+            
+        }); 
     } 
 }
 /*
  * Function delete selected card.
  */
 function deleteCard(){
-     var cardIdentificator = $('#select-card-list').val();
-    chrome.storage.local.remove([cardIdentificator], function() {
-        $("#select-card-list").html("<option value='' disabled selected>SELECT CARD</option>");
-        updateCardList();
-        clearAllFields();
-        alert("Card '" + cardIdentificator + "' has been removed!");
+    var cardIdentificator = $('#select-card-list').val();
+    chrome.storage.local.get("card", function(data) {
+        var tempArray = data["card"];
+        var newArray = {};
+        for (var key in tempArray) {
+            if (tempArray.hasOwnProperty(key)) {
+                if (key != cardIdentificator) {
+                    //  Add objects to new array.
+                    newArray[key] = tempArray[key];
+                }
+            }
+        }
+        chrome.storage.local.set({"card": newArray}, function () {
+            $("#select-card-list").html("<option value='' disabled selected>SELECT CARD</option>");
+            updateCardList();
+            clearAllFields();
+            alert("Card '" + cardIdentificator + "' has been removed!");
+        });
     });
 }
 
@@ -321,50 +341,76 @@ function clearAllFields(){
 }
 
 function addCard(){
-    //  Get all form fields.
-    var cardData = {};
-        cardData.fullName = $("#full-name").val();
-        cardData.email = $("#email").val();
-        cardData.tel = $("#tel").val();
-        cardData.address = $("#address").val();
-        cardData.address2 = $("#address-2").val();
-        cardData.address3 = $("#address-3").val();
-        cardData.city = $("#city").val();
-        cardData.postcode = $("#postcode").val();
-        cardData.country = $("#country").val();
-        cardData.identificator = $("#card-identificator").val();
-        cardData.cardType = $("#card-type").val();
-        cardData.cardNumber = $("#card-number").val();
-        cardData.cardMonth = $("#card-month").val();
-        cardData.cardYear = $("#card-year").val();
-        cardData.cardCVV = $("#card-cvv").val();
-        cardData.cardMoney = $("#card-money").val();
-    //  If isset card name.
-    if(cardData.identificator != ""){
-        //  If whis card alredy in list.
-        var container = $("#select-card-list").children("option");
-        var coincidenceFlag = false;
-        for(var i = 1; i < $(container).length; i++){
-            if(cardData.identificator == $(container[i]).text()){
-                coincidenceFlag = true;
-                break;
+    //  Read old array.
+    chrome.storage.local.get("card", function(data) {
+        var tempArray = data["card"];
+        console.log(tempArray);
+        //  Get all form fields.
+        var cardData = {
+            fullName : $("#full-name").val(),
+            email : $("#email").val(),
+            tel : $("#tel").val(),
+            address : $("#address").val(),
+            address2 : $("#address-2").val(),
+            address3 : $("#address-3").val(),
+            city : $("#city").val(),
+            postcode : $("#postcode").val(),
+            country : $("#country").val(),
+            identificator : $("#card-identificator").val(),
+            cardType : $("#card-type").val(),
+            cardNumber : $("#card-number").val(),
+            cardMonth : $("#card-month").val(),
+            cardYear : $("#card-year").val(),
+            cardCVV : $("#card-cvv").val(),
+            cardMoney : $("#card-money").val()
+        };
+
+        //  If isset card name.
+        if($("#card-identificator").val() != ""){
+            //  If whis card alredy in list.
+            var container = $("#select-card-list").children("option");
+            var coincidenceFlag = false;
+            for(var i = 1; i < $(container).length; i++){
+                if($("#card-identificator").val() == $(container[i]).text()){
+                    coincidenceFlag = true;
+                    break;
+                }
+            }
+            if(!coincidenceFlag){   //  No matches found.
+                //  Add new card into local srorage and into card list.
+                var list = document.getElementById("select-card-list");
+                list.options[list.options.length] = new Option($("#card-identificator").val(), $("#card-identificator").val());
+  
+                tempArray[$("#card-identificator").val()] = cardData;
+                chrome.storage.local.set({ "card" :  tempArray} , function(){ 
+                    alert("Card '" + $("#card-identificator").val() + "' has been addad!");
+                });
+            }else{
+                alert("A card with that name already exists!");
+            }
+        }else{
+            alert("Enter card name!");
+        }
+        
+        
+        
+    });
+    
+    
+    
+}
+//  Build card list.
+function updateCardList(){
+    chrome.storage.local.get(function(result) {
+        var list = document.getElementById("select-card-list");
+        for(var prop in result["card"]) {
+            if(result["card"].hasOwnProperty(prop)){
+               list.options[list.options.length] = new Option(prop, prop);
             }
         }
-        if(!coincidenceFlag){   //  No matches found.
-            //  Add new card into local srorage and into card list.
-            var list = document.getElementById("select-card-list");
-            list.options[list.options.length] = new Option(cardData.identificator, cardData.identificator);
-            chrome.storage.local.set({ [cardData.identificator] : cardData} , function(){ 
-                alert("Card '" + cardData.identificator + "' has been addad!");
-            });
-        }else{
-            alert("A card with that name already exists!");
-        }
-    }else{
-        alert("Enter card name!");
-    }
+     });
 }
-
+/*
 function updateCardList(){
     chrome.storage.local.get(function(cardData) {
         var list = document.getElementById("select-card-list");
@@ -375,6 +421,8 @@ function updateCardList(){
         }
      });
 }
+*/
+
 
 //  Change card data.
 $(document).ready(function() {
@@ -386,26 +434,26 @@ $(document).ready(function() {
         var card = $(this).val();    //  Value of select field.
         console.log(card);
         //  Loading card data from local storage.
-        chrome.storage.local.get(card, function(cardData) {
+        chrome.storage.local.get("card", function(cardData) {
             //  Placing data into form.
-            $("#full-name").val(cardData[card]["fullName"]);
-            $("#email").val(cardData[card]["email"]);
-            $("#tel").val(cardData[card]["tel"]);
-            $("#address").val(cardData[card]["address"]);
-            $("#address-2").val(cardData[card]["address2"]);
-            $("#address-3").val(cardData[card]["address3"]);
+            $("#full-name").val(cardData["card"][card]["fullName"]);
+            $("#email").val(cardData["card"][card]["email"]);
+            $("#tel").val(cardData["card"][card]["tel"]);
+            $("#address").val(cardData["card"][card]["address"]);
+            $("#address-2").val(cardData["card"][card]["address2"]);
+            $("#address-3").val(cardData["card"][card]["address3"]);
             
-            $("#city").val(cardData[card]["city"]);
-            $("#postcode").val(cardData[card]["postcode"]);
-            $("#country").val(cardData[card]["country"]);
+            $("#city").val(cardData["card"][card]["city"]);
+            $("#postcode").val(cardData["card"][card]["postcode"]);
+            $("#country").val(cardData["card"][card]["country"]);
             
-            $("#card-identificator").val(cardData[card]["identificator"]);
-            $("#card-type").val(cardData[card]["cardType"]);
-            $("#card-number").val(cardData[card]["cardNumber"]);
-            $("#card-month").val(cardData[card]["cardMonth"]);
-            $("#card-year").val(cardData[card]["cardYear"]);
-            $("#card-cvv").val(cardData[card]["cardCVV"]);
-            $("#card-money").val(cardData[card]["cardMoney"]);
+            $("#card-identificator").val(cardData["card"][card]["identificator"]);
+            $("#card-type").val(cardData["card"][card]["cardType"]);
+            $("#card-number").val(cardData["card"][card]["cardNumber"]);
+            $("#card-month").val(cardData["card"][card]["cardMonth"]);
+            $("#card-year").val(cardData["card"][card]["cardYear"]);
+            $("#card-cvv").val(cardData["card"][card]["cardCVV"]);
+            $("#card-money").val(cardData["card"][card]["cardMoney"]);
             
         });
     });
@@ -416,4 +464,23 @@ document.addEventListener("DOMContentLoaded", function () { //  For Droplist
     document.getElementById("delete-button").addEventListener("click", deleteCard);  //  
     document.getElementById("clear-button").addEventListener("click", clearAllFields);  // 
     document.getElementById("add-card").addEventListener("click", addCard);  //
+    
+    // Create card array
+     chrome.storage.local.get(function(result) {
+         var issetCard = false;
+         for(var prop in result){
+             if((result.hasOwnProperty(prop)) && (prop == "card")){
+                 issetCard = true;
+                 break;
+             }
+         }
+         if(!issetCard){
+             //  Add cart into local storage;
+                chrome.storage.local.set({ 'card' : {}}, function(){ 
+                    console.log("Card array added!");
+                });
+         }
+         
+     });
+    
 });
