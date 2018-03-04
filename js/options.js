@@ -35,17 +35,20 @@ function addToCard(){
 }
 
 document.addEventListener("DOMContentLoaded", function () { //  Дроплист
+    /*удалить*/
+    chrome.storage.local.get(function(cart){
+                            console.log(cart);
+                        });
     //  Активная вкладка по умочанию.
-    $("#nav-droplist").css({
+    $("#nav-form").css({
         "border-bottom" : "none",
         "background-color" : "inherit"
     }); 
-    $("#content-form").css("display","block");
+    $("#content-droplist").css("display","block");
     
     // Вешаем на вкладки события переключения.
     document.getElementById("nav-droplist").addEventListener("click", navbarSwitchOnDroplist);
     document.getElementById("nav-form").addEventListener("click", navbarSwitchOnFormData);
-    /*
     //  Загрузка дроплиста с крмьюнити.
     var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
     // Получаем и парсим код Steam страницы с предметом
@@ -75,7 +78,15 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
             var itemsPrices = $(".label-price",el); //  Цены предметов.
             //  Все данные получены, вставляем на страницу.
             //  Создаем контейнеры и наполняем их.
+            var items = {};
             for( var i = 0; i < $(itemsName).length; i++){
+                //  Build items array.
+                items[i] = {
+                    "name": $(itemsName[i]).text(),
+                    "img": $(itemsImgURL[i]).attr("src"),
+                    "price": $(itemsPrices[i]).text()
+                }; 
+                //  Build content.
                 var newItem = document.createElement("div");
                 newItem.setAttribute("class", "item-container");
                 newItem.innerHTML = '<div class="item-img no-select">'+
@@ -88,20 +99,103 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
                                         '<div class="item-price">'+
                                             '<span>'+$(itemsPrices[i]).text()+'</span>'+
                                         '</div>'+
-                                        '<div class="item-addToCart">'+
-                                            '<span id="item-'+i+'">Add to Cart</span>'+
+                                        '<div class="item-addToCart" id="item-'+i+'">'+
+                                            '<span>Add to Cart</span>'+
                                         '</div>'+
                                     '</div>';
                 document.getElementById("content-droplist").appendChild(newItem);
             }
-            //console.log($(itemsName).length);
-            //console.log($(itemsImgURL[1]).attr("src"));
+            // Save items to local storage.
+            chrome.storage.local.set({ 'items' : items} , function(){ 
+                console.log("Items saved!");
+            });
+            //  Add listeners on adding items to cart.
+            for(var prop in items) {
+                if(items.hasOwnProperty(prop)){
+                    //console.log(items[prop]);
+                    document.getElementById("item-" + prop).addEventListener("click", function(prop){
+                        var itemID = "";
+                        if(prop.target.localName === "span"){
+                            itemID = prop.target.parentElement.id;
+                        }else{
+                            if(prop.target.localName === "div"){
+                                itemID = prop.target.id;
+                            }
+                        }
+                        //  Fint cart in local storage. if cart not found, add cart.
+                        chrome.storage.local.get( function(result){
+                            var issetCart = false;
+                             for(var prop in result) {
+                                if((result.hasOwnProperty(prop)) && (prop == "cart")){
+                                    issetCart = true;
+                                    break;
+                                }
+                            }
+                            if(!issetCart){
+                                //  Add cart into local storage;
+                                chrome.storage.local.set({ 'cart' : {}}, function(){ 
+                                    console.log("cart added!");
+                                });
+                            }
+                        });
+                        //  Adding new item into cart.
+                        chrome.storage.local.get( 'cart', function(result){
+                            var data = result["cart"];
+                            var len = 0;
+                            for(var prop in data) {
+                                if(data.hasOwnProperty(prop)){
+                                    len++;
+                                }
+                            }
+                            data[len] = itemID;
+                            console.log(data,len+1);
+                            writeNewCart(data);
+                            
+                            function writeNewCart(data){
+                                chrome.storage.local.set({ 'cart' : data}, function(){ 
+                                    console.log("adding item", itemID);
+                                });
+                            } 
+                        });
+                        
+                         /*chrome.storage.local.remove('cart' , function() {
+                             console.log("remover");
+                         });*/
+                        
+                        
+                        
+                    });
+                }
+            }
         }
     };
-    */
+    
+    
+    document.getElementById("show-cart").addEventListener("click", showCart);
 });
 
+function hideCart(){
+    $(".cart-page").css({position: "relative"});
+    $(".cart-page").hide();
+    $("#transparent-bg").hide();
+    $("#show-cart").show();
+}   
+//  Функция выезжающей корзины.
+function showCart(){
+    $(".cart-page").css({position: "fixed"});
+    $(".cart-page").fadeIn("fast");
+    $("#transparent-bg").fadeIn("fast");
+    $("#show-cart").fadeOut("fast");
+    jQuery(function($){
+	$(document).mouseup(function (e){ // событие клика по веб-документу
+            var div = $(".cart-page"); // тут указываем ID элемента
+            if (!div.is(e.target) && div.has(e.target).length === 0){
+                hideCart();
 
+            }
+	});
+    });
+}
 
 /******************* Функции для форм ********************/
 
@@ -140,19 +234,19 @@ function saveCard(){
                 //console.log(prop);
                 if( (prop != "address2") && (prop != "address3") ){
                     if(cardData[prop] == ""){
-                        alert(prop + " is empty!");
-                        emptyFlag = true;
+                        alert(prop + " is empty! But entered data save.");
+                        //emptyFlag = true;
                         break;
                     }
                 }
             }               
         }
         // If not empty fields.
-        if(!emptyFlag){
+        //if(!emptyFlag){
             chrome.storage.local.set({ [cardData.identificator] : cardData} , function(){ 
                 console.log("Card saved!");
             });
-        }
+        //}
     } 
 }
 /*
@@ -161,14 +255,31 @@ function saveCard(){
 function deleteCard(){
      var cardIdentificator = $('#select-card-list').val();
     chrome.storage.local.remove([cardIdentificator], function() {
-        alert("Card <b>" + cardIdentificator + "</b> has been removed!");
+        $("#select-card-list").html("<option value='' disabled selected>SELECT CARD</option>");
+        updateCardList();
+        clearAllFields();
+        alert("Card '" + cardIdentificator + "' has been removed!");
     });
 }
 
-function clearStorage(){
-    chrome.storage.local.clear(function(items) {
-        console.log('Storage cleared', items);
-    });
+function clearAllFields(){
+    $("#full-name").val("");
+    $("#email").val("");
+    $("#tel").val("");
+    $("#address").val("");
+    $("#address-2").val("");
+    $("#address-3").val("");
+
+    $("#city").val("");
+    $("#postcode").val("");
+    $("#country").val("");
+
+    $("#card-type").val("");
+    $("#card-number").val("");
+    $("#card-month").val("");
+    $("#card-year").val("");
+    $("#card-cvv").val("");
+    $("#card-money").val("");
 }
 
 function addCard(){
@@ -206,7 +317,7 @@ function addCard(){
             var list = document.getElementById("select-card-list");
             list.options[list.options.length] = new Option(cardData.identificator, cardData.identificator);
             chrome.storage.local.set({ [cardData.identificator] : cardData} , function(){ 
-                alert("Card <b>" + cardData.identificator + "</b> has been addad!");
+                alert("Card '" + cardData.identificator + "' has been addad!");
             });
         }else{
             alert("A card with that name already exists!");
@@ -216,11 +327,8 @@ function addCard(){
     }
 }
 
-//  Change card data.
-$(document).ready(function() {
-    //  Fill cards in list.
+function updateCardList(){
     chrome.storage.local.get(function(cardData) {
-        console.log(cardData);
         var list = document.getElementById("select-card-list");
         for(var prop in cardData) {
             if(cardData.hasOwnProperty(prop)){
@@ -228,6 +336,12 @@ $(document).ready(function() {
             }
         }
      });
+}
+
+//  Change card data.
+$(document).ready(function() {
+    //  Fill cards in list.
+    updateCardList();   //  Build card list.
     
     // Onchange card action.
     $('#select-card-list').on("change",function() {
@@ -262,6 +376,6 @@ $(document).ready(function() {
 document.addEventListener("DOMContentLoaded", function () { //  For Droplist
     document.getElementById("save-button").addEventListener("click", saveCard);  //  
     document.getElementById("delete-button").addEventListener("click", deleteCard);  //  
-    document.getElementById("clear-button").addEventListener("click", clearStorage);  // 
+    document.getElementById("clear-button").addEventListener("click", clearAllFields);  // 
     document.getElementById("add-card").addEventListener("click", addCard);  //
 });

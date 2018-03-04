@@ -13,10 +13,10 @@
             <!-- Панель навигации -->
             <div class="nav-bar">
                 <div class="nav-options" id="nav-droplist">
-                    <b class="no-select">Droplist</b>
+                    <b class="no-select">DROPLIST</b>
                 </div>
                 <div class="nav-options" id="nav-form">
-                    <b class="no-select">Form data</b>
+                    <b class="no-select">SHIPPING / PAYMENT</b>
                 </div>
             </div>
             
@@ -108,7 +108,7 @@
                             <input type="text" class="field-large" id="card-money" placeholder="approximate balance, $">
                         </div>
                         <div class="terms">
-                            <input class="terms-checkbox" type="checkbox">
+                            <input class="terms-checkbox" type="checkbox" checked>
                             <label>I have read ang agree to the <u>terms & conditions</u>, and accept the return policy</label>
                         </div>
                     </div>
@@ -128,7 +128,11 @@
             <!-- Рабочее поле дроплиста -->
             
             <div class="data-options" id="content-droplist">
-                <img class="droplist-cart" alt="Go to cart" src="img/cart.jpg" width="70px;">
+                <img id="show-cart" class="droplist-cart" alt="Go to cart" src="img/cart.jpg" width="70px;">
+                <div class="cart-page">
+                    <h1>List of items...</h1>
+                </div>
+                <div id="transparent-bg">.</div>
             </div>
         </div>
         <div class="clear"></div>
