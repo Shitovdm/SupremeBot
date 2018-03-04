@@ -12,7 +12,7 @@ function navbarSwitchOnDroplist(e){
         "border-bottom" : "5px solid #ff0000",
         "background-color" : "#fff"
     });
-    $("#content-droplist").css("display","block");
+    $("#content-droplist").fadeIn(1000);
 }
 //  Переключение на Form Data.
 function navbarSwitchOnFormData(e){ 
@@ -27,9 +27,8 @@ function navbarSwitchOnFormData(e){
         "border-bottom" : "5px solid #ff0000",
         "background-color" : "#fff"
     });
-    $("#content-form").css("display","block");
+    $("#content-form").fadeIn(1000);
 }
-
 function addToCard(){
     alert("RABOTAet");
 }
@@ -37,19 +36,41 @@ function addToCard(){
 document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     /*удалить*/
     chrome.storage.local.get(function(cart){
-                            console.log(cart);
-                        });
+        console.log(cart);
+    });
     //  Активная вкладка по умочанию.
     $("#nav-form").css({
         "border-bottom" : "none",
         "background-color" : "inherit"
     }); 
-    $("#content-droplist").css("display","block");
+    //  Animations.
+    $("#cart-preview").fadeIn(500);
     
     // Вешаем на вкладки события переключения.
     document.getElementById("nav-droplist").addEventListener("click", navbarSwitchOnDroplist);
     document.getElementById("nav-form").addEventListener("click", navbarSwitchOnFormData);
-    //  Загрузка дроплиста с крмьюнити.
+    //  Calculate amount items in cart. Show amount into cart-preview block; 
+    chrome.storage.local.get(function(result){
+        var issetCart = false;
+        var amountItems = 0;
+        for (var prop in result) {
+            if((result.hasOwnProperty(prop)) && (prop == "cart")) {    //  If cart isset.
+                for (var item in result[prop]) {    //  Calculate amount items in basket.
+                    if(result[prop].hasOwnProperty(item)){
+                        amountItems++;
+                    }
+                }
+                issetCart = true;
+                break;
+            }
+        }
+        if(issetCart && amountItems != 0){ //  If the basket is available.
+            //  Show amount items in basket.
+            $("#amount-items-in-cart").text(amountItems);
+            $("#amount-items-in-cart").css({display:"block"});
+        }
+    });
+    //  Download droplist from comunity.
     var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
     // Получаем и парсим код Steam страницы с предметом
     var xhr = new XMLHttpRequest();
@@ -105,6 +126,8 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
                                     '</div>';
                 document.getElementById("content-droplist").appendChild(newItem);
             }
+            //  When items uploaded. Show droplist block.
+            $("#content-droplist").fadeIn(1000);
             // Save items to local storage.
             chrome.storage.local.set({ 'items' : items} , function(){ 
                 console.log("Items saved!");
@@ -137,26 +160,40 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
                                     console.log("cart added!");
                                 });
                             }
-                        });
-                        //  Adding new item into cart.
-                        chrome.storage.local.get( 'cart', function(result){
-                            var data = result["cart"];
-                            var len = 0;
-                            for(var prop in data) {
-                                if(data.hasOwnProperty(prop)){
-                                    len++;
+                            //  Adding new item into cart.
+                            chrome.storage.local.get( 'cart', function(result){
+                                var data = result["cart"];
+                                var len = 0;
+                                for(var prop in data) {
+                                    if(data.hasOwnProperty(prop)){
+                                        len++;
+                                    }
                                 }
-                            }
-                            data[len] = itemID;
-                            console.log(data,len+1);
-                            writeNewCart(data);
+                                data[len] = itemID;
+                                console.log(data,len+1);
+                                writeNewCart(data);
+
+                                function writeNewCart(data){
+                                    chrome.storage.local.set({ 'cart' : data}, function(){
+                                        var itemsAmount = 0;
+                                        for(var item in data){
+                                            if(data.hasOwnProperty(item)){
+                                                itemsAmount++;
+                                                console.log("abrakadabre!");
+                                            }
+                                        }
+                                        $("#amount-items-in-cart").text( itemsAmount);
+                                        $("#amount-items-in-cart").css({display:"block"});
+                                        $("#amount-items-in-cart").css("animation", "itemsAmountScale 0.5s infinite ease-in-out");
+                                        setTimeout(function(){
+                                            $("#amount-items-in-cart").css("animation", "none");
+                                        },1000);
+                                    });
+                                } 
+                            });
                             
-                            function writeNewCart(data){
-                                chrome.storage.local.set({ 'cart' : data}, function(){ 
-                                    console.log("adding item", itemID);
-                                });
-                            } 
                         });
+                        
                         
                          /*chrome.storage.local.remove('cart' , function() {
                              console.log("remover");
@@ -171,21 +208,22 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     };
     
     
-    document.getElementById("show-cart").addEventListener("click", showCart);
+    document.getElementById("cart-preview").addEventListener("click", showCart);
 });
+
 
 function hideCart(){
     $(".cart-page").css({position: "relative"});
     $(".cart-page").hide();
     $("#transparent-bg").hide();
-    $("#show-cart").show();
+    $("#cart-preview").show();
 }   
 //  Функция выезжающей корзины.
 function showCart(){
     $(".cart-page").css({position: "fixed"});
     $(".cart-page").fadeIn("fast");
     $("#transparent-bg").fadeIn("fast");
-    $("#show-cart").fadeOut("fast");
+    $("#cart-preview").fadeOut("fast");
     jQuery(function($){
 	$(document).mouseup(function (e){ // событие клика по веб-документу
             var div = $(".cart-page"); // тут указываем ID элемента
