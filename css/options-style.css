@@ -196,17 +196,22 @@ h1{
 }
 /*  Cart page/block */
 .cart-page{
-    position: absolute;
+    /*position: absolute;    fix whis!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    position: fixed;
     height: calc(100% - 100px);
     background-color: #ffffff;
     border: 1px solid #ccc;
    z-index: 3;
     width: 71%;
-    display: none;
+    /*fix whis!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    display: block;
+    
     box-shadow: 0 0 10px 5px #6E6E6E;
 }
 #transparent-bg{
-    display:none;
+     /*fix whis!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
+    display: block;
+    
     position:fixed;
     top:0px;
     left:0px;
@@ -216,6 +221,154 @@ h1{
     opacity:0.7;
     background-color:#808080;
 }
+/* Cart styles */
+.cart-page-title{
+    float: left;
+    width:100%;
+    border-bottom: 5px solid #ff0000;
+    margin: 0 auto;
+    text-align: center;
+    padding: 7px 0px;
+}
+.cart-page-title b{
+    color: #888;
+    font-size: 18px;
+    letter-spacing: 2px;
+}
+.cart-page-table{
+    float:left;
+    width: 60%;
+}
+.cart-table-container{
+    margin: 10px;
+    border: 1px dashed #ccc;
+    width: calc(100% - 12px);
+     min-height: 700px;
+}
+.cart-page-table table{
+    border-collapse: collapse;
+    width: 100%;
+}
+.cart-page-table table tr td{
+    border-bottom: 1px dashed #ccc;
+    padding: 1% 2%;
+    color: #999;
+    font-size: 13px;
+    font-family: "Courier New", Courier, Monaco;
+    font-weight: 400;
+}
+.cart-page-table table tr td:first-child{
+    border-right: 1px dashed #ccc;
+    text-align: center;
+}
+.cart-page-table table tr td:nth-child(2n){
+    text-align: left;
+}
+.cart-page-table table tr td:nth-child(5n){
+    border-left: 1px dashed #ccc;
+    text-align: center;
+}
+.cart-page-table table tr:first-child td:first-child{
+    border-right: none;
+    text-align: left;
+}
+.cart-page-table table tr td a{
+    padding: 5px 10px;
+    background-color: #ff0000;
+    color:#fff;
+    border: none!important;
+    border-bottom: 1px dashed #ccc;
+}
+
+.cart-page-control{
+    float: left;
+    width: 40%;
+    
+}
+.cart-control-container{
+    width: calc(100% - 22px);
+    border: 1px dashed #ccc;
+    margin: 10px;
+    min-height: 650px;
+}
+.card-in-cart{
+    width: 100%;
+}
+
+.cart-total{
+    float: left;
+    width: 40%;
+    height: 40px;
+}
+.cart-total-container{
+    margin: 10px;
+    width: calc(100% - 44px);
+    border: 1px dashed #ccc;
+    margin-top: 0px;
+    padding: 11px;
+}
+.cart-total-container b{
+    color: #999;
+    font-size: 13px;
+    font-family: "Courier New", Courier, Monaco;
+    font-weight: 400;
+    line-height: 0em;
+    padding: 10px;
+}
+
+
+.cart-bottom{
+    float: left;
+    width: calc(100% - 42px);
+    margin: 0px 10px;
+    border: 1px dashed #ccc;
+    padding: 10px 10px;
+}
+
+.cart-bottom input{
+    float: right;
+    margin-right: 20px;
+    border-radius: 0px;
+    border: none;
+    color:#fff;
+    font-weight: 600;
+    font-family: 'Courier New',Courier,Monaco;
+    font-size: 11px;
+    padding: 10px 40px;
+    cursor: pointer;
+    background-color: #ff0000;
+    
+}
+.cart-bottom-text{
+    width: 60%;
+    float: left;
+    user-select: none;
+}
+.cart-bottom-text b{
+    color: #999;
+    font-size: 11px;
+    font-family: "Courier New", Courier, Monaco;
+    font-weight: 400;
+    line-height: 0em;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 /* Form data styles */

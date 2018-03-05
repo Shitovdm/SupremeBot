@@ -35,6 +35,7 @@ function addToCard(){
 
 document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     /*удалить*/
+     buildCart();
     chrome.storage.local.get(function(cart){
         console.log(cart);
     });
@@ -71,7 +72,7 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
         }
     });
     //  Download droplist from comunity.
-   /* var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
+    var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
     // Получаем и парсим код Steam страницы с предметом
     var xhr = new XMLHttpRequest();
     xhr.open("GET", url, true);
@@ -129,9 +130,7 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
             //  When items uploaded. Show droplist block.
             $("#content-droplist").fadeIn(1000);
             // Save items to local storage.
-            chrome.storage.local.set({ 'items' : items} , function(){ 
-                console.log("Items saved!");
-            });
+            chrome.storage.local.set({ 'items' : items} , function(){});
             //  Add listeners on adding items to cart.
             for(var prop in items) {
                 if(items.hasOwnProperty(prop)){
@@ -201,12 +200,50 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
                 }
             }
         }
-    };*/
+    };
     
     
     document.getElementById("cart-preview").addEventListener("click", showCart);
 });
 
+function  buildCart(){
+    chrome.storage.local.get( "cart", function(result) {
+        var data = result["cart"];
+        var sortArray = {};
+        var i = 0;
+        for(var item in data){
+            coincFlag = false;
+            if(data.hasOwnProperty(item)){
+                //  Sorting items. Association items with same identificator.
+                for(var j in sortArray){
+                    if(sortArray.hasOwnProperty(j)){
+                        if(sortArray[j]["identificator"] == data[item]){
+                            coincFlag = true;
+                            break;
+                        }
+                    }
+                }
+                if(!coincFlag){
+                    sortArray[i] = {
+                        identificator:  data[item],
+                        amount: 1
+                    };
+                    i++;
+                }else{
+                    sortArray[j]["amount"] += 1;
+                }
+            }
+        }
+        
+        
+        
+        
+        
+        
+        console.log(sortArray);
+    });
+    
+}
 
 function hideCart(){
     $(".cart-page").css({position: "relative"});
@@ -220,6 +257,8 @@ function showCart(){
     $(".cart-page").fadeIn("fast");
     $("#transparent-bg").fadeIn("fast");
     $("#cart-preview").fadeOut("fast");
+    //  Build content.
+    //buildCart();
     jQuery(function($){
 	$(document).mouseup(function (e){ // событие клика по веб-документу
             var div = $(".cart-page"); // тут указываем ID элемента
@@ -391,13 +430,7 @@ function addCard(){
         }else{
             alert("Enter card name!");
         }
-        
-        
-        
-    });
-    
-    
-    
+    }); 
 }
 //  Build card list.
 function updateCardList(){
@@ -410,19 +443,6 @@ function updateCardList(){
         }
      });
 }
-/*
-function updateCardList(){
-    chrome.storage.local.get(function(cardData) {
-        var list = document.getElementById("select-card-list");
-        for(var prop in cardData) {
-            if(cardData.hasOwnProperty(prop)){
-               list.options[list.options.length] = new Option(prop, prop);
-            }
-        }
-     });
-}
-*/
-
 
 //  Change card data.
 $(document).ready(function() {
@@ -482,5 +502,6 @@ document.addEventListener("DOMContentLoaded", function () { //  For Droplist
          }
          
      });
+     
     
 });
