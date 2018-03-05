@@ -211,6 +211,7 @@ function  buildCart(){
         var data = result["cart"];
         var sortArray = {};
         var i = 0;
+        var counter = 0;    //  Amount of items in cart.
         for(var item in data){
             coincFlag = false;
             if(data.hasOwnProperty(item)){
@@ -221,8 +222,10 @@ function  buildCart(){
                             coincFlag = true;
                             break;
                         }
+                        
                     }
                 }
+                counter++;  //  Amount of items in cart.
                 if(!coincFlag){
                     sortArray[i] = {
                         identificator:  data[item],
@@ -234,13 +237,50 @@ function  buildCart(){
                 }
             }
         }
+        //  Cart content generator.
+        //  Take stored items.
+        chrome.storage.local.get( "items", function(items) {
+            var object = items["items"];
+            var tempArray = {};
+            for(var item in object){
+                if(object.hasOwnProperty(item)){
+                    tempArray[item] = {
+                        img: object[item]["img"],
+                        name: object[item]["name"],
+                        price: object[item]["price"]
+                    }; 
+                }
+            }
+            console.log(tempArray);
+            //  Items in cart.
+            var totalPrice = 0;
+            for(var item in sortArray){
+                if(sortArray.hasOwnProperty(item)){
+                    var itemNumber = (sortArray[item]["identificator"]).split("-")[1];
+                    //  Calculate total price.
+                    var splitPrice = (tempArray[itemNumber]["price"]).split("/")[0];
+                    splitPrice = (splitPrice).split("$")[1];
+                    totalPrice += Number(sortArray[item]['amount']) * Number(splitPrice);
+                    //  Generate content.
+                    
+                    $("#cart-table").append("<tr>" + 
+                        "<td><img src='https://www.supremecommunity.com" + tempArray[itemNumber]["img"] + "' width='50px'></td>" +
+                        "<td>" + tempArray[itemNumber]["name"] + "</td>" + 
+                        "<td>" + Number(splitPrice) + "$</td>" + 
+                        "<td><a id='remove-item-" + itemNumber + "'>remove</a></td>" + 
+                        "<td>" + sortArray[item]['amount'] + "</td>" + 
+                    "</tr>");
+                }
+            }
+            $("#total-price").html("<b>subtotal: " + totalPrice + "$</b>");
+            $("#amount-items-in-cart-2").text(counter);
+        });
+        
+        //  Distribution by payment cards.
         
         
         
-        
-        
-        
-        console.log(sortArray);
+        //console.log(sortArray);
     });
     
 }

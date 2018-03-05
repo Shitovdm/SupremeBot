@@ -293,6 +293,51 @@ h1{
 }
 .card-in-cart{
     width: 100%;
+    color: #999;
+    font-size: 13px;
+    font-family: "Courier New", Courier, Monaco;
+    font-weight: 400;
+}
+.card-in-cart div{
+    width: 100%;
+    border-bottom: 1px dashed #ccc;
+    border-top: 1px dashed #ccc;
+    margin-top:5px;
+}
+.card-title{
+    margin-top:0px!important;
+    border-top: none!important;
+    text-align: center;
+}
+.card-title b{
+    padding: 5px 10px;
+    line-height: 2em;
+}
+
+.card-block table{
+    width: 100%;
+}
+
+.card-block table tr td{
+    border-bottom: 1px dashed #ccc;
+    padding: 5px;
+}
+.card-block table tr:last-child td{
+    border-bottom: none;
+}
+.card-block table tr td:first-child{
+    border-right: 1px dashed #ccc;
+}
+.card-block table tr:first-child td:first-child{
+    border-right: none;
+}
+.card-block table tr:last-child td:first-child{
+    border-right: none;
+    padding: 0px 5px!important;
+    text-align: center;
+}
+.card-block table tr td:nth-child(2n){
+    text-align: center;
 }
 
 .cart-total{
@@ -306,6 +351,7 @@ h1{
     border: 1px dashed #ccc;
     margin-top: 0px;
     padding: 11px;
+    text-align:right;
 }
 .cart-total-container b{
     color: #999;
@@ -314,6 +360,7 @@ h1{
     font-weight: 400;
     line-height: 0em;
     padding: 10px;
+    text-decoration: underline;
 }
 
 
