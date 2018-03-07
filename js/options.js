@@ -45,42 +45,40 @@ function loadDropContent(droplist){
     xhr.onreadystatechange = function() {
         if (xhr.readyState == 4 && xhr.status === 200) {
             // Parse page content.
-            var el = $("<div></div>");
-            el.html(xhr.responseText);
-            //  Общие данные.
-            var title = $(".container h1",el).text();
-            var titleInfo = $(".lead",el).text();
+            var doc = new DOMParser().parseFromString(xhr.responseText, "text/html");
+            var droplists = doc.getElementsByClassName("block");
             //  Inject common data.
             $("#droplist-info").text("Items releasing on " + droplist + ". Prices are not guaranteed until after drop.");
             $("#items-content").html("");
             //  Items data.
-            var itemsName = $(".card__body h5",el); //  Имена предметов.
-            var itemsImgURL = $(".masonry__item img",el); //  Части ссылок на изображения предметов.
-            var itemsPrices = $(".label-price",el); //  Цены предметов.
+            var itemsName = doc.getElementsByClassName("card__body");
+            var itemsImgURL = doc.getElementsByClassName("masonry__item"); //  Части ссылок на изображения предметов.
+            var itemsPrices = doc.getElementsByClassName("label-price"); //  Цены предметов.
             //  Все данные получены, вставляем на страницу.
             //  Создаем контейнеры и наполняем их.
             var items = {};
             for( var i = 0; i < $(itemsName).length; i++){
                 //  Build items array.
+                var imgCont = $(itemsImgURL[i]).context.children["0"].children["0"].children["0"].children["0"];
                 items[i] = {
-                    "name": $(itemsName[i]).text(),
-                    "img": $(itemsImgURL[i]).attr("src"),
+                    "name": $(itemsName[i]).children("h5").text(),
+                    "img": $(imgCont).attr("src"),
                     "price": $(itemsPrices[i]).text()
                 }; 
                 //  Build content.
                 var newItem = document.createElement("div");
                 newItem.setAttribute("class", "item-container");
                 newItem.innerHTML = '<div class="item-img no-select">'+
-                                        '<img src="https://www.supremecommunity.com'+$(itemsImgURL[i]).attr("src")+'" width="95%">'+
+                                        '<img src="https://www.supremecommunity.com' + $(imgCont).attr("src") + '" width="95%">'+
                                     '</div>'+
                                     '<div class="item-title">'+
-                                        '<h5>'+$(itemsName[i]).text()+'</h5>'+
+                                        '<h5>' + $(itemsName[i]).text() + '</h5>'+
                                     '</div>'+
                                     '<div class="item-other">'+
                                         '<div class="item-price">'+
-                                            '<span>'+$(itemsPrices[i]).text()+'</span>'+
+                                            '<span>' + $(itemsPrices[i]).text() + '</span>'+
                                         '</div>'+
-                                        '<div class="item-addToCart" id="item-'+i+'">'+
+                                        '<div class="item-addToCart" id="item-' + i + '">'+
                                             '<span>Add to Cart</span>'+
                                         '</div>'+
                                     '</div>';
@@ -194,9 +192,6 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
         }
     });
     //  Download droplist from comunity.
-    //var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
-    //https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-08/
-    
     //  Page with all lists.
     var source = "https://www.supremecommunity.com/season/spring-summer2018/droplists/";
     var source_xhr = new XMLHttpRequest();
@@ -206,14 +201,16 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
         if (source_xhr.readyState == 4 && source_xhr.status === 200){
             //  Если страница с предметами успешно загрузилась.
             var container = $("<div></div>");
-            container.html(source_xhr.responseText);
-            var droplists = $(".block",container);
+            var a = source_xhr.responseText;
+            //console.log(a);
+            //container.html(source_xhr.responseText);
+            //var droplists = $(".block",a);
+            var doc = new DOMParser().parseFromString(source_xhr.responseText, "text/html");
+            var droplists = doc.getElementsByClassName("block");
+            console.log(droplists);
             for(var i = 1; i < $(droplists).length; i++){
                 console.log($(droplists[i]).attr("href"));
             }
-            //  Create title, info and items big container.
-            //  Title.
- 
             //  Info.
             $("#droplist-info").html("Items releasing on " + $(droplists[1]).attr("href").split("/")[4] + ". Prices are not guaranteed until after drop.");
             //  Select
@@ -229,16 +226,9 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
                     
             // Loading and inject items data.
             loadDropContent($(droplists[1]).attr("href").split("/")[4]);
-            
-            
-            
-            
         }
     };
-    
-    
-    
-    
+
     document.getElementById("cart-preview").addEventListener("click", showCart);
 });
 
