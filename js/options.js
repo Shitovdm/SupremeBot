@@ -29,13 +29,135 @@ function navbarSwitchOnFormData(e){
     });
     $("#content-form").fadeIn(1000);
 }
-function addToCard(){
-    alert("RABOTAet");
+function onChangeDroplist(){
+    //  Onchange droplist.
+    $('#droplist-number').on("change",function() {
+         loadDropContent($(this).val());
+    });
+}
+
+function loadDropContent(droplist){
+    var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/" + droplist;
+    // Get sourse code, parse.
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.send();
+    xhr.onreadystatechange = function() {
+        if (xhr.readyState == 4 && xhr.status === 200) {
+            // Parse page content.
+            var el = $("<div></div>");
+            el.html(xhr.responseText);
+            //  Общие данные.
+            var title = $(".container h1",el).text();
+            var titleInfo = $(".lead",el).text();
+            //  Inject common data.
+            $("#droplist-info").text("Items releasing on " + droplist + ". Prices are not guaranteed until after drop.");
+            $("#items-content").html("");
+            //  Items data.
+            var itemsName = $(".card__body h5",el); //  Имена предметов.
+            var itemsImgURL = $(".masonry__item img",el); //  Части ссылок на изображения предметов.
+            var itemsPrices = $(".label-price",el); //  Цены предметов.
+            //  Все данные получены, вставляем на страницу.
+            //  Создаем контейнеры и наполняем их.
+            var items = {};
+            for( var i = 0; i < $(itemsName).length; i++){
+                //  Build items array.
+                items[i] = {
+                    "name": $(itemsName[i]).text(),
+                    "img": $(itemsImgURL[i]).attr("src"),
+                    "price": $(itemsPrices[i]).text()
+                }; 
+                //  Build content.
+                var newItem = document.createElement("div");
+                newItem.setAttribute("class", "item-container");
+                newItem.innerHTML = '<div class="item-img no-select">'+
+                                        '<img src="https://www.supremecommunity.com'+$(itemsImgURL[i]).attr("src")+'" width="95%">'+
+                                    '</div>'+
+                                    '<div class="item-title">'+
+                                        '<h5>'+$(itemsName[i]).text()+'</h5>'+
+                                    '</div>'+
+                                    '<div class="item-other">'+
+                                        '<div class="item-price">'+
+                                            '<span>'+$(itemsPrices[i]).text()+'</span>'+
+                                        '</div>'+
+                                        '<div class="item-addToCart" id="item-'+i+'">'+
+                                            '<span>Add to Cart</span>'+
+                                        '</div>'+
+                                    '</div>';
+                document.getElementById("items-content").appendChild(newItem);
+            }
+            //  When items uploaded. Show droplist block.
+            $("#content-droplist").fadeIn(1000);
+            // Save items to local storage.
+            chrome.storage.local.set({ 'items' : items} , function(){});
+            //  Add listeners on adding items to cart.
+            for(var prop in items) {
+                if(items.hasOwnProperty(prop)){
+                    document.getElementById("item-" + prop).addEventListener("click", function(prop){
+                        var itemID = "";
+                        if(prop.target.localName === "span"){
+                            itemID = prop.target.parentElement.id;
+                        }else{
+                            if(prop.target.localName === "div"){
+                                itemID = prop.target.id;
+                            }
+                        }
+                        //  Fint cart in local storage. if cart not found, add cart.
+                        chrome.storage.local.get( function(result){
+                            var issetCart = false;
+                             for(var prop in result) {
+                                if((result.hasOwnProperty(prop)) && (prop == "cart")){
+                                    issetCart = true;
+                                    break;
+                                }
+                            }
+                            if(!issetCart){
+                                //  Add cart into local storage;
+                                chrome.storage.local.set({ 'cart' : {}}, function(){ 
+                                    console.log("cart added!");
+                                });
+                            }
+                            //  Adding new item into cart.
+                            chrome.storage.local.get( 'cart', function(result){
+                                var data = result["cart"];
+                                var len = 0;
+                                for(var prop in data) {
+                                    if(data.hasOwnProperty(prop)){
+                                        len++;
+                                    }
+                                }
+                                data[len] = itemID;
+                                writeNewCart(data);
+                                function writeNewCart(data){
+                                    chrome.storage.local.set({ 'cart' : data}, function(){
+                                        var itemsAmount = 0;
+                                        for(var item in data){
+                                            if(data.hasOwnProperty(item)){
+                                                itemsAmount++;
+                                            }
+                                        }
+                                        $("#amount-items-in-cart").text( itemsAmount);
+                                        $("#amount-items-in-cart").css({display:"block"});
+                                        $("#amount-items-in-cart").css("animation", "itemsAmountScale 0.5s infinite ease-in-out");
+                                        setTimeout(function(){
+                                            $("#amount-items-in-cart").css("animation", "none");
+                                        },1000);
+                                    });
+                                } 
+                            });
+                        });
+                    });
+                }
+            }
+        }
+    };
 }
 
 document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     /*удалить*/
      buildCart();
+     
+     
     chrome.storage.local.get(function(cart){
         console.log(cart);
     });
@@ -72,140 +194,58 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
         }
     });
     //  Download droplist from comunity.
-    var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
-    // Получаем и парсим код Steam страницы с предметом
-    var xhr = new XMLHttpRequest();
-    xhr.open("GET", url, true);
-    xhr.send();
-    xhr.onreadystatechange = function() {
-        if (xhr.readyState == 4 && xhr.status === 200) {    //  Если запрос успешно дал ответ.
-            // Парсим страницу с последним дропом.
-            var el = $("<div></div>");
-            el.html(xhr.responseText);
-            //  Общие данные.
-            var title = $(".container h1",el).text();
-            var titleInfo = $(".lead",el).text();
-            //  Помещаем общие данные на страницу.
-            var droplistNumber = document.createElement("div");
-            droplistNumber.setAttribute("class", "droplist-title");
-            droplistNumber.innerHTML = "<h1 id='droplist-number'>"+ title +"</h1>";
-            var droplistInfo = document.createElement("div");
-            droplistInfo.setAttribute("class", "droplist-title");
-            droplistInfo.innerHTML = "<h2 id='droplist-info'>"+ titleInfo +"</h2>";
-            document.getElementById("content-droplist").appendChild(droplistNumber);
-            document.getElementById("content-droplist").appendChild(droplistInfo);
-            //  Данные о предметах.
-            var itemsName = $(".card__body h5",el); //  Имена предметов.
-            var itemsImgURL = $(".masonry__item img",el); //  Части ссылок на изображения предметов.
-            var itemsPrices = $(".label-price",el); //  Цены предметов.
-            //  Все данные получены, вставляем на страницу.
-            //  Создаем контейнеры и наполняем их.
-            var items = {};
-            for( var i = 0; i < $(itemsName).length; i++){
-                //  Build items array.
-                items[i] = {
-                    "name": $(itemsName[i]).text(),
-                    "img": $(itemsImgURL[i]).attr("src"),
-                    "price": $(itemsPrices[i]).text()
-                }; 
-                //  Build content.
-                var newItem = document.createElement("div");
-                newItem.setAttribute("class", "item-container");
-                newItem.innerHTML = '<div class="item-img no-select">'+
-                                        '<img src="https://www.supremecommunity.com'+$(itemsImgURL[i]).attr("src")+'" width="95%">'+
-                                    '</div>'+
-                                    '<div class="item-title">'+
-                                        '<h5>'+$(itemsName[i]).text()+'</h5>'+
-                                    '</div>'+
-                                    '<div class="item-other">'+
-                                        '<div class="item-price">'+
-                                            '<span>'+$(itemsPrices[i]).text()+'</span>'+
-                                        '</div>'+
-                                        '<div class="item-addToCart" id="item-'+i+'">'+
-                                            '<span>Add to Cart</span>'+
-                                        '</div>'+
-                                    '</div>';
-                document.getElementById("content-droplist").appendChild(newItem);
+    //var url = "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/";
+    //https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-08/
+    
+    //  Page with all lists.
+    var source = "https://www.supremecommunity.com/season/spring-summer2018/droplists/";
+    var source_xhr = new XMLHttpRequest();
+    source_xhr.open("GET", source, true);
+    source_xhr.send();
+    source_xhr.onreadystatechange = function() {
+        if (source_xhr.readyState == 4 && source_xhr.status === 200){
+            //  Если страница с предметами успешно загрузилась.
+            var container = $("<div></div>");
+            container.html(source_xhr.responseText);
+            var droplists = $(".block",container);
+            for(var i = 1; i < $(droplists).length; i++){
+                console.log($(droplists[i]).attr("href"));
             }
-            //  When items uploaded. Show droplist block.
-            $("#content-droplist").fadeIn(1000);
-            // Save items to local storage.
-            chrome.storage.local.set({ 'items' : items} , function(){});
-            //  Add listeners on adding items to cart.
-            for(var prop in items) {
-                if(items.hasOwnProperty(prop)){
-                    //console.log(items[prop]);
-                    document.getElementById("item-" + prop).addEventListener("click", function(prop){
-                        var itemID = "";
-                        if(prop.target.localName === "span"){
-                            itemID = prop.target.parentElement.id;
-                        }else{
-                            if(prop.target.localName === "div"){
-                                itemID = prop.target.id;
-                            }
-                        }
-                        //  Fint cart in local storage. if cart not found, add cart.
-                        chrome.storage.local.get( function(result){
-                            var issetCart = false;
-                             for(var prop in result) {
-                                if((result.hasOwnProperty(prop)) && (prop == "cart")){
-                                    issetCart = true;
-                                    break;
-                                }
-                            }
-                            if(!issetCart){
-                                //  Add cart into local storage;
-                                chrome.storage.local.set({ 'cart' : {}}, function(){ 
-                                    console.log("cart added!");
-                                });
-                            }
-                            //  Adding new item into cart.
-                            chrome.storage.local.get( 'cart', function(result){
-                                var data = result["cart"];
-                                var len = 0;
-                                for(var prop in data) {
-                                    if(data.hasOwnProperty(prop)){
-                                        len++;
-                                    }
-                                }
-                                data[len] = itemID;
-                                console.log(data,len+1);
-                                writeNewCart(data);
-
-                                function writeNewCart(data){
-                                    chrome.storage.local.set({ 'cart' : data}, function(){
-                                        var itemsAmount = 0;
-                                        for(var item in data){
-                                            if(data.hasOwnProperty(item)){
-                                                itemsAmount++;
-                                                console.log("abrakadabre!");
-                                            }
-                                        }
-                                        $("#amount-items-in-cart").text( itemsAmount);
-                                        $("#amount-items-in-cart").css({display:"block"});
-                                        $("#amount-items-in-cart").css("animation", "itemsAmountScale 0.5s infinite ease-in-out");
-                                        setTimeout(function(){
-                                            $("#amount-items-in-cart").css("animation", "none");
-                                        },1000);
-                                    });
-                                } 
-                            });
-                            
-                        });
-                        
-                        
-                        
-                        
-                    });
-                }
+            //  Create title, info and items big container.
+            //  Title.
+ 
+            //  Info.
+            $("#droplist-info").html("Items releasing on " + $(droplists[1]).attr("href").split("/")[4] + ". Prices are not guaranteed until after drop.");
+            //  Select
+            //  Creare select field.
+            var droplistSelect = document.createElement("select");
+            droplistSelect.setAttribute("id", "droplist-number");
+            for(var i = 1; i < $(droplists).length; i++){
+                var href = $(droplists[i]).attr("href");
+                droplistSelect.innerHTML += "<option value='" + href.split("/")[4] + "'>Droplist " + href.split("/")[4] + "</option>";
             }
+            document.getElementById("droplist-title").appendChild(droplistSelect);
+            onChangeDroplist();        
+                    
+            // Loading and inject items data.
+            loadDropContent($(droplists[1]).attr("href").split("/")[4]);
+            
+            
+            
+            
         }
     };
+    
+    
     
     
     document.getElementById("cart-preview").addEventListener("click", showCart);
 });
 
+
+
+
+//  Cart content builder.
 function  buildCart(){
     chrome.storage.local.get( "cart", function(result) {
         var data = result["cart"];
@@ -222,7 +262,6 @@ function  buildCart(){
                             coincFlag = true;
                             break;
                         }
-                        
                     }
                 }
                 counter++;  //  Amount of items in cart.
@@ -251,9 +290,10 @@ function  buildCart(){
                     }; 
                 }
             }
-            console.log(tempArray);
             //  Items in cart.
             var totalPrice = 0;
+            //  Paste amount of items in cart.
+            $("#cart-table").html("<tr><td colspan='5'><b id='amount-items-in-cart-2'></b> items in your basket.</td></tr>"); 
             for(var item in sortArray){
                 if(sortArray.hasOwnProperty(item)){
                     var itemNumber = (sortArray[item]["identificator"]).split("-")[1];
@@ -262,18 +302,55 @@ function  buildCart(){
                     splitPrice = (splitPrice).split("$")[1];
                     totalPrice += Number(sortArray[item]['amount']) * Number(splitPrice);
                     //  Generate content.
-                    
                     $("#cart-table").append("<tr>" + 
                         "<td><img src='https://www.supremecommunity.com" + tempArray[itemNumber]["img"] + "' width='50px'></td>" +
                         "<td>" + tempArray[itemNumber]["name"] + "</td>" + 
                         "<td>" + Number(splitPrice) + "$</td>" + 
-                        "<td><a id='remove-item-" + itemNumber + "'>remove</a></td>" + 
+                        "<td><a id='remove-" + sortArray[item]['identificator'] + "'>remove</a></td>" + 
                         "<td>" + sortArray[item]['amount'] + "</td>" + 
                     "</tr>");
+                    //  Add event listener to remove button.
+                    document.getElementById("remove-" + sortArray[item]['identificator']).addEventListener("click", function(e){
+                        var itemID = e.target.id.substring(7);
+                        chrome.storage.local.get('cart', function(result){
+                            var items = result['cart'];
+                            var tempArray = {};
+                            var counter = 0;
+                            var countRemovedItems = 0;
+                            for(var item in items){
+                                if(items.hasOwnProperty(item)){
+                                    if(items[item] != itemID){  //  Coincidence
+                                        tempArray[counter] = items[item];
+                                        counter++; 
+                                    }else{
+                                        if(countRemovedItems > 0){
+                                            tempArray[counter] = items[item];
+                                            counter++;
+                                        }else{
+                                            countRemovedItems++;
+                                        }
+                                    }
+                                }
+                            }
+                            //  Write net items array to cart.
+                            chrome.storage.local.set({ 'cart' : tempArray}, function(){
+                                //  Update cart.
+                                buildCart();
+                            });
+                        });
+                    });
                 }
             }
             $("#total-price").html("<b>subtotal: " + totalPrice + "$</b>");
             $("#amount-items-in-cart-2").text(counter);
+            if(counter == 0){
+                 $("#cart-table").append("<b id='warning-empty-cart'>To add an item to the basket, select the item on the 'Droplist' page and click 'Add cart'</b>");
+                 $("#amount-items-in-cart").text("0");
+                $("#amount-items-in-cart").css({display:"none"});
+            }else{
+                $("#amount-items-in-cart").text(counter);
+                $("#amount-items-in-cart").css({display:"block"});
+            }
         });
         
         //  Distribution by payment cards.
@@ -293,6 +370,7 @@ function hideCart(){
 }   
 //  Функция выезжающей корзины.
 function showCart(){
+    buildCart();
     $(".cart-page").css({position: "fixed"});
     $(".cart-page").fadeIn("fast");
     $("#transparent-bg").fadeIn("fast");
@@ -374,9 +452,8 @@ function saveCard(){
         }); 
     } 
 }
-/*
- * Function delete selected card.
- */
+
+//  Function delete selected card.
 function deleteCard(){
     var cardIdentificator = $('#select-card-list').val();
     chrome.storage.local.get("card", function(data) {
@@ -399,6 +476,7 @@ function deleteCard(){
     });
 }
 
+//  Clear all fields.
 function clearAllFields(){
     $("#full-name").val("");
     $("#email").val("");
@@ -406,11 +484,9 @@ function clearAllFields(){
     $("#address").val("");
     $("#address-2").val("");
     $("#address-3").val("");
-
     $("#city").val("");
     $("#postcode").val("");
     $("#country").val("");
-
     $("#card-type").val("");
     $("#card-number").val("");
     $("#card-month").val("");
@@ -419,6 +495,7 @@ function clearAllFields(){
     $("#card-money").val("");
 }
 
+//  Function add new card into local storage.
 function addCard(){
     //  Read old array.
     chrome.storage.local.get("card", function(data) {
@@ -443,7 +520,6 @@ function addCard(){
             cardCVV : $("#card-cvv").val(),
             cardMoney : $("#card-money").val()
         };
-
         //  If isset card name.
         if($("#card-identificator").val() != ""){
             //  If whis card alredy in list.
@@ -459,7 +535,6 @@ function addCard(){
                 //  Add new card into local srorage and into card list.
                 var list = document.getElementById("select-card-list");
                 list.options[list.options.length] = new Option($("#card-identificator").val(), $("#card-identificator").val());
-  
                 tempArray[$("#card-identificator").val()] = cardData;
                 chrome.storage.local.set({ "card" :  tempArray} , function(){ 
                     alert("Card '" + $("#card-identificator").val() + "' has been addad!");
@@ -472,6 +547,7 @@ function addCard(){
         }
     }); 
 }
+
 //  Build card list.
 function updateCardList(){
     chrome.storage.local.get(function(result) {
@@ -487,12 +563,10 @@ function updateCardList(){
 //  Change card data.
 $(document).ready(function() {
     //  Fill cards in list.
-    updateCardList();   //  Build card list.
-    
+    updateCardList();   //  Build card list
     // Onchange card action.
     $('#select-card-list').on("change",function() {
         var card = $(this).val();    //  Value of select field.
-        console.log(card);
         //  Loading card data from local storage.
         chrome.storage.local.get("card", function(cardData) {
             //  Placing data into form.

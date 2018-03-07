@@ -125,13 +125,24 @@
                 </div>
             </div>
             
-            <!-- Рабочее поле дроплиста -->
+            <!-- Work field of droplist. -->
             
             <div class="data-options" id="content-droplist">
+                <!-- Droplist cart. -->
                 <div id="cart-preview">
                     <img id="show-cart" class="droplist-cart" alt="Go to cart" src="img/cart.jpg" width="70px;">
                     <span id="amount-items-in-cart">0</span>
                 </div>
+                <!-- Droplist title. -->
+                <div id="title-content">
+                    <div id="droplist-title"></div>
+                    <div class="droplist-title" id="droplist-info-cont">
+                        <h2 id="droplist-info"></h2>
+                    </div>
+                </div>
+                <!-- Droplist items. -->
+                <div id="items-content"></div>
+                <!-- Cart. -->
                 <div class="cart-page">
                     <div class="cart-page-title">
                         <b>CART</b>
@@ -139,11 +150,8 @@
                     <div class="clear"></div>
                     <div class="cart-page-table">
                         <div class="cart-table-container">
-                            <table id="cart-table">
-                                <tr>
-                                    <td colspan="5"><b id="amount-items-in-cart-2"></b> items in your basket.</td>
-                                </tr>
-                            </table>
+                            <!-- Cart main table. -->
+                            <table id="cart-table"></table>
                          </div>
                     </div>
                     <div class="cart-page-control">
