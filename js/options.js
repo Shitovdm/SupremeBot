@@ -1,3 +1,60 @@
+
+/*Drug and drop*/
+//  Re-calculating function.
+function recalculation(ui){
+    //var lastContainer = ui.helper["0"].parentNode.id;    //  Откуда блок пришел. 
+    //var currentContainer = ui.helper["0"].parentNode.id;
+    //console.log("Last container: ",lastContainer);
+    //console.log("Current container:", currentContainer);
+    console.log(ui); 
+    //  Если расположение поменялось только внутри контейнера текущей карты, то ничего не пересчитываем.
+    if(1==1){
+
+    }
+}
+
+function getElementWidth(id){
+    return document.getElementById("item-11").style.width;
+}
+
+$(function(){
+    var newWidth;
+    $(window).resize(function(){
+        newWidth = getElementWidth("item-11");
+    });
+
+    /*$('#itemContainer').sortable({
+        connectWith: '#fitemContainer,#ditemContainer'
+    });
+    $('#fitemContainer').sortable({
+        connectWith: '#itemContainer,#ditemContainer'
+    });
+    $('#ditemContainer').sortable({
+        connectWith: '#itemContainer,#fitemContainer',
+        update: function(event, ui){
+            //  re-calculate current prices and regrooping items into cards.
+            recalculation(ui);
+        }
+    });*/
+    $('.cardItemsContainer').sortable({
+        revert: 100,
+        placeholder: 'emptySpace',
+        start: function(event, ui){
+            document.getElementById("item-11").style.width = $("#item-11").css("width")
+            //  item conteiner size. Take random container.
+            //var newWidth = $(".cardItemsContainer .sortable").css("width");
+            
+            //  re-calculate current prices and regrooping items into cards.
+            var itemId = ui.item["0"].id;
+            console.log(itemId,document.getElementById("item-11").style.width);
+            $("#" + itemId).css("width",newWidth);
+        }
+    });
+    
+});
+
+
+
 /******************* Функции для дроплиста ********************/
 //  Переключение на Droplist.
 function navbarSwitchOnDroplist(e){ 
