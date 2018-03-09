@@ -345,7 +345,7 @@ h1{
 }
 .card-block table tr:last-child td:first-child{
     border-right: none;
-    padding: 2px 0px!important;
+    padding: 0px 0px!important;
     text-align: center;
 }
 .card-block table tr td:nth-child(2n){
@@ -428,37 +428,41 @@ h1{
 
 
 /* Drug and Drop*/
-div.sortable{ 
 
-            cursor: pointer;
-        }
-.widthg{
-    width:50px;
+.cardItemsContainer{
+    min-width: 200px;
+    min-height: 116px;
+    width: 402px;
 }
-.itemContainer{
-    
-    
-}
-.item{
+div.sortable{
     width: 90px!important;
     float: left;
+    margin-top: 5px;
     margin-left: 10px;
+    margin-bottom: 5px;
     position: relative;
     text-align: center;
     border-radius: 3px;
     border: 1px solid #ccc!important;
+    background-color: #fff;
+    cursor: pointer;
+    user-select:none;
 }
 .emptySpace{
+    margin-top: 5px;
+    margin-bottom: 5px;
     width: 90px!important;
+    height: 103px;
     float: left;
     margin-left: 10px;
     border: 1px dashed #ccc;
 }
-.item img{
+.sortable img{
     width: 90%;
-    margin-bottom: 10px;
+        margin-bottom: 15px;
+    margin-top: 3px;
 }
-.item span{
+.sortable span{
     position: absolute;
     bottom: 0px;
     left: 0;

@@ -1,58 +1,46 @@
 
 /*Drug and drop*/
 //  Re-calculating function.
-function recalculation(ui){
-    //var lastContainer = ui.helper["0"].parentNode.id;    //  Откуда блок пришел. 
-    //var currentContainer = ui.helper["0"].parentNode.id;
-    //console.log("Last container: ",lastContainer);
-    //console.log("Current container:", currentContainer);
-    console.log(ui); 
-    //  Если расположение поменялось только внутри контейнера текущей карты, то ничего не пересчитываем.
-    if(1==1){
 
-    }
-}
 
-function getElementWidth(id){
-    return document.getElementById("item-11").style.width;
-}
-
-$(function(){
-    var newWidth;
-    $(window).resize(function(){
-        newWidth = getElementWidth("item-11");
-    });
-
-    /*$('#itemContainer').sortable({
-        connectWith: '#fitemContainer,#ditemContainer'
-    });
-    $('#fitemContainer').sortable({
-        connectWith: '#itemContainer,#ditemContainer'
-    });
-    $('#ditemContainer').sortable({
-        connectWith: '#itemContainer,#fitemContainer',
-        update: function(event, ui){
-            //  re-calculate current prices and regrooping items into cards.
-            recalculation(ui);
+function recalculation(){
+    //  get all items in all cards;
+    var conteiners = $(".cardItemsContainer");
+    var cardWriteOffSum = {};
+    for(var t = 0; t < $(conteiners).length; t++){
+        cardWriteOffSum[t] = 0;
+        var item = $(conteiners[t]).children("div");
+        //console.log($(item[0]).children("span").text());
+        for(var it = 0; it < $(conteiners[t]).children("div").length; it++){
+            cardWriteOffSum[t] += Number(($(item[it]).children("span").text()).split("$")[0]);
+            console.log(Number(($(item[it]).children("span").text()).split("$")[0]));
         }
-    });*/
+        //console.log(t,"AMOUNT: ",$(conteiners[t]).children("div").length);
+        $("#writeOffFromCard-" + t).text(cardWriteOffSum[t]);
+    }
+    console.log(cardWriteOffSum);
+    
+}
+/*
+$(function(){
+    $('#card-q').sortable({
+        connectWith: '#card-w'
+    });
+    $('#card-w').sortable({
+        connectWith: '#card-q'
+    });
+
     $('.cardItemsContainer').sortable({
         revert: 100,
         placeholder: 'emptySpace',
-        start: function(event, ui){
-            document.getElementById("item-11").style.width = $("#item-11").css("width")
-            //  item conteiner size. Take random container.
-            //var newWidth = $(".cardItemsContainer .sortable").css("width");
-            
+        receive: function(event, ui){
             //  re-calculate current prices and regrooping items into cards.
-            var itemId = ui.item["0"].id;
-            console.log(itemId,document.getElementById("item-11").style.width);
-            $("#" + itemId).css("width",newWidth);
+            recalculation();
         }
     });
     
 });
-
+*/
 
 
 /******************* Функции для дроплиста ********************/
@@ -401,7 +389,105 @@ function  buildCart(){
         });
         
         //  Distribution by payment cards.
+        chrome.storage.local.get('card', function(result){
+            var res = result['card'];
+            $(".card-in-cart").html('<div class="card-title"><b>Distribution by payment cards</b></div>');
+            
+            var counter = 0;
+            for(var card in res){
+                if(res.hasOwnProperty(card)){
+                    console.log("qwerty");
+                    //  Build content for card field.
+                    console.log(card, res[card]['cardMoney']);
+                    
+                    $(".card-in-cart").append('<div class="card-block">' +
+                        '<table>' +
+                            '<tr>' +
+                                '<td>' + card + '</td>' +
+                                '<td><input id="checkBox" type="checkbox"></td>' +
+                            '</tr>' +
+                            '<tr>' +
+                                '<td>ballance:</td>' +
+                                '<td>' + res[card]['cardMoney'] + '</td>' +
+                            '</tr>' +
+                            '<tr>' +
+                                '<td>to write-off:</td>' +
+                                '<td id="writeOffFromCard-' + counter + '"></td>' +
+                            '</tr>' +
+                            '<tr>' +
+                                '<td colspan="2">' +
+                                    '<div class="cardItemsContainer" id="card-' + counter + '"></div>' +
+                                '</td>' +
+                            '</tr>' +
+                        '</table>' +
+                    '</div>');
+                    
+                    
+                    
+                    counter++; 
+                }
+            }
+            //  Adding sortable actions on all blocks.
+              
+            for(var f = 0; f < counter; f++){
+                var connectedItems = "";
+                for(var h = 0; h < counter; h++){
+                    if( f != h ){
+                        if(connectedItems != ""){
+                            connectedItems += ",";
+                        }
+                        connectedItems += "#card-" + h; 
+                    }
+                }
+                $('#card-' + f).sortable({
+                    connectWith: connectedItems
+                });
+            }
+            $('.cardItemsContainer').sortable({
+                revert: 100,
+                placeholder: 'emptySpace',
+                receive: function(event, ui){
+                    //  re-calculate current prices and regrooping items into cards.
+                    recalculation();
+                }
+            });
+            
+            //  Process items in cart.
+            chrome.storage.local.get(function(result){
+                var cart = result['cart'];
+                var items = result["items"];
+                
+                for(var item in cart){
+                    if(cart.hasOwnProperty(item)){
+                        var num = Number(cart[item].split("-")[1]);
+                        console.log(items[num]["price"]);
+                        //  Algo.
+                        console.log(num);
+                        $("#card-0").append('<div class="sortable" id="item-min-"' + num + '>' +
+                            '<img class="itemImage" src="https://www.supremecommunity.com' + items[num]["img"] + '" width="90%">' +
+                            '<span class="itemTitle">117$</span>' +
+                        '</div> ');
+                        
+
+                    }
+                }
+                
+                for(var prop in items){
+                    if(items.hasOwnProperty(prop)){
+                        //console.log(items[0]["price"]);
+                    }
+                }
+                
+                
+                
+            });
+            
+        });
         
+        // Build cards list.
+        /*for(var i = 0; i < 2){
+            $("#card-in-cart").append(cardBlock[i]);
+        }*/
         
         
         //console.log(sortArray);
