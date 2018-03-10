@@ -374,7 +374,10 @@ h1{
     padding: 10px;
     text-decoration: underline;
 }
-
+.error{
+    color: #ff0000;
+    text-decoration: underline;
+}
 
 .cart-bottom{
     float: left;

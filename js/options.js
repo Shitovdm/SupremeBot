@@ -2,25 +2,61 @@
 /*Drug and drop*/
 //  Re-calculating function.
 
+//  Accept button availability.
+function acceptAvailability(state){
+    if(state == 0){
+        $(".cart-bottom input").css("background-color","#dddddd");
+        $(".cart-bottom input").css("cursor","default");
+    }else{
+        $(".cart-bottom input").css("background-color","#ff0000");
+        $(".cart-bottom input").css("cursor","pointer");
+    }
+    
+}
 
 function recalculation(){
     //  get all items in all cards;
+    var break_flag = false;
     var conteiners = $(".cardItemsContainer");
     var cardWriteOffSum = {};
-    for(var t = 0; t < $(conteiners).length; t++){
+    for(var t = 0; t < $(conteiners).length; t++){  //  Bypassing all cards.
         cardWriteOffSum[t] = 0;
         var item = $(conteiners[t]).children("div");
-        //console.log($(item[0]).children("span").text());
+        //  Обход все предметов привязанных к карте.
         for(var it = 0; it < $(conteiners[t]).children("div").length; it++){
             cardWriteOffSum[t] += Number(($(item[it]).children("span").text()).split("$")[0]);
-            console.log(Number(($(item[it]).children("span").text()).split("$")[0]));
+            //console.log(Number(($(item[it]).children("span").text()).split("$")[0]));
+            console.log($(item[it]).attr("num"));
+            for( var im = 0; im < $(conteiners[t]).children("div").length; im++){
+                if(it != im){
+                    if($(item[im]).attr("num") == $(item[it]).attr("num")){
+                        console.log("Repeat the items on one card!");
+                        acceptAvailability(0);
+                        break_flag = true;
+                    }
+                }
+            }
         }
-        //console.log(t,"AMOUNT: ",$(conteiners[t]).children("div").length);
+        
         $("#writeOffFromCard-" + t).text(cardWriteOffSum[t]);
+        
+        //  checking all sum.
+        if($("#ballance-card-" + t).text() < cardWriteOffSum[t]){
+            $("#writeOffFromCard-" + t).addClass("error");
+            acceptAvailability(0);
+            break;
+        }else{
+            if(!break_flag){
+                $("#writeOffFromCard-" + t).removeClass("error");
+                acceptAvailability(1);
+            }
+        }
+        
+        
     }
-    console.log(cardWriteOffSum);
-    
 }
+
+
 /*
 $(function(){
     $('#card-q').sortable({
@@ -198,12 +234,13 @@ function loadDropContent(droplist){
 
 document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     /*удалить*/
-     buildCart();
+     //buildCart();
      
+    document.getElementById("accept-button").addEventListener("click", acceptCart);
      
-    chrome.storage.local.get(function(cart){
+    /*chrome.storage.local.get(function(cart){
         console.log(cart);
-    });
+    });*/
     //  Активная вкладка по умочанию.
     $("#nav-form").css({
         "border-bottom" : "none",
@@ -252,10 +289,6 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
             //var droplists = $(".block",a);
             var doc = new DOMParser().parseFromString(source_xhr.responseText, "text/html");
             var droplists = doc.getElementsByClassName("block");
-            console.log(droplists);
-            for(var i = 1; i < $(droplists).length; i++){
-                console.log($(droplists[i]).attr("href"));
-            }
             //  Info.
             $("#droplist-info").html("Items releasing on " + $(droplists[1]).attr("href").split("/")[4] + ". Prices are not guaranteed until after drop.");
             //  Select
@@ -379,8 +412,8 @@ function  buildCart(){
             $("#total-price").html("<b>subtotal: " + totalPrice + "$</b>");
             $("#amount-items-in-cart-2").text(counter);
             if(counter == 0){
-                 $("#cart-table").append("<b id='warning-empty-cart'>To add an item to the basket, select the item on the 'Droplist' page and click 'Add cart'</b>");
-                 $("#amount-items-in-cart").text("0");
+                $("#cart-table").append("<b id='warning-empty-cart'>To add an item to the basket, select the item on the 'Droplist' page and click 'Add cart'</b>");
+                $("#amount-items-in-cart").text("0");
                 $("#amount-items-in-cart").css({display:"none"});
             }else{
                 $("#amount-items-in-cart").text(counter);
@@ -392,23 +425,19 @@ function  buildCart(){
         chrome.storage.local.get('card', function(result){
             var res = result['card'];
             $(".card-in-cart").html('<div class="card-title"><b>Distribution by payment cards</b></div>');
-            
+            var cardMoney = {};
             var counter = 0;
             for(var card in res){
                 if(res.hasOwnProperty(card)){
-                    console.log("qwerty");
                     //  Build content for card field.
-                    console.log(card, res[card]['cardMoney']);
-                    
                     $(".card-in-cart").append('<div class="card-block">' +
                         '<table>' +
                             '<tr>' +
-                                '<td>' + card + '</td>' +
-                                '<td><input id="checkBox" type="checkbox"></td>' +
+                                '<td colspan="2">' + card + '</td>' +
                             '</tr>' +
                             '<tr>' +
                                 '<td>ballance:</td>' +
-                                '<td>' + res[card]['cardMoney'] + '</td>' +
+                                '<td id="ballance-card-' + counter + '">' + res[card]['cardMoney'] + '</td>' +
                             '</tr>' +
                             '<tr>' +
                                 '<td>to write-off:</td>' +
@@ -421,9 +450,7 @@ function  buildCart(){
                             '</tr>' +
                         '</table>' +
                     '</div>');
-                    
-                    
-                    
+                    cardMoney[counter] = res[card]['cardMoney'];
                     counter++; 
                 }
             }
@@ -484,30 +511,11 @@ function  buildCart(){
                 averageByCard = priceTotal / counter;
                 
                 function pasteItemOnCard(j,i,img,price){
-                    $("#card-" + j).append('<div class="sortable" id="item-min-"' + i + '>' +
+                    $("#card-" + j).append('<div class="sortable" num="item-min-' + i + '">' +
                         '<img class="itemImage" src="https://www.supremecommunity.com' + img + '" width="90%">' +
                         '<span class="itemTitle">' + price + '$</span>' +
                     '</div> ');
                 }
-                /*function recalculation(){
-                    //  get all items in all cards;
-                    var conteiners = $(".cardItemsContainer");
-                    var cardWriteOffSum = {};
-                    for(var t = 0; t < $(conteiners).length; t++){
-                        cardWriteOffSum[t] = 0;
-                        var item = $(conteiners[t]).children("div");
-                        //console.log($(item[0]).children("span").text());
-                        for(var it = 0; it < $(conteiners[t]).children("div").length; it++){
-                            cardWriteOffSum[t] += Number(($(item[it]).children("span").text()).split("$")[0]);
-                            console.log(Number(($(item[it]).children("span").text()).split("$")[0]));
-                        }
-                        //console.log(t,"AMOUNT: ",$(conteiners[t]).children("div").length);
-                        $("#writeOffFromCard-" + t).text(cardWriteOffSum[t]);
-                    }
-                    console.log(cardWriteOffSum);
-
-                }*/
-                
                 
                 //  Search item with max price;
                 var max = 0;
@@ -528,7 +536,7 @@ function  buildCart(){
                         for( var j = 0; j < counter; j++){  //  Перебираем все карты.
                             if(mappingArray[j] == 0){   //  Если карта еще пустая.
                                 mappingArray[j] = purePrice[i]; //  Помещаем этот предмет на эту карту.
-                                pasteItemOnCard(j,i,items[nums[i]]["img"],purePrice[i]);
+                                pasteItemOnCard(j,nums[i],items[nums[i]]["img"],purePrice[i]);
                                 break;
                             }
                         }
@@ -536,14 +544,14 @@ function  buildCart(){
                         for( var j = 0; j < counter; j++){  //  Перебираем все карты.
                             if(mappingArray[j] < averageByCard){   //  Если карта еще пустая.
                                 mappingArray[j] += purePrice[i]; //  Помещаем этот предмет на эту карту.
-                                pasteItemOnCard(j,i,items[nums[i]]["img"],purePrice[i]);
+                                pasteItemOnCard(j,nums[i],items[nums[i]]["img"],purePrice[i]);
                                 break;
                             }
                         }
                     }
                 }
                 
-                
+                /*
                 console.log("Array of prices: ",  purePrice);
                 console.log("Amount of items: ", coi);
                 console.log("Amount of cards: ", counter);
@@ -553,11 +561,9 @@ function  buildCart(){
                 console.log("Max: ", max);
                 
                 console.log(mappingArray);
+                */
+              
                 recalculation();
-
-                
-                
-                
             });
             
         });
@@ -571,6 +577,10 @@ function  buildCart(){
         //console.log(sortArray);
     });
     
+}
+
+function acceptCart(){
+    alert("Continue!");
 }
 
 function hideCart(){
@@ -771,6 +781,23 @@ function updateCardList(){
      });
 }
 
+function exportCardsData(){
+    console.log("SAving!");
+    chrome.storage.local.get(function (result) {
+        var res = JSON.stringify(result["card"], "", 4);
+        var timestamp = new Date;
+        var obj = {
+            "filename": "backup-" + timestamp.getTime() + ".json",
+            "url": 'data:application/json;charset=utf-8,' + encodeURIComponent(res),
+            "conflictAction": "prompt",
+            "saveAs": false
+        };
+  chrome.downloads.download(obj);
+    });
+    var result = JSON.stringify(localStorage,"", 4);
+    
+}
+
 //  Change card data.
 $(document).ready(function() {
     //  Fill cards in list.
@@ -809,6 +836,7 @@ document.addEventListener("DOMContentLoaded", function () { //  For Droplist
     document.getElementById("delete-button").addEventListener("click", deleteCard);  //  
     document.getElementById("clear-button").addEventListener("click", clearAllFields);  // 
     document.getElementById("add-card").addEventListener("click", addCard);  //
+    document.getElementById("export-card").addEventListener("click", exportCardsData);  //
     
     // Create card array
      chrome.storage.local.get(function(result) {
