@@ -256,7 +256,7 @@ h1{
     margin: 10px;
     border: 1px dashed #ccc;
     width: calc(100% - 12px);
-     min-height: 700px;
+     min-height: 706px;
 }
 .cart-page-table table{
     border-collapse: collapse;
@@ -362,7 +362,7 @@ h1{
     width: calc(100% - 44px);
     border: 1px dashed #ccc;
     margin-top: 0px;
-    padding: 11px;
+    padding: 5px 10px;
     text-align:right;
 }
 .cart-total-container b{
@@ -380,6 +380,7 @@ h1{
     float: left;
     width: calc(100% - 42px);
     margin: 0px 10px;
+        margin-bottom: 10px;
     border: 1px dashed #ccc;
     padding: 10px 10px;
 }

@@ -456,27 +456,105 @@ function  buildCart(){
             chrome.storage.local.get(function(result){
                 var cart = result['cart'];
                 var items = result["items"];
-                
+                var purePrice = {}; //  Массив цен предметов.
+                var nums = {};
+                var priceTotal = 0; //  Общая сумма.
+                var averageByCard = 0;  //  Скодлько в идеале должно быть в ячейке.
+                var averageItemPrice = 0;   //  Среднее арифметическое значение цены предмета.
+                var coi = 0;
                 for(var item in cart){
                     if(cart.hasOwnProperty(item)){
                         var num = Number(cart[item].split("-")[1]);
-                        console.log(items[num]["price"]);
+                        purePrice[coi] = Number(((items[num]["price"].split("/")[0]).substr(1)).split("$")[1]);
+                        priceTotal += purePrice[coi];
+                        
                         //  Algo.
-                        console.log(num);
+                        /*console.log(num);
                         $("#card-0").append('<div class="sortable" id="item-min-"' + num + '>' +
                             '<img class="itemImage" src="https://www.supremecommunity.com' + items[num]["img"] + '" width="90%">' +
-                            '<span class="itemTitle">117$</span>' +
-                        '</div> ');
+                            '<span class="itemTitle">' + purePrice[coi] + '$</span>' +
+                        '</div> ');*/
                         
-
+                        nums[coi] = num;
+                        coi++;
                     }
                 }
                 
-                for(var prop in items){
-                    if(items.hasOwnProperty(prop)){
-                        //console.log(items[0]["price"]);
+                averageItemPrice = priceTotal / coi;
+                averageByCard = priceTotal / counter;
+                
+                function pasteItemOnCard(j,i,img,price){
+                    $("#card-" + j).append('<div class="sortable" id="item-min-"' + i + '>' +
+                        '<img class="itemImage" src="https://www.supremecommunity.com' + img + '" width="90%">' +
+                        '<span class="itemTitle">' + price + '$</span>' +
+                    '</div> ');
+                }
+                /*function recalculation(){
+                    //  get all items in all cards;
+                    var conteiners = $(".cardItemsContainer");
+                    var cardWriteOffSum = {};
+                    for(var t = 0; t < $(conteiners).length; t++){
+                        cardWriteOffSum[t] = 0;
+                        var item = $(conteiners[t]).children("div");
+                        //console.log($(item[0]).children("span").text());
+                        for(var it = 0; it < $(conteiners[t]).children("div").length; it++){
+                            cardWriteOffSum[t] += Number(($(item[it]).children("span").text()).split("$")[0]);
+                            console.log(Number(($(item[it]).children("span").text()).split("$")[0]));
+                        }
+                        //console.log(t,"AMOUNT: ",$(conteiners[t]).children("div").length);
+                        $("#writeOffFromCard-" + t).text(cardWriteOffSum[t]);
+                    }
+                    console.log(cardWriteOffSum);
+
+                }*/
+                
+                
+                //  Search item with max price;
+                var max = 0;
+                for(var i = 0; i < coi; i++){
+                    if( purePrice[i] > max){
+                        max = purePrice[i];
                     }
                 }
+                
+                //  Mapping.
+                var mappingArray = {};
+                for(var i = 0; i < counter; i++){
+                    mappingArray[i] = 0;
+                }
+                //  Алгоритм таков: выбираем самые крупные и помещаем сначала их, зате раскидываем мелочь.
+                for( var i = 0; i < coi; i++){  //  Перебираем все предметы.
+                    if( purePrice[i] > averageByCard){  //  Находим такие у которых цена выше чем средняя при распределении по картам.
+                        for( var j = 0; j < counter; j++){  //  Перебираем все карты.
+                            if(mappingArray[j] == 0){   //  Если карта еще пустая.
+                                mappingArray[j] = purePrice[i]; //  Помещаем этот предмет на эту карту.
+                                pasteItemOnCard(j,i,items[nums[i]]["img"],purePrice[i]);
+                                break;
+                            }
+                        }
+                    }else{  //  В оставшуюся ячейку кидаем все остальное.
+                        for( var j = 0; j < counter; j++){  //  Перебираем все карты.
+                            if(mappingArray[j] < averageByCard){   //  Если карта еще пустая.
+                                mappingArray[j] += purePrice[i]; //  Помещаем этот предмет на эту карту.
+                                pasteItemOnCard(j,i,items[nums[i]]["img"],purePrice[i]);
+                                break;
+                            }
+                        }
+                    }
+                }
+                
+                
+                console.log("Array of prices: ",  purePrice);
+                console.log("Amount of items: ", coi);
+                console.log("Amount of cards: ", counter);
+                console.log("Average item price: ",  averageItemPrice);
+                console.log("Average by card: ",  averageByCard);
+                
+                console.log("Max: ", max);
+                
+                console.log(mappingArray);
+                recalculation();
+
                 
                 
                 
