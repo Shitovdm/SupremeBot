@@ -7,6 +7,14 @@ function setDefaultParams(){
             var settingsArray = {
                 LabelSoldOutItems : 0,
                 ShowSoldOutItems : 1,
+                HideSoldOutItemsOnSupreme : 1,
+                EnableTimeSynchronization : 0,
+                
+                AutomaticPurchaseItems : 0,
+                SelectAnySize : 0,
+                AutoFillPaymentForm : 1,
+                MaintainFullLog : 1,
+                
                 MinimalisticDesign : 0,
                 AutoChangeBg : 1,
                 InterfaceLanguage : "ru"
