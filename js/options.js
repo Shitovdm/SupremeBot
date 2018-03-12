@@ -1,15 +1,29 @@
 
-/*Drug and drop*/
-//  Re-calculating function.
-
+//  Current time;
+    function getTime(){
+        var date = new Date();
+        var h =  date.getUTCHours() - 4;
+        var m = date.getUTCMinutes();
+        (m < 10) ? ( m = "0" + m) : ( m = m );
+        var s = date.getUTCSeconds();
+        (s < 10) ? ( s = "0" + s) : ( s = s );
+        var time = (h > 12) ? (h-12 + ':' + m + ':' + s + ' pm') : (h + ':' + m + ':' + s + ' am');
+        $("#LDN-time").text(time);
+    }
+    
+    
+    
+    
 //  Accept button availability.
 function acceptAvailability(state){
     if(state == 0){
         $(".cart-bottom input").css("background-color","#dddddd");
         $(".cart-bottom input").css("cursor","default");
+        document.getElementById("accept-button").removeEventListener("click", acceptCart);
     }else{
         $(".cart-bottom input").css("background-color","#ff0000");
         $(".cart-bottom input").css("cursor","pointer");
+        document.getElementById("accept-button").addEventListener("click", acceptCart);
     }
     
 }
@@ -55,28 +69,6 @@ function recalculation(){
         
     }
 }
-
-
-/*
-$(function(){
-    $('#card-q').sortable({
-        connectWith: '#card-w'
-    });
-    $('#card-w').sortable({
-        connectWith: '#card-q'
-    });
-
-    $('.cardItemsContainer').sortable({
-        revert: 100,
-        placeholder: 'emptySpace',
-        receive: function(event, ui){
-            //  re-calculate current prices and regrooping items into cards.
-            recalculation();
-        }
-    });
-    
-});
-*/
 
 
 /******************* Функции для дроплиста ********************/
@@ -228,16 +220,31 @@ function loadDropContent(droplist){
                     });
                 }
             }
+        }else{
+            //alert("ERR_INTERNET_DISCONNECTED");
         }
     };
 }
 
+
 document.addEventListener("DOMContentLoaded", function () { //  Дроплист
+    
+    //  Background image changer. Every 10 seconds.
+    var BgImageCounter = 1;
+    setInterval(function(){
+         // Change bg image.
+         if(BgImageCounter == 8){ BgImageCounter = 1; }
+         $(".data-options").css("background-image","url('/img/store/store-" + BgImageCounter + ".jpg')");
+         BgImageCounter++;
+     }, 20000);
+    
     /*удалить*/
      //buildCart();
-     
-    document.getElementById("accept-button").addEventListener("click", acceptCart);
-     
+     // Timer on start page;
+     getTime();
+     setInterval(function(){
+         getTime();
+     }, 1000);
     /*chrome.storage.local.get(function(cart){
         console.log(cart);
     });*/
@@ -303,7 +310,17 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
             onChangeDroplist();        
                     
             // Loading and inject items data.
-            loadDropContent($(droplists[1]).attr("href").split("/")[4]);
+            
+            //  loadDropContent($(droplists[1]).attr("href").split("/")[4]);
+            //  Change!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+            loadDropContent($(droplists[2]).attr("href").split("/")[4]);
+        }else{
+             /*alert("ERR_INTERNET_DISCONNECTED");
+             var errorContainer = document.createElement("div");
+             errorContainer.setAttribute("class", "error-container");
+             errorContainer.innerHTML = "<h1>Network error!</h1>";
+             document.getElementById("items-content").appendChild(errorContainer);
+             $("#content-droplist").fadeIn(1000);*/
         }
     };
 
@@ -551,34 +568,17 @@ function  buildCart(){
                     }
                 }
                 
-                /*
-                console.log("Array of prices: ",  purePrice);
-                console.log("Amount of items: ", coi);
-                console.log("Amount of cards: ", counter);
-                console.log("Average item price: ",  averageItemPrice);
-                console.log("Average by card: ",  averageByCard);
-                
-                console.log("Max: ", max);
-                
-                console.log(mappingArray);
-                */
-              
+                document.getElementById("accept-button").addEventListener("click", acceptCart);
                 recalculation();
             });
             
         });
-        
-        // Build cards list.
-        /*for(var i = 0; i < 2){
-            $("#card-in-cart").append(cardBlock[i]);
-        }*/
-        
-        
-        //console.log(sortArray);
+
     });
     
 }
 
+//  The function of confirmation of the contents of the basket.
 function acceptCart(){
     alert("Continue!");
 }
@@ -782,7 +782,6 @@ function updateCardList(){
 }
 
 function exportCardsData(){
-    console.log("SAving!");
     chrome.storage.local.get(function (result) {
         var res = JSON.stringify(result["card"], "", 4);
         var timestamp = new Date;

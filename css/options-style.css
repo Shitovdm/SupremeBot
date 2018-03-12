@@ -58,7 +58,7 @@ html {
     letter-spacing: 2px;
 }
 .workspace-options{
-    margin-top: 45px;
+    margin-top: 40px;
     background-color: #fff;
     box-shadow: 0 0 10px 5px #6E6E6E;
     float:left;
@@ -66,15 +66,38 @@ html {
     
 }
 .data-options{
-    min-height: 700px;
+    min-height: 990px;
     display: none;
     padding: 0% 15% 0% 15%;
+    
+}
+.store-bg-image{
+    background-image: url("/img/store/store-1.jpg");
+    background-repeat: no-repeat;
+    background-attachment:fixed;
+    background-position:center;
+    
+    -webkit-transition: all 3s linear;
+    transition: all 3s linear;
 }
 
 /* Droplist styles */
 
 #content-droplist{
     display: none;
+}
+.glob-timer{
+    position: fixed;
+    bottom: 0px;
+    left: 0px;
+    background-color: #fff;
+    padding: 5px 10px;
+    text-align: center;
+}
+.glob-timer b{
+    font-size: 15px;
+    color: #252525;
+    font-family: "Courier New", Courier, Monaco;
 }
 #droplist-title{
     float: left;
@@ -89,6 +112,9 @@ html {
     font-size: 20px;
     color: #252525;
     font-family: "Courier New", Courier, Monaco;
+    border-radius: 5px;
+    border-top: 5px solid #ff0000;
+    
 }
 .droplist-title{
     float: left;
@@ -119,6 +145,7 @@ h1{
     border-radius: 7px;
     text-align: center;
     border-top: 5px solid #ff0000;
+    background-color: #fff;
 }
 
 .item-container div{
@@ -190,7 +217,7 @@ h1{
     right: -6px;
     border: 1px solid #fff;
     border-radius: 50%;
-    padding: 3px 8px;
+    padding: 3px 9px;
     background-color: green;
     color: #fff;
     font-weight: 700;
@@ -256,7 +283,7 @@ h1{
     margin: 10px;
     border: 1px dashed #ccc;
     width: calc(100% - 12px);
-     min-height: 706px;
+     min-height: 691px;
 }
 .cart-page-table table{
     border-collapse: collapse;
@@ -483,9 +510,10 @@ div.sortable{
 
 /* Form data styles */
 .card-form{
+        padding-top: 200px;
     width:670px;
     margin-left: calc(50% - 335px);
-    margin-top: calc(50% - 478px);
+   
 }
 .half-form{
     float:left;
@@ -522,6 +550,17 @@ div.sortable{
 }
 .left-side .multi-form:last-child input{
     margin-bottom:0px;
+    
+}
+.left-side{
+    border-left:1px solid #ccc!important;
+}
+.right-side{
+    border-right:1px solid #ccc!important;
+}
+.bottom-side{
+    border:1px solid #ccc;
+    
 }
 .field-small{
     float: left;
@@ -588,9 +627,10 @@ select{
     user-select: none;
 }
 .bottom-side{
-    border:1px dashed #ccc;
+
     border-top: none;
     width: 667px;
+    background-color: #fff;
 }
 .bottom-side input{
     float:right;
@@ -632,8 +672,11 @@ select{
     background-color: #db0000;
 }
 .card-nav-bar{
-    border:1px dashed #ccc;
+    border:1px solid #ccc;
     width: 667px;
+    background-color: #fff;
+    border-top: 5px solid #ff0000;
+    border-radius: 7px 7px 0px 0px;
 }
 .nav-card{
     float:left;

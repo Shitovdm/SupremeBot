@@ -2,19 +2,21 @@ body{
     margin: 0 auto;
     width: 270px;
     background-color: #f7f7f7;
+    font-family: "Courier New", Courier, Monaco;
 }
 .popup-logo{
     padding: 5px 60px 5px 60px;
-    border: none;
+    border: none!important;
+}
+.popup-actions{
+    border-bottom:none!important;
 }
 .main div{
     width:100%;
     float: left;
     border-bottom: 1px solid #ccc;
 }
-.main div:last-child{
-    border-bottom: none;
-}
+
 
 .popup-description{
     padding: 5px;
@@ -26,24 +28,33 @@ body{
     cursor: pointer;
     color: #888;
     text-align: left;
+    padding-left:5px;
 }
 .popup-actions div:hover{
     background-color: #f0f0f0;
 }
+
 .popup-actions div b{
     padding: 5px 5px 5px 5px;
 }
-.popup-more{
-    height: 30px;
-    line-height: 2.5em;
-    text-align: center!important;
+
+a{
+    text-decoration: none;
+    color: #888;
     cursor: pointer;
-}
-.popup-more div:hover{
-    background-color: #f0f0f0;
-}
-b{
+    text-align: left;
     font-weight: 200;
     font-size: 14px;
-    color: #000; 
+}
+.last{
+    border-bottom: none!important;
+}
+.real-time{
+    padding: 10px;
+    text-align: center;
+}
+.real-time b{
+    font-weight: 200;
+    font-size: 14px;
+    text-align: center;
 }

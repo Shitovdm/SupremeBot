@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta content='text/html; charset=utf-8' http-equiv='Content-Type'>
+        <link href="css/settings-style.css" rel="stylesheet" type="text/css">
+        <script src="js/jquery.min.js"></script>
+        <script src="js/settings.js"></script>
+
+        <title>SupremeBot Settings</title>
+    </head>
+<body>
+    <div class="settings-content">
+        
+        <!-- Header content -->
+        
+        <div class="settings-header">
+            <div class="settings-nav-bar settins-logo">
+                <a href="http://www.supremenewyork.com/shop" target="_blank"><img src="img/logo.png" width="160px;"></a>
+            </div>
+            <div class="settings-nav-bar">
+                <div class="settings-page-link">
+                    <a id="common-settings">Common</a>
+                </div>
+                <div class="settings-page-link">
+                    <a id="purchase-settings">Purchase</a>
+                </div>
+                <div class="settings-page-link">
+                    <a id="support-settings">Support</a>
+                </div> 
+            </div> 
+        </div>
+        <div class="clear"></div>
+        
+        <!-- Common content -->
+        
+        <div class="content-settings" id="common-settings-content">
+            <h1>Common settings</h1>
+            
+            <div class="common-cont-sett">
+                <h3>Droplists and basket</h3>
+                <p>
+                    <input type="checkbox" class="feature" id="LabelSoldOutItems">
+                    <label for="LabelSoldOutItems">Label sold out items in droplist</label>
+                </p>
+                <p>
+                    <input type="checkbox" class="feature" id="ShowSoldOutItems">
+                    <label for="ShowSoldOutItems">Show sold out items</label>
+                </p>
+            </div>
+            
+            <div class="common-cont-sett">
+                <h3>Design and language</h3>
+                <p>
+                    <input type="checkbox" class="feature" id="MinimalisticDesign">
+                    <label for="MinimalisticDesign">Minimalistic design</label>
+                </p>
+                <p>
+                    <input type="checkbox" class="feature" id="AutoChangeBg">
+                    <label for="AutoChangeBg">Auto change background image</label>
+                </p>
+                <p>
+                    <select id="InterfaceLanguage">
+                        <option>en</option>
+                        <option>ru</option>
+                    </select>
+                    <label for="InterfaceLanguage">Interface language</label>
+                </p>
+            </div>
+            
+        </div>
+        
+        <!-- Purchase content -->
+        
+        <div class="content-settings" id="purchase-settings-content">
+            <h1>Purchase settings</h1>
+            <p>
+                <input checked type="checkbox" class="feature" id="auto-fill-payment-form">
+                <label for="auto-fill-payment-form">Full auto fill payment form.</label>
+            </p>
+            <p>
+                <input checked type="checkbox" class="feature" id="maintain-full-log">
+                <label for="maintain-full-log">Maintain a full action log.</label>
+            </p>
+            
+            
+            
+        </div>
+        
+        <!-- Support content -->
+        
+        <div class="content-settings" id="support-content">
+            <h1>SupremeBot support</h1>
+            <h2>Нашли ошибку?</h2>
+            <p>Отправьте баг репорт в произвольной форме мне на почту, я обязательно откликнусь на ваше письмо.</p>
+            <p>Также, вы можете связаться со мной, оставив Issue на странице <a href="https://github.com/Shitovdm/SupremeBot" target="_blank">проекта</a>.</p>
+            <h2>Есть вопрос или новая идея?</h2>
+            <p>Проект находится в активной разработке, поэтому я всегда буду рад выслушать ваши предложения и отзывы по <a href="shitov.dm@gmail.com" target="_blank">адресу</a>.</p>
+            <h2>А как на счет поддержки со стороны Supreme?</h2>
+            <p>Сайт Supreme не одобряет деятельность подоюного рода сервисов, но политикой конфиденциальности это не запрещено.</p>
+            <p>Я работаю над тем, чтобы сервис работал максимально корректно и не причинял вред другим участникам сообщества.</p>
+            <h2>Хотите помочь в продвижении проекта?</h2>
+            <p>Исходный код является полностью открытым, вы всегда можете скачать проект и отредактировать его.</p>
+            <p>Если вы хотите чтобы ваши изменения увидели другие люди, создайте ветку с вашими изменениями на <a href="https://github.com/Shitovdm/SupremeBot">GitHub</a>, или напишите мне на <a href="shitov.dm@gmail.com" target="_blank">почту</a></p>
+            <h2>Обновления Supreme Bot</h2>
+            <p>Самую свежую версию бота всегда можно скачать с ресурса <a href="https://github.com/Shitovdm/SupremeBot" target="_blank">Supreme Bot</a></p>
+        </div>
+        <!-- Donate content -->
+        <div class="content-settings" id="donate-content">
+            <h1>Donate</h1>
+            <p>Вы можете добровольно пожертвовать денежные средства, для этого свяжитесь со мной по <a href="shitov.dm@gmail.com" target="_blank">адресу</a></p>
+        </div>
+        
+        <!-- Footer -->
+        
+        <div class="settings-footer">
+            <div class="footer-nav">
+                <a id="settings-donate">Donate</a>
+            </div>
+            <div class="footer-nav">
+                <a>Version 1.2</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
