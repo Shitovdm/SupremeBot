@@ -229,14 +229,23 @@ function loadDropContent(droplist){
 
 document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     
+    chrome.storage.local.get('settings',function(settings){
+        var changeBg_FLAG = settings["settings"]["AutoChangeBg"];
+        console.log(changeBg_FLAG);
+        if(changeBg_FLAG == 1){
+           var BgImageCounter = 1;
+            setInterval(function(){
+                 // Change bg image.
+                 if(BgImageCounter == 8){ BgImageCounter = 1; }
+                 $(".data-options").css("background-image","url('/img/store/store-" + BgImageCounter + ".jpg')");
+                 BgImageCounter++;
+             }, 20000); 
+        }
+        
+    });
+    
     //  Background image changer. Every 10 seconds.
-    var BgImageCounter = 1;
-    setInterval(function(){
-         // Change bg image.
-         if(BgImageCounter == 8){ BgImageCounter = 1; }
-         $(".data-options").css("background-image","url('/img/store/store-" + BgImageCounter + ".jpg')");
-         BgImageCounter++;
-     }, 20000);
+    
     
     /*удалить*/
      //buildCart();
@@ -245,9 +254,7 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
      setInterval(function(){
          getTime();
      }, 1000);
-    /*chrome.storage.local.get(function(cart){
-        console.log(cart);
-    });*/
+    
     //  Активная вкладка по умочанию.
     $("#nav-form").css({
         "border-bottom" : "none",
