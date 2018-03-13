@@ -3,21 +3,27 @@
 function setDefaultParams(){
     chrome.storage.local.get(function(resp){
         console.log(resp);
-        if(resp["settings"] == undefined){  //  Если в локальном хранилище еще нет сохраненных настроек.
+        if(resp["settings"] === undefined){  //  Если в локальном хранилище еще нет сохраненных настроек.
             var settingsArray = {
                 LabelSoldOutItems : 0,
                 ShowSoldOutItems : 1,
                 HideSoldOutItemsOnSupreme : 1,
                 EnableTimeSynchronization : 0,
                 
-                AutomaticPurchaseItems : 0,
-                SelectAnySize : 0,
-                AutoFillPaymentForm : 1,
-                MaintainFullLog : 1,
-                
                 MinimalisticDesign : 0,
                 AutoChangeBg : 1,
-                InterfaceLanguage : "ru"
+                InterfaceLanguage : "ru",
+                
+                AutomaticPurchaseItems : 0,
+                
+                SelectAnySize : 0,
+                PrioritySize : "Small",
+                SelectAnyColor : 0,
+                
+                AutoFillPaymentForm : 1,
+                MaintainFullLog : 1
+                
+                
             };
 
             chrome.storage.local.set({ 'settings' : settingsArray},function(){
@@ -42,8 +48,8 @@ function getParams(){
         var paramArray = resp["settings"];
         for(var param in paramArray){
             if(paramArray.hasOwnProperty(param)){
-               if(paramArray[param].length == undefined){   //  Если состояним может быть только 0 или 1.
-                    if(paramArray[param] == 1){
+               if(paramArray[param].length === undefined){   //  Если состояним может быть только 0 или 1.
+                    if(paramArray[param] === 1){
                         $("#" + param).attr("checked","");   
                     }else{
                         $("#" + param).attr("checked");   
@@ -62,8 +68,8 @@ function changeParam(param){
     console.log();
     var state = 0;
     var newParamArray = {};
-    if($("#" + param).attr("type") == "checkbox"){  //  Работа с checkbox.
-        if($("#" + param).attr("checked") == undefined){    //  Устанавливаем галочку.
+    if($("#" + param).attr("type") === "checkbox"){  //  Работа с checkbox.
+        if($("#" + param).attr("checked") === undefined){    //  Устанавливаем галочку.
             $("#" + param).attr("checked","");
             state = 1;
         }else{  //  Снимаем галочку.
@@ -79,7 +85,7 @@ function changeParam(param){
         for(var prop in storedArray){
             if(storedArray.hasOwnProperty(prop)){
                 newValue = storedArray[prop];   //  Copy old value;
-                if(prop == param){
+                if(prop === param){
                     newValue = state;   //  Paste new value;
                 }
                 newParamArray[prop] = newValue;
@@ -87,35 +93,20 @@ function changeParam(param){
         }
         //  Записываем параметр в локальное хранилище.
         chrome.storage.local.set({ 'settings' : newParamArray},function(){
-            console.log("Параметр был изменен.");
+            console.log("Параметр " + param + " был изменен.");
         });
     });
 }
 
-//  Navigation functions.   Сократить и объединить в 1 функцию.
-function showCommonSettings(){
-    $("#purchase-settings-content").css("display","none");
-    $("#support-content").css("display","none");
-    $("#donate-content").css("display","none");
-    $("#common-settings-content").fadeIn(500);
-}
-function showPurchaseSettings(){
-    $("#common-settings-content").css("display","none");
-    $("#support-content").css("display","none");
-    $("#donate-content").css("display","none");
-    $("#purchase-settings-content").fadeIn(500);
-}
-function showSupport(){
-    $("#common-settings-content").css("display","none");
-    $("#purchase-settings-content").css("display","none");
-    $("#donate-content").css("display","none");
-    $("#support-content").fadeIn(500);
-}
-function showDonate(){
-    $("#common-settings-content").css("display","none");
-    $("#purchase-settings-content").css("display","none");
-    $("#support-content").css("display","none");
-    $("#donate-content").fadeIn(500);
+//  Navigation.
+function showPage(pageId){
+    var params = $(".settings-page-link").children("a");
+    for(var i = 0; i < $(params).length; i++){
+        if(params[i].id !== pageId){
+            $("#" + params[i].id + "-content").css("display","none");
+        }
+    }
+    $("#" + pageId + "-content").fadeIn(500);
 }
 
 $(document).ready(function() {
@@ -124,14 +115,21 @@ $(document).ready(function() {
     setDefaultParams();
     //  Загружаем ранее установленные настройки из локального хранилища.
     getParams();
-    //  Nav bar button actions.
-    document.getElementById("common-settings").addEventListener("click", showCommonSettings); 
-    document.getElementById("purchase-settings").addEventListener("click", showPurchaseSettings);
-    document.getElementById("support-settings").addEventListener("click", showSupport);
-    document.getElementById("settings-donate").addEventListener("click", showDonate);
     
+    //  Вешаем на все чекбоксы и селекты лиснеры.
+    var tunings = $(".tuning");
+    for(var i = 0; i < $(tunings).length; i++){
+       document.getElementById(tunings[i].id).addEventListener("click", function(t){
+            changeParam(t.target.id);
+        });
+    }
+    
+    //  Nav bar button actions.
+    document.getElementById("common-settings").addEventListener("click", function(){showPage("common-settings");}); 
+    document.getElementById("purchase-settings").addEventListener("click", function(){showPage("purchase-settings");});
+    document.getElementById("support-settings").addEventListener("click", function(){showPage("support-settings");});
+    /*
     //  Лиснеры изменения состояния чекбоксов.
-    //document.getElementById("MinimalisticDesign").addEventListener("change", function(){console.log("Change;");});
     document.getElementById("LabelSoldOutItems").addEventListener("change", function(){changeParam("LabelSoldOutItems");});
     document.getElementById("ShowSoldOutItems").addEventListener("change", function(){changeParam("ShowSoldOutItems");});
     
@@ -139,4 +137,16 @@ $(document).ready(function() {
     document.getElementById("AutoChangeBg").addEventListener("change", function(){changeParam("AutoChangeBg");});
     
     document.getElementById("InterfaceLanguage").addEventListener("change", function(){changeParam("InterfaceLanguage");});
+    
+    //  Purchase page.
+    
+    document.getElementById("SelectAnySize").addEventListener("change", function(){changeParam("SelectAnySize");});
+    document.getElementById("PrioritySize").addEventListener("change", function(){changeParam("PrioritySize");});
+    document.getElementById("SelectAnyColor").addEventListener("change", function(){changeParam("SelectAnyColor");});
+    
+    document.getElementById("AutoFillPaymentForm").addEventListener("change", function(){changeParam("AutoFillPaymentForm");});
+    document.getElementById("MaintainFullLog").addEventListener("change", function(){changeParam("MaintainFullLog");});
+    */
+    //removeAllParams();
+    
 });
