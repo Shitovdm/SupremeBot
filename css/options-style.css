@@ -274,6 +274,19 @@ h1{
     text-align: center;
     padding: 7px 0px;
 }
+.itemParam{
+    width: min-content;
+    padding: 0px 5px;
+    margin-top: 5px;
+    float: left;
+}
+.fixable{
+   cursor: pointer; 
+}
+.fixable:hover{
+    text-decoration: underline;
+    color: #ccc;
+}
 .cart-page-title b{
     color: #888;
     font-size: 18px;

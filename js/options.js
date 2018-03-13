@@ -168,8 +168,7 @@ function loadDropContent(droplist){
                                         '</div>'+
                                     '</div>';
                 document.getElementById("items-content").appendChild(newItem);
-                if( ((i+1)%4 == 0) && (i != 0)){
-                    console.log(i);
+                if( ((i+1)%4 === 0) && (i !== 0)){
                     $("#items-content").append("<div class='clear'></div>");
                 }
                 
@@ -249,31 +248,26 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     chrome.storage.local.get('settings',function(settings){
         var changeBg_FLAG = settings["settings"]["AutoChangeBg"];
         var MinimalisticDesign_FLAG = settings["settings"]["MinimalisticDesign"];
-        console.log(changeBg_FLAG);
-        
         if(MinimalisticDesign_FLAG == 1){
             $(".data-options").css("background-image","none");
         }else{
             if(changeBg_FLAG == 1){
                var BgImageCounter = 1;
+               //  Background image changer. Every 20 seconds.
                 setInterval(function(){
                      // Change bg image.
-                     if(BgImageCounter == 8){ BgImageCounter = 1; }
+                     if(BgImageCounter == 5){ BgImageCounter = 1; }
                      $(".data-options").css("background-image","url('/img/store/store-" + BgImageCounter + ".jpg')");
                      BgImageCounter++;
                  }, 20000); 
             }
-        }
-        
+        } 
     });
+    //  Удалить!!!
     chrome.storage.local.get(function(resp){
         console.log(resp);
     });
-    //  Background image changer. Every 10 seconds.
-    
-    
-    /*удалить*/
-     //buildCart();
+
      // Timer on start page;
      getTime();
      $("#LDN-time").css("z-index","5");
@@ -422,11 +416,48 @@ function  buildCart(){
                     //  Generate content.
                     $("#cart-table").append("<tr>" + 
                         "<td><img src='https://www.supremecommunity.com" + tempArray[itemNumber]["img"] + "' width='50px'></td>" +
-                        "<td>" + tempArray[itemNumber]["name"] + "</td>" + 
+                        "<td>" +
+                            "<div class='itemName_cart'>" + tempArray[itemNumber]["name"] + "</div>" +
+                            "<div class='itemParam'>Size: </div>" +
+                            "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Small,XLarge,46,48' contenteditable='true' id='size_" + sortArray[item]['identificator'] + "'>Any</div>" +
+                            "<div class='clear'></div>" +
+                            "<div class='itemParam'>Color: </div>" +
+                            "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Black,Brown' contenteditable='true' id='color_" + sortArray[item]['identificator'] + "'>Any</div>" +
+                            "<div class='clear'></div>" +
+                        "</td>" + 
                         "<td>" + Number(splitPrice) + "$</td>" + 
                         "<td><a id='remove-" + sortArray[item]['identificator'] + "'>remove</a></td>" + 
                         "<td>" + sortArray[item]['amount'] + "</td>" + 
                     "</tr>");
+                    
+                    //  Тут все не очень хорошо, нет upbind mouseup, поэтому обработчики накапливаются. Исправить.
+                    //  Add event listener to select size and color.
+                    document.getElementById("size_" + sortArray[item]['identificator']).addEventListener("click", function(e){
+                        $("#" + e.target.id).css({"border": "1px solid #ccc", "margin-top": "3px", "cursor": "text"});
+                        $(document).mouseup(function(t){ // событие клика по веб-документу
+                            var div = $("#" + e.target.id); // тут указываем ID элемента
+                            if (!div.is(t.target) && div.has(t.target).length === 0){
+                                $("#" + e.target.id).css({"border": "none", "margin-top": "5px"});
+                                //  Сохраняем изменения.
+                                //console.log($("#" + e.target.id).text());
+                                
+                                
+                            }
+                        });   
+                    });
+                    document.getElementById("color_" + sortArray[item]['identificator']).addEventListener("click", function(e){
+                        $("#" + e.target.id).css({"border": "1px solid #ccc", "margin-top": "3px", "cursor": "text"});
+                        $(document).mouseup(function(t){ // событие клика по веб-документу
+                            var div = $("#" + e.target.id); // тут указываем ID элемента
+                            if (!div.is(t.target) && div.has(t.target).length === 0){
+                                $("#" + e.target.id).css({"border": "none", "margin-top": "5px"});
+                                //  Сохраняем изменения.
+                                //console.log($("#" + e.target.id).text());
+                                
+                            }
+                        }); 
+                    });
+                    
                     //  Add event listener to remove button.
                     document.getElementById("remove-" + sortArray[item]['identificator']).addEventListener("click", function(e){
                         var itemID = e.target.id.substring(7);
