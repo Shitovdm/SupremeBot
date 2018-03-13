@@ -170,6 +170,15 @@ h1{
     margin-bottom: 10px;
     min-height: 28px;
 }
+.item-type{
+    position: relative;
+    top: 0px;
+    left: 10px;
+    color:#252525;
+    font-weight: 600;
+    font-family: "Courier New", Courier, Monaco;
+    font-size: 12px;
+}
 
 .item-other{
     border-top: 1px solid #ccc;
@@ -237,21 +246,16 @@ h1{
 }
 /*  Cart page/block */
 .cart-page{
-    /*position: absolute;    fix whis!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
-    position: absolute;
     background-color: #ffffff;
     border: 1px solid #ccc;
    z-index: 3;
     width: 71%;
-    /*fix whis!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     display: none;
-    
+    margin: 0px calc(15%);
     box-shadow: 0 0 10px 5px #6E6E6E;
 }
 #transparent-bg{
-     /*fix whis!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!*/
     display: none;
-    
     position:fixed;
     top:0px;
     left:0px;

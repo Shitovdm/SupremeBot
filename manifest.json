@@ -10,7 +10,7 @@
         "persistent": false
     },
     "web_accessible_resources": [
-        "https://www.supremecommunity.com/season/spring-summer2018/droplist/2018-03-01/"
+        "https://www.supremecommunity.com/"
     ],  
     "browser_action": {
         "default_title": "Supreme Bot",

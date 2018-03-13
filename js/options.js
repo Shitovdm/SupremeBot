@@ -133,16 +133,23 @@ function loadDropContent(droplist){
             for( var i = 0; i < $(itemsName).length; i++){
                 //  Build items array.
                 var imgCont = $(itemsImgURL[i]).context.children["0"].children["0"].children["0"].children["0"];
+                
+                var type = ($(itemsImgURL[i]).attr("class").split(" ")[3]).split("-")[1];
+                if(type == "t"){
+                    var type = ($(itemsImgURL[i]).attr("class").split(" ")[3]).split("-")[2];
+                }
+                
                 items[i] = {
                     "name": $(itemsName[i]).children("h5").text(),
                     "img": $(imgCont).attr("src"),
                     "price": $(itemsPrices[i]).text(),
-                    "type": ($(itemsImgURL[i]).attr("class").split(" ")[3]).split("-")[1]
+                    "type": type
                 }; 
                 //  Build content.
                 var newItem = document.createElement("div");
                 newItem.setAttribute("class", "item-container");
-                newItem.innerHTML = '<div class="item-img no-select">'+
+                newItem.innerHTML = '<div class="item-type">' + type + '</div>'+
+                                    '<div class="item-img no-select">'+
                                         '<img src="https://www.supremecommunity.com' + $(imgCont).attr("src") + '" width="95%">'+
                                     '</div>'+
                                     '<div class="item-title">'+
@@ -157,6 +164,11 @@ function loadDropContent(droplist){
                                         '</div>'+
                                     '</div>';
                 document.getElementById("items-content").appendChild(newItem);
+                if( ((i+1)%4 == 0) && (i != 0)){
+                    console.log(i);
+                    $("#items-content").append("<div class='clear'></div>");
+                }
+                
             }
             //  When items uploaded. Show droplist block.
             $("#content-droplist").fadeIn(1000);
@@ -329,7 +341,7 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
             
             //  loadDropContent($(droplists[1]).attr("href").split("/")[4]);
             //  Change!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-            loadDropContent($(droplists[2]).attr("href").split("/")[4]);
+            loadDropContent($(droplists[1]).attr("href").split("/")[4]);
         }else{
              /*alert("ERR_INTERNET_DISCONNECTED");
              var errorContainer = document.createElement("div");
