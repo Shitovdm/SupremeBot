@@ -1,15 +1,19 @@
 
 //  Current time;
-    function getTime(){
-        var date = new Date();
-        var h =  date.getUTCHours() - 4;
-        var m = date.getUTCMinutes();
-        (m < 10) ? ( m = "0" + m) : ( m = m );
-        var s = date.getUTCSeconds();
-        (s < 10) ? ( s = "0" + s) : ( s = s );
-        var time = (h > 12) ? (h-12 + ':' + m + ':' + s + ' pm') : (h + ':' + m + ':' + s + ' am');
-        $("#LDN-time").text(time);
-    }
+function getTime(){
+    var date = new Date();
+    var h =  date.getUTCHours() - 4;
+    var m = date.getUTCMinutes();
+    (m < 10) ? ( m = "0" + m) : ( m = m );
+    var s = date.getUTCSeconds();
+    (s < 10) ? ( s = "0" + s) : ( s = s );
+    var time = (h > 12) ? (h-12 + ':' + m + ':' + s + ' pm') : (h + ':' + m + ':' + s + ' am');
+    $("#LDN-time").text(time);
+    //  Действия по таймеру. Установить значение времени и все.
+    /*if(s == 10 || s == 40){
+        chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
+    }*/
+}
     
     
     
@@ -272,6 +276,7 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
      //buildCart();
      // Timer on start page;
      getTime();
+     $("#LDN-time").css("z-index","5");
      setInterval(function(){
          getTime();
      }, 1000);
@@ -608,7 +613,7 @@ function  buildCart(){
 
 //  The function of confirmation of the contents of the basket.
 function acceptCart(){
-    alert("Continue!");
+    chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
 }
 
 function hideCart(){
