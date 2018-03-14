@@ -1,1 +1,1 @@
-# SupremeBot - Working hours
+# SupremeBot ... soon.
