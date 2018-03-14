@@ -163,10 +163,11 @@ function loadDropContent(droplist){
                                         '<div class="item-price">'+
                                             '<span>' + $(itemsPrices[i]).text() + '</span>'+
                                         '</div>'+
-                                        '<div class="item-addToCart" id="item-' + i + '">'+
+                                        '<div class="item-addToCart" id="item-' + i + '" name="' + $(itemsName[i]).text() + '">'+
                                             '<span>Add to Cart</span>'+
                                         '</div>'+
                                     '</div>';
+                            
                 document.getElementById("items-content").appendChild(newItem);
                 if( ((i+1)%4 === 0) && (i !== 0)){
                     $("#items-content").append("<div class='clear'></div>");
@@ -185,13 +186,21 @@ function loadDropContent(droplist){
                         var itemID = "";
                         if(prop.target.localName === "span"){
                             itemID = prop.target.parentElement.id;
+                            var parentElem = prop.target.parentElement.parentElement.parentElement;
                         }else{
                             if(prop.target.localName === "div"){
                                 itemID = prop.target.id;
+                                var parentElem = prop.target.parentElement.parentElement;
                             }
                         }
+                        //  Достаем данные о предмете.
+                        var itemName = parentElem.children[2].children["0"].innerText;   //  Item name
+                        var imageSrc = parentElem.children[1].children["0"].attributes["0"].value;   //  Image src.
+                        var itemType = parentElem.children["0"].innerText;   //  Item type.
+                        var itemPrice =  parentElem.children[3].children["0"].innerText;   //  Item price.
                         //  Fint cart in local storage. if cart not found, add cart.
                         chrome.storage.local.get( function(result){
+                            //  Создана ли корзина.
                             var issetCart = false;
                              for(var prop in result) {
                                 if((result.hasOwnProperty(prop)) && (prop == "cart")){
@@ -199,6 +208,7 @@ function loadDropContent(droplist){
                                     break;
                                 }
                             }
+                            //  Если корзины еще нет, создаем ее.
                             if(!issetCart){
                                 //  Add cart into local storage;
                                 chrome.storage.local.set({ 'cart' : {}}, function(){ 
@@ -217,13 +227,12 @@ function loadDropContent(droplist){
                                 data[len] = {
                                     id: itemID,
                                     size: "Any",
-                                    color: "Any"
+                                    color: "Any",
+                                    name: itemName,
+                                    img: imageSrc,
+                                    price: itemPrice,
+                                    type: itemType
                                 };
-                                //data[len] = itemID;
-                                
-                                /*chrome.storage.local.remove( "cart", function() {
-                                    console.log('All settings removed!');
-                                });*/
                                 
                                 writeNewCart(data);
                                 function writeNewCart(data){
@@ -281,11 +290,11 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     chrome.storage.local.get(function(resp){
         console.log(resp);
     });
-    /*chrome.storage.local.remove("cart",function(resp){
+    /*
+    chrome.storage.local.remove("cart",function(resp){
         console.log(resp);
-    });*/
-    
-
+    });
+    */
      // Timer on start page;
      getTime();
      $("#LDN-time").css("z-index","5");
@@ -391,7 +400,12 @@ function saveParam(param,id,value){
                 data[item] = {
                     id: cart[item]["id"],
                     size: size,
-                    color: color
+                    color: color,
+                    name:  cart[item]["name"],
+                    img:  cart[item]["img"],
+                    type:  cart[item]["type"],
+                    price: cart[item]["price"],
+                    amount: cart[item]["amount"]
                 };
             }
         }
@@ -413,7 +427,7 @@ function  buildCart(){
                 //  Sorting items. Association items with same identificator.
                 for(var j in sortArray){
                     if(sortArray.hasOwnProperty(j)){
-                        if(sortArray[j]["identificator"] == data[item]["id"]){
+                        if(sortArray[j]["id"] == data[item]["id"]){
                             coincFlag = true;
                             break;
                         }
@@ -422,9 +436,13 @@ function  buildCart(){
                 counter++;  //  Amount of items in cart.
                 if(!coincFlag){
                     sortArray[i] = {
-                        identificator:  data[item]["id"],
+                        id:  data[item]["id"],
                         size:  data[item]["size"],
                         color:  data[item]["color"],
+                        name:  data[item]["name"],
+                        img:  data[item]["img"],
+                        type:  data[item]["type"],
+                        price: data[item]["price"],
                         amount: 1
                     };
                     i++;
@@ -434,250 +452,242 @@ function  buildCart(){
             }
         }
         //  Cart content generator.
-        //  Take stored items.
-        chrome.storage.local.get( "items", function(items) {
-            var object = items["items"];
-            var tempArray = {};
-            for(var item in object){
-                if(object.hasOwnProperty(item)){
-                    tempArray[item] = {
-                        img: object[item]["img"],
-                        name: object[item]["name"],
-                        price: object[item]["price"]
-                    }; 
-                }
-            }
-            //  Items in cart.
-            var totalPrice = 0;
-            //  Paste amount of items in cart.
-            $("#cart-table").html("<tr><td colspan='5'><b id='amount-items-in-cart-2'></b> items in your basket.</td></tr>"); 
-            for(var item in sortArray){
-                if(sortArray.hasOwnProperty(item)){
-                    var itemNumber = (sortArray[item]["identificator"]).split("-")[1];
-                    //  Calculate total price.
-                    var splitPrice = (tempArray[itemNumber]["price"]).split("/")[0];
+        //  Items in cart.
+        var totalPrice = 0;
+        //  Paste amount of items in cart.
+        $("#cart-table").html("<tr><td colspan='5'><b id='amount-items-in-cart-2'></b> items in your basket.</td></tr>"); 
+        for(var item in sortArray){
+            if(sortArray.hasOwnProperty(item)){
+                //  Calculate total price.
+                if(sortArray[item]["price"] !== ""){
+                    var splitPrice = (sortArray[item]["price"]).split("/")[0];
                     splitPrice = (splitPrice).split("$")[1];
                     totalPrice += Number(sortArray[item]['amount']) * Number(splitPrice);
-                    //  Generate content.
-                    $("#cart-table").append("<tr>" + 
-                        "<td><img src='https://www.supremecommunity.com" + tempArray[itemNumber]["img"] + "' width='50px'></td>" +
-                        "<td>" +
-                            "<div class='itemName_cart'>" + tempArray[itemNumber]["name"] + "</div>" +
-                            "<div class='itemParam'>Size: </div>" +
-                            "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Small,XLarge,46,48' contenteditable='true' id='size_" + sortArray[item]['identificator'] + "'>" + sortArray[item]["size"] + "</div>" +
-                            "<div class='clear'></div>" +
-                            "<div class='itemParam'>Color: </div>" +
-                            "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Black,Brown' contenteditable='true' id='color_" + sortArray[item]['identificator'] + "'>" + sortArray[item]["color"] + "</div>" +
-                            "<div class='clear'></div>" +
-                        "</td>" + 
-                        "<td>" + Number(splitPrice) + "$</td>" + 
-                        "<td><a id='remove-" + sortArray[item]['identificator'] + "'>remove</a></td>" + 
-                        "<td>" + sortArray[item]['amount'] + "</td>" + 
-                    "</tr>");
-                    
-                    //  Тут все не очень хорошо, нет upbind mouseup, поэтому обработчики накапливаются. Исправить.
-                    //  Add event listener to select size and color.
-                    document.getElementById("size_" + sortArray[item]['identificator']).addEventListener("click", function(e){
-                        $("#" + e.target.id).css({"border": "1px solid #ccc", "margin-top": "3px", "cursor": "text"});
-                        $(document).mouseup(function(t){ // событие клика по веб-документу
-                            var div = $("#" + e.target.id); // тут указываем ID элемента
-                            if (!div.is(t.target) && div.has(t.target).length === 0){
-                                $("#" + e.target.id).css({"border": "none", "margin-top": "5px"});
-                                //  Сохраняем изменения.
-                                saveParam("size",e.target.id,$("#" + e.target.id).text());
-                            }
-                        });   
-                    });
-                    document.getElementById("color_" + sortArray[item]['identificator']).addEventListener("click", function(e){
-                        $("#" + e.target.id).css({"border": "1px solid #ccc", "margin-top": "3px", "cursor": "text"});
-                        $(document).mouseup(function(t){ // событие клика по веб-документу
-                            var div = $("#" + e.target.id); // тут указываем ID элемента
-                            if (!div.is(t.target) && div.has(t.target).length === 0){
-                                $("#" + e.target.id).css({"border": "none", "margin-top": "5px"});
-                                //  Сохраняем изменения.
-                                saveParam("color",e.target.id,$("#" + e.target.id).text());
-                            }
-                        }); 
-                    });
-                    
-                    //  Add event listener to remove button.
-                    document.getElementById("remove-" + sortArray[item]['identificator']).addEventListener("click", function(e){
-                        var itemID = e.target.id.substring(7);
-                        chrome.storage.local.get('cart', function(result){
-                            var items = result['cart'];
-                            var tempArray = {};
-                            var counter = 0;
-                            var countRemovedItems = 0;
-                            for(var item in items){
-                                if(items.hasOwnProperty(item)){
-                                    if(items[item]["id"] !== itemID){  //  Coincidence
-                                        tempArray[counter] = items[item]["id"];
-                                        counter++; 
+                }else{
+                    splitPrice = "NaN";
+                }
+
+                //  Generate content.
+                $("#cart-table").append("<tr>" + 
+                    "<td><img src='" + sortArray[item]["img"] + "' width='50px'></td>" +
+                    "<td>" +
+                        "<div class='itemName_cart'>" + sortArray[item]["name"] + "</div>" +
+                        "<div class='itemParam'>Size: </div>" +
+                        "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Small,XLarge,46,48' contenteditable='true' id='size_" + sortArray[item]['id'] + "'>" + sortArray[item]["size"] + "</div>" +
+                        "<div class='clear'></div>" +
+                        "<div class='itemParam'>Color: </div>" +
+                        "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Black,Brown' contenteditable='true' id='color_" + sortArray[item]['id'] + "'>" + sortArray[item]["color"] + "</div>" +
+                        "<div class='clear'></div>" +
+                    "</td>" + 
+                    "<td>" + splitPrice + "$</td>" + 
+                    "<td><a id='remove-" + item + "'>remove</a></td>" + 
+                    "<td>" + sortArray[item]['amount'] + "</td>" + 
+                "</tr>");
+
+                //  Тут все не очень хорошо, нет upbind mouseup, поэтому обработчики накапливаются. Исправить.
+                //  Add event listener to select size and color.
+                document.getElementById("size_" + sortArray[item]['id']).addEventListener("click", function(e){
+                    $("#" + e.target.id).css({"border": "1px solid #ccc", "margin-top": "3px", "cursor": "text"});
+                    $(document).mouseup(function(t){ // событие клика по веб-документу
+                        var div = $("#" + e.target.id); // тут указываем ID элемента
+                        if (!div.is(t.target) && div.has(t.target).length === 0){
+                            $("#" + e.target.id).css({"border": "none", "margin-top": "5px"});
+                            //  Сохраняем изменения.
+                            saveParam("size",e.target.id,$("#" + e.target.id).text());
+                        }
+                    });   
+                });
+                document.getElementById("color_" + sortArray[item]['id']).addEventListener("click", function(e){
+                    $("#" + e.target.id).css({"border": "1px solid #ccc", "margin-top": "3px", "cursor": "text"});
+                    $(document).mouseup(function(t){ // событие клика по веб-документу
+                        var div = $("#" + e.target.id); // тут указываем ID элемента
+                        if (!div.is(t.target) && div.has(t.target).length === 0){
+                            $("#" + e.target.id).css({"border": "none", "margin-top": "5px"});
+                            //  Сохраняем изменения.
+                            saveParam("color",e.target.id,$("#" + e.target.id).text());
+                        }
+                    }); 
+                });
+
+                //  Add event listener to remove button.
+                document.getElementById("remove-" + item).addEventListener("click", function(e){
+                    var itemID = e.target.id.substring(7);
+                    console.log(itemID);
+                    chrome.storage.local.get('cart', function(result){
+                        var items = result['cart'];
+                        var tempArray = {};
+                        var counter = 0;
+                        var countRemovedItems = 0;
+                        for(var item in items){
+                            if(items.hasOwnProperty(item)){
+                                if(item !== itemID){  //  Coincidence
+                                    tempArray[counter] = items[item];
+                                    counter++; 
+                                }else{
+                                    if(countRemovedItems > 0){
+                                        tempArray[counter] = items[item];
+                                        counter++;
                                     }else{
-                                        if(countRemovedItems > 0){
-                                            tempArray[counter] = items[item]["id"];
-                                            counter++;
-                                        }else{
-                                            countRemovedItems++;
-                                        }
+                                        countRemovedItems++;
                                     }
                                 }
                             }
-                            //  Write net items array to cart.
-                            chrome.storage.local.set({ 'cart' : tempArray}, function(){
-                                //  Update cart.
-                                buildCart();
-                            });
+                        }
+                        console.log(tempArray);
+                        //  Write net items array to cart.
+                        chrome.storage.local.set({ 'cart' : tempArray}, function(){
+                            //  Update cart.
+                            buildCart();
                         });
                     });
-                }
-            }
-            $("#total-price").html("<b>subtotal: " + totalPrice + "$</b>");
-            $("#amount-items-in-cart-2").text(counter);
-            if(counter === 0){
-                $("#cart-table").append("<b id='warning-empty-cart'>To add an item to the basket, select the item on the 'Droplist' page and click 'Add cart'</b>");
-                $("#amount-items-in-cart").text("0");
-                $("#amount-items-in-cart").css({display:"none"});
-            }else{
-                $("#amount-items-in-cart").text(counter);
-                $("#amount-items-in-cart").css({display:"block"});
-            }
-        });
-        
-        //  Distribution by payment cards.
-        chrome.storage.local.get('card', function(result){
-            var res = result['card'];
-            $(".card-in-cart").html('<div class="card-title"><b>Distribution by payment cards</b></div>');
-            var cardMoney = {};
-            var counter = 0;
-            for(var card in res){
-                if(res.hasOwnProperty(card)){
-                    //  Build content for card field.
-                    $(".card-in-cart").append('<div class="card-block">' +
-                        '<table>' +
-                            '<tr>' +
-                                '<td colspan="2">' + card + '</td>' +
-                            '</tr>' +
-                            '<tr>' +
-                                '<td>ballance:</td>' +
-                                '<td id="ballance-card-' + counter + '">' + res[card]['cardMoney'] + '</td>' +
-                            '</tr>' +
-                            '<tr>' +
-                                '<td>to write-off:</td>' +
-                                '<td id="writeOffFromCard-' + counter + '"></td>' +
-                            '</tr>' +
-                            '<tr>' +
-                                '<td colspan="2">' +
-                                    '<div class="cardItemsContainer" id="card-' + counter + '"></div>' +
-                                '</td>' +
-                            '</tr>' +
-                        '</table>' +
-                    '</div>');
-                    cardMoney[counter] = res[card]['cardMoney'];
-                    counter++; 
-                }
-            }
-            //  Adding sortable actions on all blocks.
-              
-            for(var f = 0; f < counter; f++){
-                var connectedItems = "";
-                for(var h = 0; h < counter; h++){
-                    if( f != h ){
-                        if(connectedItems != ""){
-                            connectedItems += ",";
-                        }
-                        connectedItems += "#card-" + h; 
-                    }
-                }
-                $('#card-' + f).sortable({
-                    connectWith: connectedItems
                 });
             }
-            $('.cardItemsContainer').sortable({
-                revert: 100,
-                placeholder: 'emptySpace',
-                receive: function(event, ui){
-                    //  re-calculate current prices and regrooping items into cards.
-                    recalculation();
+        }
+        $("#total-price").html("<b>subtotal: " + totalPrice + "$</b>");
+        $("#amount-items-in-cart-2").text(counter);
+        if(counter === 0){
+            $("#cart-table").append("<b id='warning-empty-cart'>To add an item to the basket, select the item on the 'Droplist' page and click 'Add cart'</b>");
+            $("#amount-items-in-cart").text("0");
+            $("#amount-items-in-cart").css({display:"none"});
+        }else{
+            $("#amount-items-in-cart").text(counter);
+            $("#amount-items-in-cart").css({display:"block"});
+        }
+    });
+
+    //  Distribution by payment cards.
+    chrome.storage.local.get('card', function(result){
+        var res = result['card'];
+        $(".card-in-cart").html('<div class="card-title"><b>Distribution by payment cards</b></div>');
+        var cardMoney = {};
+        var counter = 0;
+        for(var card in res){
+            if(res.hasOwnProperty(card)){
+                //  Build content for card field.
+                $(".card-in-cart").append('<div class="card-block">' +
+                    '<table>' +
+                        '<tr>' +
+                            '<td colspan="2">' + card + '</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td>ballance:</td>' +
+                            '<td id="ballance-card-' + counter + '">' + res[card]['cardMoney'] + '</td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td>to write-off:</td>' +
+                            '<td id="writeOffFromCard-' + counter + '"></td>' +
+                        '</tr>' +
+                        '<tr>' +
+                            '<td colspan="2">' +
+                                '<div class="cardItemsContainer" id="card-' + counter + '"></div>' +
+                            '</td>' +
+                        '</tr>' +
+                    '</table>' +
+                '</div>');
+                cardMoney[counter] = res[card]['cardMoney'];
+                counter++; 
+            }
+        }
+        //  Adding sortable actions on all blocks.
+
+        for(var f = 0; f < counter; f++){
+            var connectedItems = "";
+            for(var h = 0; h < counter; h++){
+                if( f != h ){
+                    if(connectedItems != ""){
+                        connectedItems += ",";
+                    }
+                    connectedItems += "#card-" + h; 
                 }
+            }
+            $('#card-' + f).sortable({
+                connectWith: connectedItems
             });
-            
-            //  Process items in cart.
-            chrome.storage.local.get(function(result){
-                var cart = result['cart'];
-                var items = result["items"];
-                var purePrice = {}; //  Массив цен предметов.
-                var nums = {};
-                var priceTotal = 0; //  Общая сумма.
-                var averageByCard = 0;  //  Скодлько в идеале должно быть в ячейке.
-                var averageItemPrice = 0;   //  Среднее арифметическое значение цены предмета.
-                var coi = 0;
-                for(var item in cart){
-                    if(cart.hasOwnProperty(item)){
-                        var num = Number(cart[item]["id"].split("-")[1]);
-                        purePrice[coi] = Number(((items[num]["price"].split("/")[0]).substr(1)).split("$")[1]);
-                        priceTotal += purePrice[coi];
-                        
-                        //  Algo.
-                        /*console.log(num);
-                        $("#card-0").append('<div class="sortable" id="item-min-"' + num + '>' +
-                            '<img class="itemImage" src="https://www.supremecommunity.com' + items[num]["img"] + '" width="90%">' +
-                            '<span class="itemTitle">' + purePrice[coi] + '$</span>' +
-                        '</div> ');*/
-                        
-                        nums[coi] = num;
-                        coi++;
-                    }
-                }
-                
-                averageItemPrice = priceTotal / coi;
-                averageByCard = priceTotal / counter;
-                
-                function pasteItemOnCard(j,i,img,price){
-                    $("#card-" + j).append('<div class="sortable" num="item-min-' + i + '">' +
-                        '<img class="itemImage" src="https://www.supremecommunity.com' + img + '" width="90%">' +
-                        '<span class="itemTitle">' + price + '$</span>' +
-                    '</div> ');
-                }
-                
-                //  Search item with max price;
-                var max = 0;
-                for(var i = 0; i < coi; i++){
-                    if( purePrice[i] > max){
-                        max = purePrice[i];
-                    }
-                }
-                
-                //  Mapping.
-                var mappingArray = {};
-                for(var i = 0; i < counter; i++){
-                    mappingArray[i] = 0;
-                }
-                //  Алгоритм таков: выбираем самые крупные и помещаем сначала их, зате раскидываем мелочь.
-                for( var i = 0; i < coi; i++){  //  Перебираем все предметы.
-                    if( purePrice[i] > averageByCard){  //  Находим такие у которых цена выше чем средняя при распределении по картам.
-                        for( var j = 0; j < counter; j++){  //  Перебираем все карты.
-                            if(mappingArray[j] == 0){   //  Если карта еще пустая.
-                                mappingArray[j] = purePrice[i]; //  Помещаем этот предмет на эту карту.
-                                pasteItemOnCard(j,nums[i],items[nums[i]]["img"],purePrice[i]);
-                                break;
-                            }
-                        }
-                    }else{  //  В оставшуюся ячейку кидаем все остальное.
-                        for( var j = 0; j < counter; j++){  //  Перебираем все карты.
-                            if(mappingArray[j] < averageByCard){   //  Если карта еще пустая.
-                                mappingArray[j] += purePrice[i]; //  Помещаем этот предмет на эту карту.
-                                pasteItemOnCard(j,nums[i],items[nums[i]]["img"],purePrice[i]);
-                                break;
-                            }
-                        }
-                    }
-                }
-                
-                document.getElementById("accept-button").addEventListener("click", acceptCart);
+        }
+        $('.cardItemsContainer').sortable({
+            revert: 100,
+            placeholder: 'emptySpace',
+            receive: function(event, ui){
+                //  re-calculate current prices and regrooping items into cards.
                 recalculation();
-            });
-            
+            }
+        });
+
+        //  Process items in cart.
+        //  Расчет стоимости и распределение по картам.
+        chrome.storage.local.get(function(result){
+            var cart = result['cart'];
+            var items = result["items"];
+            var purePrice = {}; //  Массив цен предметов.
+            var nums = {};
+            var priceTotal = 0; //  Общая сумма.
+            var averageByCard = 0;  //  Скодлько в идеале должно быть в ячейке.
+            var averageItemPrice = 0;   //  Среднее арифметическое значение цены предмета.
+            var coi = 0;
+            for(var item in cart){
+                if(cart.hasOwnProperty(item)){
+                    var num = Number(cart[item]["id"].split("-")[1]);
+                    purePrice[coi] = Number(((items[num]["price"].split("/")[0]).substr(1)).split("$")[1]);
+                    priceTotal += purePrice[coi];
+
+                    //  Algo.
+                    /*console.log(num);
+                    $("#card-0").append('<div class="sortable" id="item-min-"' + num + '>' +
+                        '<img class="itemImage" src="https://www.supremecommunity.com' + items[num]["img"] + '" width="90%">' +
+                        '<span class="itemTitle">' + purePrice[coi] + '$</span>' +
+                    '</div> ');*/
+
+                    nums[coi] = num;
+                    coi++;
+                }
+            }
+
+            averageItemPrice = priceTotal / coi;
+            averageByCard = priceTotal / counter;
+
+            function pasteItemOnCard(j,i,img,price){
+                $("#card-" + j).append('<div class="sortable" num="item-min-' + i + '">' +
+                    '<img class="itemImage" src="https://www.supremecommunity.com' + img + '" width="90%">' +
+                    '<span class="itemTitle">' + price + '$</span>' +
+                '</div> ');
+            }
+
+            //  Search item with max price;
+            var max = 0;
+            for(var i = 0; i < coi; i++){
+                if( purePrice[i] > max){
+                    max = purePrice[i];
+                }
+            }
+
+            //  Mapping.
+            var mappingArray = {};
+            for(var i = 0; i < counter; i++){
+                mappingArray[i] = 0;
+            }
+            //  Алгоритм таков: выбираем самые крупные и помещаем сначала их, зате раскидываем мелочь.
+            for( var i = 0; i < coi; i++){  //  Перебираем все предметы.
+                if( purePrice[i] > averageByCard){  //  Находим такие у которых цена выше чем средняя при распределении по картам.
+                    for( var j = 0; j < counter; j++){  //  Перебираем все карты.
+                        if(mappingArray[j] == 0){   //  Если карта еще пустая.
+                            mappingArray[j] = purePrice[i]; //  Помещаем этот предмет на эту карту.
+                            pasteItemOnCard(j,nums[i],items[nums[i]]["img"],purePrice[i]);
+                            break;
+                        }
+                    }
+                }else{  //  В оставшуюся ячейку кидаем все остальное.
+                    for( var j = 0; j < counter; j++){  //  Перебираем все карты.
+                        if(mappingArray[j] < averageByCard){   //  Если карта еще пустая.
+                            mappingArray[j] += purePrice[i]; //  Помещаем этот предмет на эту карту.
+                            pasteItemOnCard(j,nums[i],items[nums[i]]["img"],purePrice[i]);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            document.getElementById("accept-button").addEventListener("click", acceptCart);
+            recalculation();
         });
 
     });
@@ -687,6 +697,9 @@ function  buildCart(){
 //  The function of confirmation of the contents of the basket.
 function acceptCart(){
     chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
+    
+    
+    
 }
 
 function hideCart(){
