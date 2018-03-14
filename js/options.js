@@ -178,6 +178,7 @@ function loadDropContent(droplist){
             // Save items to local storage.
             chrome.storage.local.set({ 'items' : items} , function(){});
             //  Add listeners on adding items to cart.
+            var new_data = {};
             for(var prop in items) {
                 if(items.hasOwnProperty(prop)){
                     document.getElementById("item-" + prop).addEventListener("click", function(prop){
@@ -213,7 +214,17 @@ function loadDropContent(droplist){
                                         len++;
                                     }
                                 }
-                                data[len] = itemID;
+                                data[len] = {
+                                    id: itemID,
+                                    size: "Any",
+                                    color: "Any"
+                                };
+                                //data[len] = itemID;
+                                
+                                /*chrome.storage.local.remove( "cart", function() {
+                                    console.log('All settings removed!');
+                                });*/
+                                
                                 writeNewCart(data);
                                 function writeNewCart(data){
                                     chrome.storage.local.set({ 'cart' : data}, function(){
@@ -245,6 +256,9 @@ function loadDropContent(droplist){
 
 document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     
+    
+    
+    
     chrome.storage.local.get('settings',function(settings){
         var changeBg_FLAG = settings["settings"]["AutoChangeBg"];
         var MinimalisticDesign_FLAG = settings["settings"]["MinimalisticDesign"];
@@ -267,6 +281,10 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     chrome.storage.local.get(function(resp){
         console.log(resp);
     });
+    /*chrome.storage.local.remove("cart",function(resp){
+        console.log(resp);
+    });*/
+    
 
      // Timer on start page;
      getTime();
@@ -337,9 +355,6 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
             onChangeDroplist();        
                     
             // Loading and inject items data.
-            
-            //  loadDropContent($(droplists[1]).attr("href").split("/")[4]);
-            //  Change!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
             loadDropContent($(droplists[1]).attr("href").split("/")[4]);
         }else{
              /*alert("ERR_INTERNET_DISCONNECTED");
@@ -355,7 +370,35 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
 });
 
 
-
+//  Сохраняет измененный цвет или размер.
+function saveParam(param,id,value){
+    //console.log("Save item " + id + "; " + param + ": ", value);
+    chrome.storage.local.get( "cart", function(result) {
+        var cart = result["cart"];
+        var data = {};
+        var savedParam = id.split("_")[1];
+        for(var item in cart){
+            if(cart.hasOwnProperty(item)){
+                var color = cart[item]["color"];
+                var size = cart[item]["size"];
+                if(cart[item]["id"] === savedParam){
+                    if(param === "size"){
+                        size = value;
+                    }else{
+                        color = value;
+                    } 
+                }
+                data[item] = {
+                    id: cart[item]["id"],
+                    size: size,
+                    color: color
+                };
+            }
+        }
+        chrome.storage.local.set({ 'cart' : data}, function(){});
+    });
+    
+}
 
 //  Cart content builder.
 function  buildCart(){
@@ -370,7 +413,7 @@ function  buildCart(){
                 //  Sorting items. Association items with same identificator.
                 for(var j in sortArray){
                     if(sortArray.hasOwnProperty(j)){
-                        if(sortArray[j]["identificator"] == data[item]){
+                        if(sortArray[j]["identificator"] == data[item]["id"]){
                             coincFlag = true;
                             break;
                         }
@@ -379,7 +422,9 @@ function  buildCart(){
                 counter++;  //  Amount of items in cart.
                 if(!coincFlag){
                     sortArray[i] = {
-                        identificator:  data[item],
+                        identificator:  data[item]["id"],
+                        size:  data[item]["size"],
+                        color:  data[item]["color"],
                         amount: 1
                     };
                     i++;
@@ -419,10 +464,10 @@ function  buildCart(){
                         "<td>" +
                             "<div class='itemName_cart'>" + tempArray[itemNumber]["name"] + "</div>" +
                             "<div class='itemParam'>Size: </div>" +
-                            "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Small,XLarge,46,48' contenteditable='true' id='size_" + sortArray[item]['identificator'] + "'>Any</div>" +
+                            "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Small,XLarge,46,48' contenteditable='true' id='size_" + sortArray[item]['identificator'] + "'>" + sortArray[item]["size"] + "</div>" +
                             "<div class='clear'></div>" +
                             "<div class='itemParam'>Color: </div>" +
-                            "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Black,Brown' contenteditable='true' id='color_" + sortArray[item]['identificator'] + "'>Any</div>" +
+                            "<div class='itemParam fixable' title='Enter keywords separated by commas. For example: Black,Brown' contenteditable='true' id='color_" + sortArray[item]['identificator'] + "'>" + sortArray[item]["color"] + "</div>" +
                             "<div class='clear'></div>" +
                         "</td>" + 
                         "<td>" + Number(splitPrice) + "$</td>" + 
@@ -439,9 +484,7 @@ function  buildCart(){
                             if (!div.is(t.target) && div.has(t.target).length === 0){
                                 $("#" + e.target.id).css({"border": "none", "margin-top": "5px"});
                                 //  Сохраняем изменения.
-                                //console.log($("#" + e.target.id).text());
-                                
-                                
+                                saveParam("size",e.target.id,$("#" + e.target.id).text());
                             }
                         });   
                     });
@@ -452,8 +495,7 @@ function  buildCart(){
                             if (!div.is(t.target) && div.has(t.target).length === 0){
                                 $("#" + e.target.id).css({"border": "none", "margin-top": "5px"});
                                 //  Сохраняем изменения.
-                                //console.log($("#" + e.target.id).text());
-                                
+                                saveParam("color",e.target.id,$("#" + e.target.id).text());
                             }
                         }); 
                     });
@@ -468,12 +510,12 @@ function  buildCart(){
                             var countRemovedItems = 0;
                             for(var item in items){
                                 if(items.hasOwnProperty(item)){
-                                    if(items[item] != itemID){  //  Coincidence
-                                        tempArray[counter] = items[item];
+                                    if(items[item]["id"] !== itemID){  //  Coincidence
+                                        tempArray[counter] = items[item]["id"];
                                         counter++; 
                                     }else{
                                         if(countRemovedItems > 0){
-                                            tempArray[counter] = items[item];
+                                            tempArray[counter] = items[item]["id"];
                                             counter++;
                                         }else{
                                             countRemovedItems++;
@@ -492,7 +534,7 @@ function  buildCart(){
             }
             $("#total-price").html("<b>subtotal: " + totalPrice + "$</b>");
             $("#amount-items-in-cart-2").text(counter);
-            if(counter == 0){
+            if(counter === 0){
                 $("#cart-table").append("<b id='warning-empty-cart'>To add an item to the basket, select the item on the 'Droplist' page and click 'Add cart'</b>");
                 $("#amount-items-in-cart").text("0");
                 $("#amount-items-in-cart").css({display:"none"});
@@ -572,7 +614,7 @@ function  buildCart(){
                 var coi = 0;
                 for(var item in cart){
                     if(cart.hasOwnProperty(item)){
-                        var num = Number(cart[item].split("-")[1]);
+                        var num = Number(cart[item]["id"].split("-")[1]);
                         purePrice[coi] = Number(((items[num]["price"].split("/")[0]).substr(1)).split("$")[1]);
                         priceTotal += purePrice[coi];
                         
