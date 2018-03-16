@@ -49,7 +49,7 @@ function checkOut(){
 }
 
 function toSubjectPage(sub__href){
-    if(window.location.href == "http://www.supremenewyork.com/shop/all/"){
+    if(window.location.href === "http://www.supremenewyork.com/shop/all/"){
         var what = document.querySelector('a[href="' + sub__href + '"]'); 
         simulateClick(what);
     }
@@ -128,38 +128,95 @@ function getHref(name,type,colors,flag){
         if(selectedColor !== "Any"){    //  Если список цветов указан.
             //  Разбиваем строку на цвета.
             var flag__color = false;
-            var forbiddenColor = {}, resolvedColor = {};
+            var forbiddenColors = {}, resolvedColors = {};
             var f_c = 0;    //  Счетчик запрещенных цветов.
             var r_c = 0;    //  Счетчик разрешенных цветов.
             for(var i = 0; i < selectedColor.split(",").length; i++){   //  Перебираем все указанные цвета.
                 if((selectedColor.split(",")[i]).substr(0,1) === "!"){  //  Запрещенный цвет.
-                    forbiddenColor[f_c] = (selectedColor.split(",")[i]).substr(1);
+                    forbiddenColors[f_c] = (selectedColor.split(",")[i]).substr(1);
                     f_c++;
                 }else{  //  Разрешенный цвет.
-                    resolvedColor[r_c] = selectedColor.split(",")[i];
+                    resolvedColors[r_c] = selectedColor.split(",")[i];
                     r_c++;
                 }   
             }
         }
 
         if(!flag__color){
-            console.log("forbidden: ", forbiddenColor);
-            console.log("resolved: ", resolvedColor);
+            console.log("forbidden: ", forbiddenColors);
+            console.log("resolved: ", resolvedColors);
         }else{
             console.log("Any");
+            
         }
         
         
         var foundColors = {}, hrefArray = {};
+        var colorsAmount = 0;
+        //  Строим массив всех существующих цветов.
         for(var i = 0; i < foundItems.length; i++){
-            foundColors[i] = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;
-            if(flag__color === true){   //  Выбираем все найденные цвета.
+            foundColors[i] = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;  
+            colorsAmount++;
+        }
+        //  Выбираем что указано пользователем, а что нет.
+        if(flag__color === true){   //  Выбираем все найденные цвета.
+            for(var i = 0; i < foundItems.length; i++){
                 hrefArray[i] = foundItems[i].parentElement.parentElement.children["0"].attributes[1].value;
-            }else{  //  Если цвета указаны точно.
-                for(var j = 0; j < resolvedColor.length; j++){  //  Для разрешенных цветов.
-                    if(resolvedColor[j] === foundColors[i]){
-                        
+            }
+        }else{  //  Если цвета указаны точно.
+            if(forbiddenColors[0] === undefined){
+                if(resolvedColors[0] === undefined){ //  Не указаны ни запрещенные ни разрешенные.
+                    return false;
+                }else{  //  Разрешенные указаны, запрешенные нет.
+                    /**
+                     * Перебираем все цвета.
+                     * Перебираем указанные цвета.
+                     * Ищем в массиве всех цветов, указанные, разрешенные.
+                     */
+                    var counter = 0;
+                    for(var color in foundColors){    //  Перебираем все найденные цвета.
+                        if(foundColors.hasOwnProperty(color)){
+                            for(var resolved__color in resolvedColors){
+                                if(resolvedColors.hasOwnProperty(resolved__color)){
+                                    if(foundColors[color] === resolvedColors[resolved__color]){
+                                        hrefArray[counter] = foundItems[color].parentElement.parentElement.children["0"].attributes[1].value;
+                                        counter++;
+                                        break;
+                                    }   
+                                }
+                            } 
+                        }
                     }
+                }
+            }else{
+                if(resolvedColors[0] === undefined){   //  Разрешенные не указаны, запрещенные указаны.
+                    var counter = 0;
+                    for(var color in foundColors){    //  Перебираем все найденные цвета.
+                        var c__ = 0;
+                        var flag = false;
+                        var contin = true;
+                        if(foundColors.hasOwnProperty(color)){
+                            for(var forbidden__color in forbiddenColors){
+                                if(forbiddenColors.hasOwnProperty(forbidden__color) && (contin)){
+                                    if( (foundColors[color].toString().replace(/\s/g, '') === forbiddenColors[forbidden__color].toString().replace(/\s/g, '')) ){
+                                        flag = true;
+                                        contin = false;
+                                        break;
+                                    }else{
+                                        if(!flag){
+                                            if(c__ === (f_c - 1) ){
+                                                hrefArray[counter] = foundItems[color].parentElement.parentElement.children["0"].attributes[1].value;
+                                                counter++; 
+                                            }
+                                        }
+                                    }  
+                                }
+                                c__++;
+                            } 
+                        }
+                    }
+                }else{  //  Указаны и запрещенные и разрешенные.
+                    
                 }
             }
         }
