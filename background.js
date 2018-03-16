@@ -7,6 +7,10 @@ chrome.runtime.onMessage.addListener(function(request, sender) {
      });
 });
 
+function error__Exception(error__desc){
+    alert(error__desc);
+}
+
 
 /*
 * Функция эмулирует событие нажатия на элемент.
@@ -48,11 +52,16 @@ function checkOut(){
     },200);   
 }
 
-function toSubjectPage(sub__href){
+function toTypePage(sub__href){
     if(window.location.href === "http://www.supremenewyork.com/shop/all/"){
         var what = document.querySelector('a[href="' + sub__href + '"]'); 
         simulateClick(what);
     }
+}
+
+function toSubjectPage(sub__href){
+        var what = document.querySelector('a[href="' + sub__href + '"]'); 
+        simulateClick(what);
 }
 
 function selectItemSize(item__size){
@@ -72,9 +81,35 @@ function selectItemSize(item__size){
     }
 }
 
-function selectItemColor(){
+
+
+function actionsOnItemPage(href__array){
+    //console.log(document.querySelector('a[href="' + href__array["0"] + '"]'));
+    //toSubjectPage(href__array["0"]);   //  Go to the subject page.
+    for(var obj in href__array){    //  Перебираем все найденные предметы.
+        if(href__array.hasOwnProperty(obj)){
+            var container = document.querySelector('a[href="' + href__array[obj] + '"]');
+            if($(container).children("div").text().toString().replace(/\s/g, '') !== "soldout"){    //  Проверяем наличие предмета в магазине.
+                //  Действия на странице предмета.
+                toSubjectPage(href__array[obj]);   //  Go to the subject page.
+                
+                
+                break;
+            }else{
+                //  Все экземпляры предмета раскуплены.
+            }
+        }
+    }
+    
+    
     
 }
+
+
+
+
+
+
 /**
  * Функция поиска страницы предмета, заданного параметрами.
  * @param {string} name Полное имя предмета.
@@ -90,14 +125,14 @@ function selectItemColor(){
  *      2. 1 - Разрешение (Любого цвета, если заданных нет).
  * @returns {string} href Ссылка на страницу предмета.
  */
-function getHref(name,type,colors,flag){
+function startActions(name,type,colors,flag){
     var foundItems = {};
     //  Исключение названия типа.
     if(type === "tops"){
         type = "tops_sweaters";
     }
     //  Переходим на страницу типа предмета.
-    toSubjectPage("/shop/all/" + type);   //  Go to the subject page.
+    toTypePage("/shop/all/" + type);   //  Go to the subject page.
     //  Дожидаемся загрузки страницы.
     var forced = 0; //  Счетчик ожидания.
     var maxExpired = 50;    //  Максимальное время ожидания. 50 - 5000 мс - 5 с.
@@ -105,32 +140,32 @@ function getHref(name,type,colors,flag){
         if(document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/" + type){
             clearInterval(waiting);
             //  Parse content.
-            foundItems = findItemsByName(name);
-            console.log(foundItems);
-            сolorSelection(colors, foundItems);
+            foundItems = findItemsByName(name); //  Массив объектов отобранных по имени предметов.
+            var href__array = сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
+            actionsOnItemPage(href__array);
         }
         if(forced > maxExpired){    //  Если ожидание слишком долгое.
             console.log("The page's wait period has expired.");
             clearInterval(waiting);
+            return false;
         }
         forced++;
     },100);
     
-    
-    
-    
-    
-    
-    //  Функция находит все цвета предмета, выбирает нужный и возвращает массив с ссылками.
+
+    /**
+     * Функция находит все цвета предмета, выбирает нужный и возвращает массив с ссылками.
+     * @param {string} selectedColor    Строка указанных цветов.
+     * @param {object} foundItems   Массив объектов найденных предметов после поиска по имени.
+     * @returns {object} Массив ссылок на страницы предметов.
+     */
     function сolorSelection(selectedColor, foundItems){
         var selectedColors = {};    //  Массив заданных цветов.
         var flag__color = true;    //  True - Любой цвет. False - Заданный.
         if(selectedColor !== "Any"){    //  Если список цветов указан.
             //  Разбиваем строку на цвета.
-            var flag__color = false;
+            var flag__color = false, f_c = 0, r_c = 0;  //  Счетчик запрещенных/разрешенных цветов.
             var forbiddenColors = {}, resolvedColors = {};
-            var f_c = 0;    //  Счетчик запрещенных цветов.
-            var r_c = 0;    //  Счетчик разрешенных цветов.
             for(var i = 0; i < selectedColor.split(",").length; i++){   //  Перебираем все указанные цвета.
                 if((selectedColor.split(",")[i]).substr(0,1) === "!"){  //  Запрещенный цвет.
                     forbiddenColors[f_c] = (selectedColor.split(",")[i]).substr(1);
@@ -141,18 +176,8 @@ function getHref(name,type,colors,flag){
                 }   
             }
         }
-
-        if(!flag__color){
-            console.log("forbidden: ", forbiddenColors);
-            console.log("resolved: ", resolvedColors);
-        }else{
-            console.log("Any");
-            
-        }
         
-        
-        var foundColors = {}, hrefArray = {};
-        var colorsAmount = 0;
+        var foundColors = {}, hrefArray = {}, colorsAmount = 0;
         //  Строим массив всех существующих цветов.
         for(var i = 0; i < foundItems.length; i++){
             foundColors[i] = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;  
@@ -192,9 +217,7 @@ function getHref(name,type,colors,flag){
                 if(resolvedColors[0] === undefined){   //  Разрешенные не указаны, запрещенные указаны.
                     var counter = 0;
                     for(var color in foundColors){    //  Перебираем все найденные цвета.
-                        var c__ = 0;
-                        var flag = false;
-                        var contin = true;
+                        var c__ = 0, flag = false, contin = true;
                         if(foundColors.hasOwnProperty(color)){
                             for(var forbidden__color in forbiddenColors){
                                 if(forbiddenColors.hasOwnProperty(forbidden__color) && (contin)){
@@ -216,20 +239,24 @@ function getHref(name,type,colors,flag){
                         }
                     }
                 }else{  //  Указаны и запрещенные и разрешенные.
-                    
+                    //  Добавить алгоритм.
+                    /**
+                     * Построить массив всех присутствующих цветов.
+                     * Оставить только разрешенные цвета.
+                     * Запретить к выбору запрещенные цвета.
+                     */
                 }
             }
         }
-        
-        console.log(hrefArray);
-        //return hrefArray; 
+        return hrefArray; 
     }
     
     
-    
-    
-    
-    //  Функция поиска ссылки на страницу предмета.
+    /**
+     * Функция поиска предметов по имени.
+     * @param {string} innerName Полное имя предмета.
+     * @returns {object} Массив объектов отобранных предметов.
+     */
     function findItemsByName(innerName){
         /*  Принцип следующий:
         *  Считываем все названия со страницы типа предмета.
@@ -285,8 +312,6 @@ function getHref(name,type,colors,flag){
         }
         return foundItems;
     }
-
-
 }
 
 
@@ -300,6 +325,7 @@ $(document).ready(function(){
             console.log();
             var settings = storage["settings"];
             var cart = storage["cart"];
+            var sub__href = {};
             var itemsArray = {};
             //  Достаем предметы из корзины.
             for (var item in cart) {
@@ -312,15 +338,13 @@ $(document).ready(function(){
                     };
                 }
             }
-            //console.log(itemsArray);
-            //  Пока для одного предмета.
-            //  Параметры необходимого предмета.
-            var item__name = itemsArray[0]["name"];
-            var item__size = itemsArray[0]["size"];
-            var item__color = itemsArray[0]["color"];
             
             console.log( itemsArray[0]["name"]);
-            var sub__href = getHref( itemsArray[0]["name"], itemsArray[0]["type"] , itemsArray[0]["color"] , settings["SelectAnyColor"]); //  Get link on item page.
+            
+            startActions( itemsArray[0]["name"], itemsArray[0]["type"] , itemsArray[0]["color"] , settings["SelectAnyColor"]);
+            
+            
+           
             //  Start buying items.
             //var sub__href = "/shop/jackets/iqale9x3h/egyxizwn6";
             //toSubjectPage(sub__href);   //  Go to the subject page.
