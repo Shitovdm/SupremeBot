@@ -79,7 +79,7 @@ function selectItemColor(){
  * Функция поиска страницы предмета, заданного параметрами.
  * @param {string} name Полное имя предмета.
  * @param {string} type Тип предмета (shirts,sweatshirts и т.д.).
- * @param {string} color Строка с цветами. 
+ * @param {string} colors Строка с цветами. 
  *  Может быть 3х вариаетов: 
  *      1. Any - любой цвет. 
  *      2. Color,Color,.. - только цветов, указанных через запятую.
@@ -90,59 +90,24 @@ function selectItemColor(){
  *      2. 1 - Разрешение (Любого цвета, если заданных нет).
  * @returns {string} href Ссылка на страницу предмета.
  */
-function getHref(name,type,color,flag){
-    var colors = {};    //  Массив заданных цветов.
-    var flag__color = true;    //  True - Любой цвет. False - Заданный.
-    if(color !== "Any"){    //  Если список цветов указан.
-        //  Разбиваем строку на цвета.
-        var flag__color = false;
-        var forbiddenColor = {}, resolvedColor = {};
-        var f_c = 0;    //  Счетчик запрещенных цветов.
-        var r_c = 0;    //  Счетчик разрешенных цветов.
-        for(var i = 0; i < color.split(",").length; i++){   //  Перебираем все указанные цвета.
-            if((color.split(",")[i]).substr(0,1) === "!"){  //  Запрещенный цвет.
-                forbiddenColor[f_c] = (color.split(",")[i]).substr(1);
-                f_c++;
-            }else{  //  Разрешенный цвет.
-                resolvedColor[r_c] = color.split(",")[i];
-                r_c++;
-            }   
-        }
+function getHref(name,type,colors,flag){
+    var foundItems = {};
+    //  Исключение названия типа.
+    if(type === "tops"){
+        type = "tops_sweaters";
     }
-    
-    if(!flag__color){
-        console.log("forbidden: ", forbiddenColor);
-        console.log("resolved: ", resolvedColor);
-    }else{
-        console.log("Any");
-    }
-    
-    //  Функция поиска ссылки на страницу предмета.
-    function findItemHref(){
-        //  Парсинг контента страницы и нахождение ссылки.
-        var content = document.querySelectorAll('a[class="name-link"]');
-        for(var i = 0; i < content.length; i++){    //  Перебор всех названий и цветов.
-            if( i % 2 === 0){   //  Все названия.
-                console.log(content[i].innerHTML);
-            }else{  //  Все цвета.
-                
-            }
-            
-        }
-        //console.log(content);
-    }
-    
-    
     //  Переходим на страницу типа предмета.
     toSubjectPage("/shop/all/" + type);   //  Go to the subject page.
     //  Дожидаемся загрузки страницы.
     var forced = 0; //  Счетчик ожидания.
     var maxExpired = 50;    //  Максимальное время ожидания. 50 - 5000 мс - 5 с.
     var waiting = setInterval(function(){   //  Ждем прогрузки контента страницы.
-        if(document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/jackets"){
+        if(document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/" + type){
             clearInterval(waiting);
             //  Parse content.
-            findItemHref();
+            foundItems = findItemsByName(name);
+            console.log(foundItems);
+            сolorSelection(colors, foundItems);
         }
         if(forced > maxExpired){    //  Если ожидание слишком долгое.
             console.log("The page's wait period has expired.");
@@ -151,7 +116,120 @@ function getHref(name,type,color,flag){
         forced++;
     },100);
     
- 
+    
+    
+    
+    
+    
+    //  Функция находит все цвета предмета, выбирает нужный и возвращает массив с ссылками.
+    function сolorSelection(selectedColor, foundItems){
+        var selectedColors = {};    //  Массив заданных цветов.
+        var flag__color = true;    //  True - Любой цвет. False - Заданный.
+        if(selectedColor !== "Any"){    //  Если список цветов указан.
+            //  Разбиваем строку на цвета.
+            var flag__color = false;
+            var forbiddenColor = {}, resolvedColor = {};
+            var f_c = 0;    //  Счетчик запрещенных цветов.
+            var r_c = 0;    //  Счетчик разрешенных цветов.
+            for(var i = 0; i < selectedColor.split(",").length; i++){   //  Перебираем все указанные цвета.
+                if((selectedColor.split(",")[i]).substr(0,1) === "!"){  //  Запрещенный цвет.
+                    forbiddenColor[f_c] = (selectedColor.split(",")[i]).substr(1);
+                    f_c++;
+                }else{  //  Разрешенный цвет.
+                    resolvedColor[r_c] = selectedColor.split(",")[i];
+                    r_c++;
+                }   
+            }
+        }
+
+        if(!flag__color){
+            console.log("forbidden: ", forbiddenColor);
+            console.log("resolved: ", resolvedColor);
+        }else{
+            console.log("Any");
+        }
+        
+        
+        var foundColors = {}, hrefArray = {};
+        for(var i = 0; i < foundItems.length; i++){
+            foundColors[i] = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;
+            if(flag__color === true){   //  Выбираем все найденные цвета.
+                hrefArray[i] = foundItems[i].parentElement.parentElement.children["0"].attributes[1].value;
+            }else{  //  Если цвета указаны точно.
+                for(var j = 0; j < resolvedColor.length; j++){  //  Для разрешенных цветов.
+                    if(resolvedColor[j] === foundColors[i]){
+                        
+                    }
+                }
+            }
+        }
+        
+        console.log(hrefArray);
+        //return hrefArray; 
+    }
+    
+    
+    
+    
+    
+    //  Функция поиска ссылки на страницу предмета.
+    function findItemsByName(innerName){
+        /*  Принцип следующий:
+        *  Считываем все названия со страницы типа предмета.
+        *  Считаем количество совпадения слов в названии найденного предмкта и разыскиваемого.
+        *  Чем больше совпадений, тем больше шанс то что это именно разыскиваемый предмет.
+        *  Одинаковое количество совпадений - одинаковые найденные названия.
+        *  Чтобы отсеять предметы с одинаковыми словами но не совпадающими, проверяем длинну всего названия после подсчета совпадений.
+        */  
+        var mainWord__Arr = innerName.split(" ");   //  Массив слов из названия предмета.
+        for(var k = 0; k < mainWord__Arr.length; k++){
+            mainWord__Arr[k] = mainWord__Arr[k].toString().replace(/\s/g, '');
+        }
+        var itemWord__Arr = {}, foundItems = new Array();
+        var counter = 0;    //  Количество предметов на странице.
+        var coincidenceWords__Arr = {}; //  Количество совпадений слов в каждом найденном предмете с розыскиваемым предметом.
+        //  Парсинг контента страницы и нахождение ссылки.
+        var content = document.querySelectorAll('a[class="name-link"]');
+        for(var i = 0; i < content.length; i++){    //  Перебор всех названий и цветов.
+            if( i % 2 === 0){   //  Все названия.
+                itemWord__Arr = (content[i].innerHTML).split(" "); //    Массив слов найденного предмета.
+                //  Находим количество совпадений по словам.
+                for(var l = 0; l < itemWord__Arr.length; l++){   //  Перебираем все слова из названия найденного предмета.
+                    itemWord__Arr[l] = itemWord__Arr[l].toString().replace(/\s/g, '');
+                    for(var k = 0; k < mainWord__Arr.length; k++){ //  Перебираем все слова из названия розыскиваемого предмета.
+                        if(mainWord__Arr[k] === itemWord__Arr[l]){   //  Совпадения вложенного слова.
+                            if(coincidenceWords__Arr[counter] === undefined){
+                                coincidenceWords__Arr[counter] = 1;
+                            }else{
+                                coincidenceWords__Arr[counter] += 1;
+                            }
+                        }
+                    } 
+                }
+                //  Количество слов в названии.
+                if(itemWord__Arr.length !== mainWord__Arr.length){
+                    coincidenceWords__Arr[counter] = 0;  
+                }
+                counter++;
+            }
+        }
+        //  Выбираем предметы с максимальным количеством совпаденний слов.
+        var MAX_coinc = 0;
+        for(var y = 0; y < counter; y++){
+            if(coincidenceWords__Arr[y] > MAX_coinc){
+                MAX_coinc = coincidenceWords__Arr[y];
+            }
+        }
+        //  Сопоставляем и формируем массив объектов предметов, подходящий по назнавию.
+        for(var i = 0, j = 0; i < content.length; i = i + 2, j++){
+            if(coincidenceWords__Arr[j] === MAX_coinc){
+                foundItems.push(content[i]);
+            }
+        }
+        return foundItems;
+    }
+
+
 }
 
 
@@ -162,6 +240,7 @@ $(document).ready(function(){
     //  Определяем откуда была открыта страница.
         if (storage["operations"] !== undefined) {
             console.log("Start auto actions on page.");
+            console.log();
             var settings = storage["settings"];
             var cart = storage["cart"];
             var itemsArray = {};
@@ -183,7 +262,7 @@ $(document).ready(function(){
             var item__size = itemsArray[0]["size"];
             var item__color = itemsArray[0]["color"];
             
-            
+            console.log( itemsArray[0]["name"]);
             var sub__href = getHref( itemsArray[0]["name"], itemsArray[0]["type"] , itemsArray[0]["color"] , settings["SelectAnyColor"]); //  Get link on item page.
             //  Start buying items.
             //var sub__href = "/shop/jackets/iqale9x3h/egyxizwn6";
