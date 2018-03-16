@@ -137,12 +137,10 @@ function loadDropContent(droplist){
             for( var i = 0; i < $(itemsName).length; i++){
                 //  Build items array.
                 var imgCont = $(itemsImgURL[i]).context.children["0"].children["0"].children["0"].children["0"];
-                
                 var type = ($(itemsImgURL[i]).attr("class").split(" ")[3]).split("-")[1];
-                if(type == "t"){
-                    var type = ($(itemsImgURL[i]).attr("class").split(" ")[3]).split("-")[2];
+                if(type === "t"){
+                    var type = ($(itemsImgURL[i]).attr("class").split(" ")[3]).split("-")[1] + "-" + ($(itemsImgURL[i]).attr("class").split(" ")[3]).split("-")[2];
                 }
-                
                 items[i] = {
                     "name": $(itemsName[i]).children("h5").text(),
                     "img": $(imgCont).attr("src"),
@@ -284,7 +282,8 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
                      BgImageCounter++;
                  }, 20000); 
             }
-        } 
+        }
+        
     });
     //  Удалить!!!
     chrome.storage.local.get(function(resp){

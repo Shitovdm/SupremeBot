@@ -17,28 +17,24 @@ function setDefaultParams(){
                 AutomaticPurchaseItems : 0,
                 
                 SelectAnySize : 0,
-                PrioritySize : "Small",
                 SelectAnyColor : 0,
                 
                 AutoFillPaymentForm : 1,
-                MaintainFullLog : 1
-                
-                
+                MaintainFullLog : 1  
             };
-
             chrome.storage.local.set({ 'settings' : settingsArray},function(){
                 console.log("Настройки сохранены в локальном хранилище.");
+                getParams();
             });
         }else{
             console.log("Параметры уже были сохранены.");
         }
     });
-    
 }
 
 function removeAllParams(){
     chrome.storage.local.remove( "settings", function() {
-        console.log('Settings removed!');
+        console.log('All settings removed!');
     });
 }
 
@@ -59,7 +55,6 @@ function getParams(){
                 }  
             }
         }
-        
     });
 }
 
@@ -115,7 +110,6 @@ $(document).ready(function() {
     setDefaultParams();
     //  Загружаем ранее установленные настройки из локального хранилища.
     getParams();
-    
     //  Вешаем на все чекбоксы и селекты лиснеры.
     var tunings = $(".tuning");
     for(var i = 0; i < $(tunings).length; i++){
@@ -123,30 +117,10 @@ $(document).ready(function() {
             changeParam(t.target.id);
         });
     }
-    
     //  Nav bar button actions.
     document.getElementById("common-settings").addEventListener("click", function(){showPage("common-settings");}); 
     document.getElementById("purchase-settings").addEventListener("click", function(){showPage("purchase-settings");});
     document.getElementById("support-settings").addEventListener("click", function(){showPage("support-settings");});
-    /*
-    //  Лиснеры изменения состояния чекбоксов.
-    document.getElementById("LabelSoldOutItems").addEventListener("change", function(){changeParam("LabelSoldOutItems");});
-    document.getElementById("ShowSoldOutItems").addEventListener("change", function(){changeParam("ShowSoldOutItems");});
-    
-    document.getElementById("MinimalisticDesign").addEventListener("change", function(){changeParam("MinimalisticDesign");});
-    document.getElementById("AutoChangeBg").addEventListener("change", function(){changeParam("AutoChangeBg");});
-    
-    document.getElementById("InterfaceLanguage").addEventListener("change", function(){changeParam("InterfaceLanguage");});
-    
-    //  Purchase page.
-    
-    document.getElementById("SelectAnySize").addEventListener("change", function(){changeParam("SelectAnySize");});
-    document.getElementById("PrioritySize").addEventListener("change", function(){changeParam("PrioritySize");});
-    document.getElementById("SelectAnyColor").addEventListener("change", function(){changeParam("SelectAnyColor");});
-    
-    document.getElementById("AutoFillPaymentForm").addEventListener("change", function(){changeParam("AutoFillPaymentForm");});
-    document.getElementById("MaintainFullLog").addEventListener("change", function(){changeParam("MaintainFullLog");});
-    */
-    //removeAllParams();
+    document.getElementById("RemoveAllSettings").addEventListener("click", function(){removeAllParams();});
     
 });

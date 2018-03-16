@@ -108,7 +108,7 @@ h3{
     -webkit-box-shadow: 0 0 8px rgba(0, 0, 0, .15);
     box-shadow: 0 0 8px rgba(0, 0, 0, .15);
     text-align: center;
-    padding-left: calc(calc(100% - 200px)/2);
+    padding-left: calc(calc(100% - 400px)/2);
 }
 .footer-nav{
     float:left;
