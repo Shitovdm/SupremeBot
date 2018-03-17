@@ -1,5 +1,6 @@
 
 var GLOBAL__ITEMS_COUNTER = 0;  //  Счетчик предметов, по нему определяем какой предмет вытаскивать из корзины.
+var GLOBAL__LOG = new Array();
 
 //  Chrome functions.
 chrome.runtime.onMessage.addListener(function(request, sender) { 
@@ -38,14 +39,9 @@ function redirect(url){
 //  Action functions.
 
 function addToBasket(sub__href){
-    //var waiting = setInterval(function(){
-       // if(window.location.href == "http://www.supremenewyork.com" + sub__href){
-            console.log("Adding to basket.");
-            var element = document.querySelector('input[value="add to basket"]');
-            simulateClick(element);
-           // clearInterval(waiting);
-     //   }
-    //},500); 
+    addToLog("Adding to basket.");
+    var element = document.querySelector('input[value="add to basket"]');
+    simulateClick(element);
 }
 
 function checkOut(){
@@ -76,7 +72,7 @@ function selectItemSize(established__size, settings){
         //  Выбираем его на странице.
         $(sizes).val(item__size__code); //  Устанавливаем в выпадающем списке.
         var resp = $(sizes).children('option[value="' + item__size__code + '"]').text();
-        console.log("Selected size : ", resp);
+        addToLog("Selected size : " + resp);
         return true;    //  Возвращмем выбранный размер.
      }else{
          return false;
@@ -121,7 +117,7 @@ function selectItemSize(established__size, settings){
         //  Если размер не выбран из установленных:
         //  Если стоит галочка в настройках, установки любого рамера из присутствующих, если не найден указанный;
         //  Выбираем наименьший размер из присутствующих.
-        console.log("The size is not selected, because there is no fixed size!");
+        addToLog("The size is not selected, because there is no fixed size!");
         if(settings["SelectAnySize"] === 1){    //  Если в настройках установлена галочка выбора любого размера.
             return pure__sizes["0"]["code"];
         }else{
@@ -130,16 +126,31 @@ function selectItemSize(established__size, settings){
     } 
 }
 
+function addToLog(note){
+    console.log(note);
+    GLOBAL__LOG.push(note);
+}
+
+/**
+ * Функция перехода на конечную страницу вывода результата работы.
+ * @returns {undefined}
+ */
+function toLogPage(){
+    addToLog("redirect to log page...");
+    console.log(GLOBAL__LOG);
+    chrome.storage.local.set({ "log" :  GLOBAL__LOG} , function(){});
+    chrome.runtime.sendMessage({redirect: "/log.html"});
+}
 
 
 function actionsOnItemPage(href__array, established__size, settings){
     for(var obj in href__array){    //  Перебираем все найденные предметы.
         if(href__array.hasOwnProperty(obj)){
-            console.log("Go to item page: ", href__array[obj]);
             var container = document.querySelector('a[href="' + href__array[obj] + '"]');
             if($(container).children("div").text().toString().replace(/\s/g, '') !== "soldout"){    //  Проверяем наличие предмета в магазине.
                 //  Действия на странице предмета.
                 toSubjectPage(href__array[obj]);   //  Go to the subject page.
+                addToLog("Go to item page: " + href__array[obj]);
                 //  Задержка подгрузки страницы.
                 var forced = 0, maxExpired = 30;
                 var waiting = setInterval(function(){   //  Ждем прогрузки контента страницы выбранного предмета.
@@ -152,25 +163,28 @@ function actionsOnItemPage(href__array, established__size, settings){
                             if(size__flag !== false){
                                 //  Добавление в корзину.
                                 addToBasket(href__array[obj]);
+                                //  Выход из цикла выбора размера предмета, данный предмет уже выбран.
+                                
                                 //  Переход к другим предметам, если они присутствуют.
-
+                                
                             }else{
                                 //  Размер не был выбран.
-
+                                
                                 //  Переход к другим предметам, если они присутствуют.
                             }
                         }else{
-                            console.log("The item is already in the basket.");
+                            addToLog("The item is already in the basket.");
                         } 
                     }
                     if(forced > maxExpired){    //  Если ожидание слишком долгое.
-                        console.log("The page's wait period has expired.");
+                        addToLog("The page's wait period has expired.");
                         clearInterval(waiting);
                     }
                     forced++;
                 },100);
             }else{  //  Все экземпляры предмета раскуплены.
-                console.log("All copies of the item are sold out.");
+                addToLog("All copies of the item are sold out.");
+                //toLogPage();
             }
         }
     }   
@@ -184,7 +198,7 @@ function actionsOnItemPage(href__array, established__size, settings){
  */
 function toTypePage(sub__href){
     if(window.location.href === "http://www.supremenewyork.com/shop/all/"){
-        console.log("Go to type page: ", sub__href);
+        addToLog("Go to type page: " + sub__href);
         var what = document.querySelector('a[href="' + sub__href + '"]'); 
         simulateClick(what);
     }
@@ -225,11 +239,17 @@ function startActions(name,type,colors,flag, size, settings){
             //  Parse content.
             foundItems = findItemsByName(name); //  Массив объектов отобранных по имени предметов.
             var href__array = сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
-            console.log("Found items: ", href__array);
+            var coi = 0;
+            for(var g in href__array){
+                if(href__array.hasOwnProperty(g)){
+                    coi++;
+                }
+            }
+            addToLog("Found " + coi + " items.");
             actionsOnItemPage(href__array, size, settings);
         }
         if(forced > maxExpired){    //  Если ожидание слишком долгое.
-            console.log("The page's wait period has expired.");
+            addToLog("The page's wait period has expired.");
             clearInterval(waiting);
             return false;
         }
@@ -413,10 +433,13 @@ function loadLocalStorage(){
                 };
             }
         }
+        
+        // Инкрементировать при повторном вызове.
+        //  повторный вызов происходит если в корзине еще есть предметы.
 
-        console.log( itemsArray[GLOBAL__ITEMS_COUNTER]["name"]);
+        addToLog( itemsArray[GLOBAL__ITEMS_COUNTER]["name"]);
             
-        startActions( itemsArray[GLOBAL__ITEMS_COUNTER]["name"], itemsArray[0]["type"] , itemsArray[0]["color"] , settings["SelectAnyColor"], itemsArray[0]["size"], settings);
+        startActions( itemsArray[GLOBAL__ITEMS_COUNTER]["name"], itemsArray[GLOBAL__ITEMS_COUNTER]["type"] , itemsArray[GLOBAL__ITEMS_COUNTER]["color"] , settings["SelectAnyColor"], itemsArray[0]["size"], settings);
         
         
     });
@@ -427,8 +450,13 @@ $(document).ready(function(){
    chrome.storage.local.get(function (storage) {   //  Reading local storage.
     //  Определяем откуда была открыта страница.
         if (storage["operations"] !== undefined) {
-            console.log("Start auto actions on page.");
-            loadLocalStorage();
+            // Инициализация лога.
+            chrome.storage.local.set({ "log" :  {}} , function(){ 
+                addToLog("Initialize log page.");
+                addToLog("Start auto actions on page.");
+                loadLocalStorage();
+            });
+            
             
         
         } else {  //  Ничего не делаем. На страницу зашли не из под расширения.
