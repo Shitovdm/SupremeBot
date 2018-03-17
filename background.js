@@ -36,13 +36,14 @@ function redirect(url){
 //  Action functions.
 
 function addToBasket(sub__href){
-    var waiting = setInterval(function(){
-        if(window.location.href == "http://www.supremenewyork.com" + sub__href){
+    //var waiting = setInterval(function(){
+       // if(window.location.href == "http://www.supremenewyork.com" + sub__href){
+            console.log("Adding to basket.");
             var element = document.querySelector('input[value="add to basket"]');
             simulateClick(element);
-            clearInterval(waiting);
-        }
-    },500); 
+           // clearInterval(waiting);
+     //   }
+    //},500); 
 }
 
 function checkOut(){
@@ -63,12 +64,14 @@ function selectItemSize(established__size, settings){
     //  Выбор размера, установленного пользователем.
     var sizes = document.querySelector('select[name="size"]');
     var item__size__code = choiceSize(sizes, established__size, settings);
-    console.log(item__size__code);
     if(item__size__code !== false){   //  Если размер был найден.
         //  Выбираем его на странице.
-        console.log("Simulate click to object: ", item__size__code);
         $(sizes).val(item__size__code); //  Устанавливаем в выпадающем списке.
-        return true;
+        var resp = $(sizes).children('option[value="' + item__size__code + '"]').text();
+        console.log("Selected size : ", resp);
+        return true;    //  Возвращмем выбранный размер.
+     }else{
+         return false;
      }
     
     function choiceSize(sizes, established__size, settings){
@@ -82,10 +85,6 @@ function selectItemSize(established__size, settings){
             };  
         }
         
-        console.log("puresize", pure__sizes);
-        console.log("sizes", sizes);
-        console.log("established__size__array", established__array);
-        
         //  Разбитие строки размеров, указанной пользователем.
         var established__array = {};
         for(var i = 0; i < established__size.split(",").length; i++){   //  Перебираем все указанные цвета.
@@ -95,32 +94,26 @@ function selectItemSize(established__size, settings){
         //  Сопоставление и поиск нужного размера.
         //  Перебираем все указанные размеры в порядке указанного приоритета.
         for(var size in established__array){    //  Перебор все введенных размеров.
-            if(established__array.hasOwnProperty(size)){
-                
+            if(established__array.hasOwnProperty(size)){ 
                 for(var present_size in pure__sizes){   //  Перебор всех размеров в наличии.
                     if(pure__sizes.hasOwnProperty(present_size)){
-                        
                         if(established__array[size].toString().replace(/\s/g, '') === pure__sizes[present_size]["label"].toString().replace(/\s/g, '')){
                             //  Если найден размер. Возвращаем его код.
                             return pure__sizes[present_size]["code"];
                         }
-                        
                     }
                 }
-                
             }
         }
         //  Если размер не выбран из установленных:
         //  Если стоит галочка в настройках, установки любого рамера из присутствующих, если не найден указанный;
         //  Выбираем наименьший размер из присутствующих.
-        console.log("Размер не выбран, так как установленного размера нет!");
-        console.log(settings["SelectAnySize"]);
+        console.log("The size is not selected, because there is no fixed size!");
         if(settings["SelectAnySize"] === 1){    //  Если в настройках установлена галочка выбора любого размера.
             return pure__sizes["0"]["code"];
         }else{
             return false;
-        }
-        
+        } 
     } 
 }
 
@@ -139,16 +132,25 @@ function actionsOnItemPage(href__array, established__size, settings){
                 var waiting = setInterval(function(){   //  Ждем прогрузки контента страницы выбранного предмета.
                     if(document.querySelector('input[value="add to basket"]')){
                         clearInterval(waiting);
-                        console.log("Загрузка");
-                        
                         //  Выбор размера.
-                        selectItemSize(established__size, settings);
+                        var size__flag = selectItemSize(established__size, settings);
+                        
+                        if(size__flag !== false){
+                            //  Добавление в корзину.
+                            addToBasket(href__array[obj]);
+                            //  Переход к другим предметам, если они присутствуют.
+                            
+                        }else{
+                            //  Размер не был выбран.
+                            
+                            //  Переход к другим предметам, если они присутствуют.
+                        }
                         
                         
                     
-                        //  Добавление в корзину.
+                        
 
-                        //  Переход к другим предметам, если они присутствуют.
+                        
                     }
                     if(forced > maxExpired){    //  Если ожидание слишком долгое.
                         console.log("The page's wait period has expired.");
@@ -172,6 +174,7 @@ function actionsOnItemPage(href__array, established__size, settings){
  */
 function toTypePage(sub__href){
     if(window.location.href === "http://www.supremenewyork.com/shop/all/"){
+        console.log("Go to type page: ", sub__href);
         var what = document.querySelector('a[href="' + sub__href + '"]'); 
         simulateClick(what);
     }
@@ -212,7 +215,7 @@ function startActions(name,type,colors,flag, size, settings){
             //  Parse content.
             foundItems = findItemsByName(name); //  Массив объектов отобранных по имени предметов.
             var href__array = сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
-            console.log("startActions(); href__array : ", href__array);
+            console.log("Found items: ", href__array);
             actionsOnItemPage(href__array, size, settings);
         }
         if(forced > maxExpired){    //  Если ожидание слишком долгое.
