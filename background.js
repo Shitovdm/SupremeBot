@@ -1,4 +1,6 @@
 
+var GLOBAL__ITEMS_COUNTER = 0;  //  Счетчик предметов, по нему определяем какой предмет вытаскивать из корзины.
+
 //  Chrome functions.
 chrome.runtime.onMessage.addListener(function(request, sender) { 
     chrome.tabs.update(sender.tab.id, {url: request.redirect});
@@ -60,6 +62,12 @@ function toSubjectPage(sub__href){
     simulateClick(what);
 }
 
+/**
+ * 
+ * @param {type} established__size
+ * @param {type} settings
+ * @returns {Boolean}
+ */
 function selectItemSize(established__size, settings){
     //  Выбор размера, установленного пользователем.
     var sizes = document.querySelector('select[name="size"]');
@@ -76,6 +84,11 @@ function selectItemSize(established__size, settings){
     
     function choiceSize(sizes, established__size, settings){
         var pure__sizes = {};
+        
+        //  Если у предмета нет параметров выбора размера.
+        
+        
+        
         //  Выбор всех размеров со страницы.
         var sizes__array = $(sizes).children("option");
         for(var i = 0; i < $(sizes__array).length; i++){
@@ -130,27 +143,25 @@ function actionsOnItemPage(href__array, established__size, settings){
                 //  Задержка подгрузки страницы.
                 var forced = 0, maxExpired = 30;
                 var waiting = setInterval(function(){   //  Ждем прогрузки контента страницы выбранного предмета.
-                    if(document.querySelector('input[value="add to basket"]')){
+                    if(document.querySelector('span[itemprop="price"]')){   //  Если страница загрузилась.
                         clearInterval(waiting);
-                        //  Выбор размера.
-                        var size__flag = selectItemSize(established__size, settings);
-                        
-                        if(size__flag !== false){
-                            //  Добавление в корзину.
-                            addToBasket(href__array[obj]);
-                            //  Переход к другим предметам, если они присутствуют.
-                            
-                        }else{
-                            //  Размер не был выбран.
-                            
-                            //  Переход к другим предметам, если они присутствуют.
-                        }
-                        
-                        
-                    
-                        
+                        //  Если предмета еще нет в корзине.
+                        if(document.querySelector('input[value="add to basket"]')){ //  Если есть кнопка добавления в корзину.
+                            //  Выбор размера.
+                            var size__flag = selectItemSize(established__size, settings);
+                            if(size__flag !== false){
+                                //  Добавление в корзину.
+                                addToBasket(href__array[obj]);
+                                //  Переход к другим предметам, если они присутствуют.
 
-                        
+                            }else{
+                                //  Размер не был выбран.
+
+                                //  Переход к другим предметам, если они присутствуют.
+                            }
+                        }else{
+                            console.log("The item is already in the basket.");
+                        } 
                     }
                     if(forced > maxExpired){    //  Если ожидание слишком долгое.
                         console.log("The page's wait period has expired.");
@@ -158,18 +169,17 @@ function actionsOnItemPage(href__array, established__size, settings){
                     }
                     forced++;
                 },100);
-            }else{
-                //  Все экземпляры предмета раскуплены.
+            }else{  //  Все экземпляры предмета раскуплены.
+                console.log("All copies of the item are sold out.");
             }
-            
         }
     }   
 }
 
 
 /**
- * 
- * @param {type} sub__href
+ * Функция перехода на страницу типа предмета.
+ * @param {string} sub__href
  * @returns {undefined}
  */
 function toTypePage(sub__href){
@@ -388,7 +398,29 @@ function startActions(name,type,colors,flag, size, settings){
     }
 }
 
+function loadLocalStorage(){
+    chrome.storage.local.get(function (storage) {
+        var settings = storage["settings"];
+        var cart = storage["cart"];
+        var itemsArray = {};
+        for (var item in cart) {
+            if (cart.hasOwnProperty(item)) {
+                itemsArray[item] = {
+                    name : cart[item]["name"],
+                    type : cart[item]["type"],
+                    size : cart[item]["size"],
+                    color : cart[item]["color"]
+                };
+            }
+        }
 
+        console.log( itemsArray[GLOBAL__ITEMS_COUNTER]["name"]);
+            
+        startActions( itemsArray[GLOBAL__ITEMS_COUNTER]["name"], itemsArray[0]["type"] , itemsArray[0]["color"] , settings["SelectAnyColor"], itemsArray[0]["size"], settings);
+        
+        
+    });
+}
 
 
 $(document).ready(function(){
@@ -396,115 +428,15 @@ $(document).ready(function(){
     //  Определяем откуда была открыта страница.
         if (storage["operations"] !== undefined) {
             console.log("Start auto actions on page.");
-            console.log();
-            var settings = storage["settings"];
-            var cart = storage["cart"];
-            var sub__href = {};
-            var itemsArray = {};
-            //  Достаем предметы из корзины.
-            for (var item in cart) {
-                if (cart.hasOwnProperty(item)) {
-                    itemsArray[item] = {
-                        name : cart[item]["name"],
-                        type : cart[item]["type"],
-                        size : cart[item]["size"],
-                        color : cart[item]["color"]
-                    };
-                }
-            }
+            loadLocalStorage();
             
-            console.log( itemsArray[0]["name"]);
-            
-            startActions( itemsArray[0]["name"], itemsArray[0]["type"] , itemsArray[0]["color"] , settings["SelectAnyColor"], itemsArray[0]["size"], settings);
-            
-            
-           
-            //  Start buying items.
-            //var sub__href = "/shop/jackets/iqale9x3h/egyxizwn6";
-            //toSubjectPage(sub__href);   //  Go to the subject page.
-            //setTimeout(function () {   //  Waiting for the page to load.
-                //  Sampling parameters of the object.
-
-
-                //for(var i = 0; i < $().length; i++){
-
-                //}
-
-                /*
-                 var action__state = selectItemSize(item__size);   //  Select size.
-                 if(!action__state){ //  Если не найдено вещи с подходящим размером.
-                 if(settings['SelectAnySize'] === 1){    // Если установлен параметр покупки вещи любого размера.
-                 //  Пробуем установить вещь приоритетного размера.
-                 var action__state = selectItemSize(settings['PrioritySize']);
-                 if(!action__state){
-                 console.log("Подходящего размера нет!" , settings['SelectAnySize']);
-                 }else{
-                 console.log("Установлена вещь приоритетного размера. Размер: " + settings['SelectAnySize']);
-                 }
-                 }else{
-                 console.log("Вещи выбранного размера нет. Завершаем покупку.");
-                 }
-                 
-                 }
-                 */
-                //var action__state = selectItemColor(item__color);  //  Select color.
-
-            //}, 500);
-
-
-            //addToBasket(sub__href); //  Add item to basket.
-            /*setTimeout(function(){  //  Редирект на стартовую, если в заказе будут еще предметы.
-             redirect("http://www.supremenewyork.com/shop/all/");
-             },200);
-             */
-
-
         
         } else {  //  Ничего не делаем. На страницу зашли не из под расширения.
             console.log("Inactivity.");
         }
     });
-
-    //console.log(window.location.href);
-    /*if(window.GLOBAL_FLAG_redirect){
-        console.log("Страница загружена!");
-    }*/
-    //chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
-
-    /*if(window.GLOBAL_FLAG_redirect){
-        if(window.location.href == "http://www.supremenewyork.com/shop/all/"){
-            var link = "/shop/jackets/iqale9x3h/egyxizwn6";
-            var what = document.querySelector('a[href="/shop/jackets/iqale9x3h/egyxizwn6"]');
-            console.log(what);   
-            //simulateClick(what);
-        }
-    }*/
-    
-   /* 
-    var href = window.location.href;
-    if(href == "http://www.supremenewyork.com/shop/all"){
-        console.log("Press on item!");
-        //chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/  jackets"});
-        //jackets
-        var itemsContainer = $(".inner-article");
-        for(var i = 0; i < itemsContainer.length; i++ ){
-            console.log();
-            if($(itemsContainer[i]).children("a").children().length == 2){
-                //  Delete sold-out element.
-                $(itemsContainer[i]).parent("article").detach();
-            }
-        }
-        
-    }
-    */
-   
-   
-   
     chrome.storage.local.remove( "operations", function() {
         //console.log('Operations array removed');
     });
-    
-    
 
-    
 });
