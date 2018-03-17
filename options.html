@@ -15,10 +15,10 @@
             <!-- Панель навигации -->
             <div class="nav-bar">
                 <div class="nav-options" id="nav-droplist">
-                    <b class="no-select">DROPLIST</b>
+                    <b id="b-Droplist" class="no-select">DROPLIST</b>
                 </div>
                 <div class="nav-options" id="nav-form">
-                    <b class="no-select">SHIPPING / PAYMENT</b>
+                    <b id="b-ShippingPayment" class="no-select">SHIPPING / PAYMENT</b>
                 </div>
             </div>
             
@@ -32,23 +32,23 @@
                     <div class="full-form card-nav-bar">
                         <div class="nav-card" id="select-card">
                             <select id="select-card-list">
-                                <option value="" disabled selected>SELECT CARD</option>
+                                <option id="optionSelectCard" value="" disabled selected>SELECT CARD</option>
                             </select>
                         </div>
                         <div class="nav-card selected-bg">
-                            <b>SHIPPING / PAYMENT</b>
+                            <b id="b-ShippingAndPayment">SHIPPING / PAYMENT</b>
                         </div>
                         <div class="nav-card" id="add-card">
-                            <b>ADD CARD</b>
+                            <b id="b-AddCard">ADD CARD</b>
                         </div>
                     </div>
                     <div class="clear"></div>
                     <div class="full-form top-side">
                         <div class="card-form-title">
-                            <h4>billing/shipping information</h4>
+                            <h4 id="h4-BillingShippingInf">billing/shipping information</h4>
                         </div>
                         <div class="card-form-title">
-                            <h4>credit card information</h4>
+                            <h4 id="h4-CreditCardInf">credit card information</h4>
                         </div>
                     </div>
                     <div class="clear"></div>
@@ -114,13 +114,13 @@
                         </div>
                         <div class="terms">
                             <input class="terms-checkbox" type="checkbox" checked>
-                            <label>I have read ang agree to the <u>terms & conditions</u>, and accept the return policy</label>
+                            <label id="TermsAndConditions">I have read ang agree to the <u>terms & conditions</u>, and accept the return policy</label>
                         </div>
                     </div>
                     <div class="clear"></div>
                     <div class="full-form bottom-side">
                         <div class="card-warning">
-                            <b>Carefully check the data before saving, the data is not forced to be checked.</b>
+                            <b id="b-CheckData">Carefully check the data before saving, the data is not forced to be checked.</b>
                         </div>
                         <input type="button" class="action-button" id="save-button" value="save card">
                         <input type="button" class="action-button" id="delete-button" value="delete">
@@ -135,7 +135,7 @@
             <!-- Cart. -->
                 <div class="cart-page">
                     <div class="cart-page-title">
-                        <b>CART</b>
+                        <b id="b-Cart">CART</bid>
                     </div>
                     <div class="clear"></div>
                     <div class="cart-page-table">
@@ -148,7 +148,7 @@
                         <div class="cart-control-container">
                             <div class="card-in-cart">
                                 <div class="card-title">
-                                    <b>Distribution by payment cards</b>
+                                    <b id="DistributionCards">Distribution by payment cards</b>
                                 </div>
                                
                             </div>
@@ -157,13 +157,13 @@
                     </div>
                     <div class="cart-total">
                         <div class="cart-total-container" id="total-price">
-                            <b>subtotal: 520$</b>
+                            <b id="Subtotal">subtotal: 520$</b>
                         </div>
                     </div>
                     <div class="clear"></div>
                     <div class="cart-bottom">
                         <div class="cart-bottom-text">
-                            <b>Carefully check the data before saving, the data is not forced to be checked.</b>
+                            <b id="CheckDataBeforeSav">Carefully check the data before saving, the data is not forced to be checked.</b>
                         </div>
                         <input type="button" class="action-button" id="accept-button" value="accept">
                     </div>
