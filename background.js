@@ -52,62 +52,130 @@ function checkOut(){
     },200);   
 }
 
+
+
+function toSubjectPage(sub__href){
+    var what = document.querySelector('a[href="' + sub__href + '"]'); 
+    simulateClick(what);
+}
+
+function selectItemSize(established__size, settings){
+    //  Выбор размера, установленного пользователем.
+    var sizes = document.querySelector('select[name="size"]');
+    var item__size__code = choiceSize(sizes, established__size, settings);
+    console.log(item__size__code);
+    if(item__size__code !== false){   //  Если размер был найден.
+        //  Выбираем его на странице.
+        console.log("Simulate click to object: ", item__size__code);
+        $(sizes).val(item__size__code); //  Устанавливаем в выпадающем списке.
+        return true;
+     }
+    
+    function choiceSize(sizes, established__size, settings){
+        var pure__sizes = {};
+        //  Выбор всех размеров со страницы.
+        var sizes__array = $(sizes).children("option");
+        for(var i = 0; i < $(sizes__array).length; i++){
+            pure__sizes[i] = {
+                label: $(sizes__array[i]).text(),
+                code: $(sizes__array[i]).val()
+            };  
+        }
+        
+        console.log("puresize", pure__sizes);
+        console.log("sizes", sizes);
+        console.log("established__size__array", established__array);
+        
+        //  Разбитие строки размеров, указанной пользователем.
+        var established__array = {};
+        for(var i = 0; i < established__size.split(",").length; i++){   //  Перебираем все указанные цвета.
+            established__array[i] = established__size.split(",")[i];
+        }
+        
+        //  Сопоставление и поиск нужного размера.
+        //  Перебираем все указанные размеры в порядке указанного приоритета.
+        for(var size in established__array){    //  Перебор все введенных размеров.
+            if(established__array.hasOwnProperty(size)){
+                
+                for(var present_size in pure__sizes){   //  Перебор всех размеров в наличии.
+                    if(pure__sizes.hasOwnProperty(present_size)){
+                        
+                        if(established__array[size].toString().replace(/\s/g, '') === pure__sizes[present_size]["label"].toString().replace(/\s/g, '')){
+                            //  Если найден размер. Возвращаем его код.
+                            return pure__sizes[present_size]["code"];
+                        }
+                        
+                    }
+                }
+                
+            }
+        }
+        //  Если размер не выбран из установленных:
+        //  Если стоит галочка в настройках, установки любого рамера из присутствующих, если не найден указанный;
+        //  Выбираем наименьший размер из присутствующих.
+        console.log("Размер не выбран, так как установленного размера нет!");
+        console.log(settings["SelectAnySize"]);
+        if(settings["SelectAnySize"] === 1){    //  Если в настройках установлена галочка выбора любого размера.
+            return pure__sizes["0"]["code"];
+        }else{
+            return false;
+        }
+        
+    } 
+}
+
+
+
+function actionsOnItemPage(href__array, established__size, settings){
+    for(var obj in href__array){    //  Перебираем все найденные предметы.
+        if(href__array.hasOwnProperty(obj)){
+            console.log("Go to item page: ", href__array[obj]);
+            var container = document.querySelector('a[href="' + href__array[obj] + '"]');
+            if($(container).children("div").text().toString().replace(/\s/g, '') !== "soldout"){    //  Проверяем наличие предмета в магазине.
+                //  Действия на странице предмета.
+                toSubjectPage(href__array[obj]);   //  Go to the subject page.
+                //  Задержка подгрузки страницы.
+                var forced = 0, maxExpired = 30;
+                var waiting = setInterval(function(){   //  Ждем прогрузки контента страницы выбранного предмета.
+                    if(document.querySelector('input[value="add to basket"]')){
+                        clearInterval(waiting);
+                        console.log("Загрузка");
+                        
+                        //  Выбор размера.
+                        selectItemSize(established__size, settings);
+                        
+                        
+                    
+                        //  Добавление в корзину.
+
+                        //  Переход к другим предметам, если они присутствуют.
+                    }
+                    if(forced > maxExpired){    //  Если ожидание слишком долгое.
+                        console.log("The page's wait period has expired.");
+                        clearInterval(waiting);
+                    }
+                    forced++;
+                },100);
+            }else{
+                //  Все экземпляры предмета раскуплены.
+            }
+            
+        }
+    }   
+}
+
+
+/**
+ * 
+ * @param {type} sub__href
+ * @returns {undefined}
+ */
 function toTypePage(sub__href){
     if(window.location.href === "http://www.supremenewyork.com/shop/all/"){
         var what = document.querySelector('a[href="' + sub__href + '"]'); 
         simulateClick(what);
     }
 }
-
-function toSubjectPage(sub__href){
-        var what = document.querySelector('a[href="' + sub__href + '"]'); 
-        simulateClick(what);
-}
-
-function selectItemSize(item__size){
-    var element = document.querySelector('select[name="size"]');
-    console.log(element);
-    var opt = $(element).children("option");
-    console.log($(opt).length);
-    for(var i = 0; i < $(opt).length; i++){
-        if($(opt[i]).text() === item__size){    //  Если нужный размер найден.
-            $(element).val($(opt[i]).val());
-            return true;
-        }else{
-            if(i === ($(opt).length - 1)){   //  Если нет нужного размера.
-                return false;
-            }
-        }  
-    }
-}
-
-
-
-function actionsOnItemPage(href__array){
-    //console.log(document.querySelector('a[href="' + href__array["0"] + '"]'));
-    //toSubjectPage(href__array["0"]);   //  Go to the subject page.
-    for(var obj in href__array){    //  Перебираем все найденные предметы.
-        if(href__array.hasOwnProperty(obj)){
-            var container = document.querySelector('a[href="' + href__array[obj] + '"]');
-            if($(container).children("div").text().toString().replace(/\s/g, '') !== "soldout"){    //  Проверяем наличие предмета в магазине.
-                //  Действия на странице предмета.
-                toSubjectPage(href__array[obj]);   //  Go to the subject page.
-                
-                
-                break;
-            }else{
-                //  Все экземпляры предмета раскуплены.
-            }
-        }
-    }
-    
-    
-    
-}
-
-
-
-
 
 
 /**
@@ -123,9 +191,11 @@ function actionsOnItemPage(href__array){
  *  Может быть 2 значения.
  *      1. 0 - Запрет (Строго те цвета, которые указаны).
  *      2. 1 - Разрешение (Любого цвета, если заданных нет).
+ * @param {string} size    Установленные пользователем размеры предмета.
+ * @param {object} settings Массив с настройками.
  * @returns {string} href Ссылка на страницу предмета.
  */
-function startActions(name,type,colors,flag){
+function startActions(name,type,colors,flag, size, settings){
     var foundItems = {};
     //  Исключение названия типа.
     if(type === "tops"){
@@ -142,7 +212,8 @@ function startActions(name,type,colors,flag){
             //  Parse content.
             foundItems = findItemsByName(name); //  Массив объектов отобранных по имени предметов.
             var href__array = сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
-            actionsOnItemPage(href__array);
+            console.log("startActions(); href__array : ", href__array);
+            actionsOnItemPage(href__array, size, settings);
         }
         if(forced > maxExpired){    //  Если ожидание слишком долгое.
             console.log("The page's wait period has expired.");
@@ -341,7 +412,7 @@ $(document).ready(function(){
             
             console.log( itemsArray[0]["name"]);
             
-            startActions( itemsArray[0]["name"], itemsArray[0]["type"] , itemsArray[0]["color"] , settings["SelectAnyColor"]);
+            startActions( itemsArray[0]["name"], itemsArray[0]["type"] , itemsArray[0]["color"] , settings["SelectAnyColor"], itemsArray[0]["size"], settings);
             
             
            
