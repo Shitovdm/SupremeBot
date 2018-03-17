@@ -25,15 +25,15 @@ var dictionary = {
         "h1-SupremeBotSupport": "SupremeBot support",
         "h2-FoundError": "Found error?",
         "p-SendReport": "Send me a free form bug-report, I always reply ASAP.",
-        "p-Issue": "Moreover, you can contact me by leaving an Issue on <a href='https://github.com/Shitovdm/SupremeBot' target='_blank'></a>.",
+        "p-Issue": "Moreover, you can contact me by leaving an Issue on <a href='https://github.com/Shitovdm/SupremeBot' target='_blank'>repo</a>.",
         "h2-QuestionsAndIdeas": "Do you have any questions or ideas?",
-        "p-OffersAndCallbacks": "The project is being in active development, so I always ready to hearing any ideas from you at <a href='shitov.dm@gmail.com' target='_blank'></a>.",
+        "p-OffersAndCallbacks": "The project is being in active development, so I always ready to hearing any ideas from you at <a href='shitov.dm@gmail.com' target='_blank'>e-mail</a>.",
         "h2-SupremeSupport": "What about support from Supreme?",
         "p-ConfidentialityPolicy": "The Supreme does not welcome services like this one, but it is not prohibited by Confidentiality Policy.",
         "p-CorrectWork": "I am working on service to be functioning maximum correctly and does not hurt other community members.",
         "h2-DevelopmentHelp": "Do you want to help in service promotion?",
         "p-OpenSource": "The project is fully open-source, so you always have an opportunity to download and edit it.",
-        "p-YourBranchOnGitHub": "If you want other people to see your changes, create a new branch on <a href='https://github.com/Shitovdm/SupremeBot'>GitHub</a> or contact me at <a href='shitov.dm@gmail.com' target='_blank'></a>.",
+        "p-YourBranchOnGitHub": "If you want other people to see your changes, create a new branch on <a href='https://github.com/Shitovdm/SupremeBot' target='_blank'>GitHub</a> or contact me at <a href='shitov.dm@gmail.com' target='_blank'>e-mail</a>.",
         "h2-Updates": "SupremeBot updates",
         "p-BotLinkAtGitHub": "The most common version of Bot is available on <a href='https://github.com/Shitovdm/SupremeBot' target='_blank'>Supreme Bot</a>.",
         "h1-Donate": "Donate",
@@ -51,7 +51,7 @@ var dictionary = {
         "b-CheckData": "Carefully check the data before saving, the data is not forced to be checked.",
         "b-Cart": "CART",
         "DistributionCards": "Distribution by payment cards",
-        "Subtotal": "subtotal: 520$",
+        "Subtotal": "subtotal:",
         "CheckDataBeforeSav": "Carefully check the data before saving, the data is not forced to be checked."
 
     },
@@ -88,7 +88,7 @@ var dictionary = {
         "p-CorrectWork": "Я работаю над тем, чтобы сервис работал максимально корректно и не причинял вред другим участникам сообщества.",
         "h2-DevelopmentHelp": "Хотите помочь в продвижении проекта?",
         "p-OpenSource": "Исходный код является полностью открытым, вы всегда можете скачать проект и отредактировать его.",
-        "p-YourBranchOnGitHub": "Если вы хотите чтобы ваши изменения увидели другие люди, создайте ветку с вашими изменениями на <a href='https://github.com/Shitovdm/SupremeBot'>GitHub</a>, или напишите мне на <a href='shitov.dm@gmail.com' target='_blank'>почту</a>",
+        "p-YourBranchOnGitHub": "Если вы хотите чтобы ваши изменения увидели другие люди, создайте ветку с вашими изменениями на <a href='https://github.com/Shitovdm/SupremeBot' target='_blank'>GitHub</a>, или напишите мне на <a href='shitov.dm@gmail.com' target='_blank'>почту</a>",
         "h2-Updates": "Обновления Supreme Bot",
         "p-BotLinkAtGitHub": "Самую свежую версию бота всегда можно скачать с ресурса <a href='https://github.com/Shitovdm/SupremeBot' target='_blank'>Supreme Bot</a>.",
         "h1-Donate": "Donate",
@@ -106,7 +106,7 @@ var dictionary = {
         "b-CheckData": "Внимательно проверяйте введенные данные перед сохранением, данные не проверяются автоматически.",
         "b-Cart": "КОРЗИНА",
         "DistributionCards": "Доля по карте",
-        "Subtotal": "общая сумма: 520$",
+        "Subtotal": "общая сумма:",
         "CheckDataBeforeSav": "Внимательно проверяйте введенные данные перед сохранением, данные не проверяются автоматически."
     }
 };
@@ -121,7 +121,7 @@ chrome.storage.local.get('settings',function(settings){
     for(var text in dictionary[lang]){
         if(dictionary[lang].hasOwnProperty(text)){
            //console.log(text);
-             $("#" + text).text(dictionary[lang][text]);
+             $("#" + text).html(dictionary[lang][text]);
         }
     }
     //  Заполнение формы выбора языка.
