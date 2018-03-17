@@ -113,7 +113,7 @@ var dictionary = {
 
 
 
-//  Загрузка языка из локального хранилища.
+//  Загрузка языка из локального хранилища. 2
 chrome.storage.local.get('settings',function(settings){
     var lang = settings["settings"]["InterfaceLanguage"];
     console.log(lang);
