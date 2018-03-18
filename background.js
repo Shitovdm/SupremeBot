@@ -1,6 +1,10 @@
 
 var GLOBAL__ITEMS_COUNTER = 0;  //  Счетчик предметов, по нему определяем какой предмет вытаскивать из корзины.
+var GLOBAL__CARD_COUNTER = 0;  //  Счетчик карт.
 var GLOBAL__LOG = new Array();
+var GLOBAL__LAP_FLAG = false;
+var GLOBAL__ITEMS_ARRAY = {};
+var GLOBAL__MATCHING_ARRAY = {};
 
 //  Chrome functions.
 chrome.runtime.onMessage.addListener(function(request, sender) { 
@@ -222,7 +226,7 @@ function toTypePage(sub__href){
  * @param {object} settings Массив с настройками.
  * @returns {string} href Ссылка на страницу предмета.
  */
-function startActions(name,type,colors,flag, size, settings){
+function actionsOnTypePage(name,type,colors,flag, size, settings){
     var foundItems = {};
     //  Исключение названия типа.
     if(type === "tops"){
@@ -418,51 +422,102 @@ function startActions(name,type,colors,flag, size, settings){
     }
 }
 
-function loadLocalStorage(){
-    chrome.storage.local.get(function (storage) {
-        var settings = storage["settings"];
-        var cart = storage["cart"];
-        var itemsArray = {};
-        for (var item in cart) {
-            if (cart.hasOwnProperty(item)) {
-                itemsArray[item] = {
-                    name : cart[item]["name"],
-                    type : cart[item]["type"],
-                    size : cart[item]["size"],
-                    color : cart[item]["color"]
-                };
-            }
-        }
-        
-        // Инкрементировать при повторном вызове.
-        //  повторный вызов происходит если в корзине еще есть предметы.
 
-        addToLog( itemsArray[GLOBAL__ITEMS_COUNTER]["name"]);
-            
-        startActions( itemsArray[GLOBAL__ITEMS_COUNTER]["name"], itemsArray[GLOBAL__ITEMS_COUNTER]["type"] , itemsArray[GLOBAL__ITEMS_COUNTER]["color"] , settings["SelectAnyColor"], itemsArray[0]["size"], settings);
-        
-        
-    });
+//  Заглушка основоного алгоритма действий на страницах магазина.
+function stub(){
+     console.log(GLOBAL__LAP_FLAG, GLOBAL__CARD_COUNTER, GLOBAL__ITEMS_COUNTER);
+    var CURRENT__ITEM = GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER]][GLOBAL__ITEMS_COUNTER];
+    console.log("Обработан предмет: ", CURRENT__ITEM["name"]);
+    //startActions(GLOBAL__LAP_FLAG, GLOBAL__ITEMS_ARRAY, 0);
+    //actionsOnTypePage( itemsArray[GLOBAL__ITEMS_COUNTER]["name"], itemsArray[GLOBAL__ITEMS_COUNTER]["type"] , itemsArray[GLOBAL__ITEMS_COUNTER]["color"] , settings["SelectAnyColor"], itemsArray[0]["size"], settings);
+    
+    startActions();
 }
 
 
+/**
+ * Функция является частью рекурсивного алгоритма перебора всех предметов в корзине.
+ * Выполняет инкрементирующую функцию. Перевыми перебираются предметы на карте, затем карты.
+ * @returns {Boolean} Если предметов больше нет, возвращает false;
+ */
+function startActions(){
+    if(!GLOBAL__LAP_FLAG){  //  Вход.
+        //  Предусматривает наличие хотя бы 1й карты и 1 предмета на ней.
+        GLOBAL__LAP_FLAG = true;
+    }else{  //  Последующие.
+        if(GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER]][GLOBAL__ITEMS_COUNTER + 1] !== undefined) {   //  Если есть еще предметы на данной карте.
+            GLOBAL__ITEMS_COUNTER++;    //  Переход к следующему предмету на карте.
+        }else{  //  Предметов на карте нет, переход к следующей карте.
+            if(GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER + 1]] !== undefined){    //  Если есть еще одна карта.
+                addToLog("Card number " + GLOBAL__CARD_COUNTER + " worked.");
+                GLOBAL__CARD_COUNTER++; //  Переход к следующей карте.
+                GLOBAL__ITEMS_COUNTER = 0;  // К первому предмету на карте.
+            }else{  // Карт больше нет, выход.
+                //  LOG;
+                console.log("Items ended!");
+                return false;
+            }
+        }
+    }
+    stub();
+}
+
+/**
+ * При загрузке выполняется чтение локального хранилища, достаются массивы: корзины и настроек.
+ * Массив корзины перестраивается по первичному ключу id карты.
+ * Добавляется массив сопоставления ключа и id карты.
+ */
 $(document).ready(function(){
    chrome.storage.local.get(function (storage) {   //  Reading local storage.
-    //  Определяем откуда была открыта страница.
-        if (storage["operations"] !== undefined) {
+        if (storage["operations"] !== undefined) {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
             // Инициализация лога.
             chrome.storage.local.set({ "log" :  {}} , function(){ 
                 addToLog("Initialize log page.");
+                addToLog("Reading cart and arranging the arrays.");
+                var settings = storage["settings"], cart = storage["cart"], cardItems__counter = {};
+                for (var item in cart) {
+                    if (cart.hasOwnProperty(item)) {
+                        // Сортировка по id карты.
+                        if(cardItems__counter[cart[item]["card"]] !== undefined){
+                            cardItems__counter[cart[item]["card"]] += 1;
+                        }else{
+                            cardItems__counter[cart[item]["card"]] = 0;
+                        }
+                        if(GLOBAL__ITEMS_ARRAY[cart[item]["card"]] !== undefined){   //  Если в глобальном массиве уже есть эта карта.
+                            GLOBAL__ITEMS_ARRAY[cart[item]["card"]][cardItems__counter[cart[item]["card"]]] = {
+                                name : cart[item]["name"],
+                                type : cart[item]["type"],
+                                size : cart[item]["size"],
+                                color : cart[item]["color"]
+                            };
+                        }else{
+                            GLOBAL__ITEMS_ARRAY[cart[item]["card"]] = {
+                                0:{
+                                    name : cart[item]["name"],
+                                    type : cart[item]["type"],
+                                    size : cart[item]["size"],
+                                    color : cart[item]["color"]
+                                }
+                            };
+                        }
+                    }
+                }
+                //  Сопоставление ключа и id карты.
+                var matching_counter = 0;
+                for(var card in GLOBAL__ITEMS_ARRAY){
+                    if(GLOBAL__ITEMS_ARRAY.hasOwnProperty(card)){
+                        GLOBAL__MATCHING_ARRAY[matching_counter] = card;
+                        matching_counter++;
+                    }
+                }
                 addToLog("Start auto actions on page.");
-                loadLocalStorage();
+                startActions();      
             });
-            
-            
-        
         } else {  //  Ничего не делаем. На страницу зашли не из под расширения.
             console.log("Inactivity.");
         }
     });
+    //  Удаление массива операций, сделано для того, чтобы при каждом посещении страницы магазина самопроизвольно не запускался скрипт расширения.
     chrome.storage.local.remove( "operations", function() {
         //console.log('Operations array removed');
     });

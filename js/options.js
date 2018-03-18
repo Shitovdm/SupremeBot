@@ -689,7 +689,12 @@ function  buildCart(){
     
 }
 
-//  The function of confirmation of the contents of the basket.
+
+/**
+ * The function of confirmation of the contents of the basket.
+ * Функция подтверждения распределения предметов по картам
+ * @returns {undefined}
+ */
 function acceptCart(){
     // Distribute items by cards.
     var cards = $(".card-block");
@@ -723,7 +728,7 @@ function acceptCart(){
         chrome.storage.local.set({ "cart" :  cart} , function(){ 
             console.log("The items are successfully distributed on cards.");
             //  Start auto actions.
-            //chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
+            chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
         });
     });   
 }
