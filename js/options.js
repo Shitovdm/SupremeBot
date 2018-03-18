@@ -43,11 +43,9 @@ function recalculation(){
         //  Обход все предметов привязанных к карте.
         for(var it = 0; it < $(conteiners[t]).children("div").length; it++){
             cardWriteOffSum[t] += Number(($(item[it]).children("span").text()).split("$")[0]);
-            //console.log(Number(($(item[it]).children("span").text()).split("$")[0]));
-            console.log($(item[it]).attr("num"));
             for( var im = 0; im < $(conteiners[t]).children("div").length; im++){
-                if(it != im){
-                    if($(item[im]).attr("num") == $(item[it]).attr("num")){
+                if(it !== im){
+                    if($(item[im]).attr("num") === $(item[it]).attr("num")){
                         console.log("Repeat the items on one card!");
                         acceptAvailability(0);
                         break_flag = true;
@@ -380,7 +378,6 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
 
 //  Сохраняет измененный цвет или размер.
 function saveParam(param,id,value){
-    //console.log("Save item " + id + "; " + param + ": ", value);
     chrome.storage.local.get( "cart", function(result) {
         var cart = result["cart"];
         var data = {};
@@ -532,7 +529,6 @@ function  buildCart(){
                                 }
                             }
                         }
-                        console.log(tempArray);
                         //  Write net items array to cart.
                         chrome.storage.local.set({ 'cart' : tempArray}, function(){
                             //  Update cart.
@@ -695,10 +691,41 @@ function  buildCart(){
 
 //  The function of confirmation of the contents of the basket.
 function acceptCart(){
-    chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
-    
-    
-    
+    // Distribute items by cards.
+    var cards = $(".card-block");
+    var dist = new Array();
+    for(var i = 0; i < cards.length; i++){  // Перебираем все контейнеры карт.
+        var container = $(cards[i]).context.children["0"].children["0"].children[3].children["0"].children["0"];
+        if(container.children["0"] !== undefined){  //  Все предметы находящиеся на карте.
+            for(var j = 0; j < $(container).find('.sortable').length; j++){
+                //console.log(container.id, $(container.children[j]).attr("num"));
+                var itemID = "item" + $(container.children[j]).attr("num").substr(8);
+                dist.push([container.id, itemID]);
+            }
+        }
+    }
+    //  Добавляем каждому предмету в корзину информацию о карте на которой он находится.
+    chrome.storage.local.get(function (storage) {   //  Reading local storage.
+        var cart = storage["cart"];
+        for(var item in cart){  //  Все предметы в корзине.
+            if(cart.hasOwnProperty(item)){
+                //console.log(cart[item]["id"]);
+                for(var i = 0; i < dist.length; i++){ //  Все найденные предметы на странице корзины.
+                    //console.log(dist[i][1]);
+                    if(cart[item]["id"] === dist[i][1]){
+                        cart[item]["card"] = dist[i][0];
+                        break;
+                    }
+                }
+            }
+        }
+        //  Записываем новые дополненные массивы.
+        chrome.storage.local.set({ "cart" :  cart} , function(){ 
+            console.log("The items are successfully distributed on cards.");
+            //  Start auto actions.
+            //chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
+        });
+    });   
 }
 
 function hideCart(){
