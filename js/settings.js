@@ -11,6 +11,7 @@ function setDefaultParams(){
                 EnableTimeSynchronization : 0,
                 
                 MinimalisticDesign : 0,
+                OneStaticPicture: 0,
                 AutoChangeBg : 1,
                 InterfaceLanguage : "ru",
                 
@@ -20,7 +21,9 @@ function setDefaultParams(){
                 SelectAnyColor : 0,
                 
                 AutoFillPaymentForm : 1,
-                MaintainFullLog : 1  
+                MaintainFullLog : 1,
+                OutputResponseInLog: 1,
+                LogInNewWindow: 1
             };
             chrome.storage.local.set({ 'settings' : settingsArray},function(){
                 console.log("Настройки сохранены в локальном хранилище.");

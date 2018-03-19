@@ -265,20 +265,25 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     
     
     chrome.storage.local.get('settings',function(settings){
-        var changeBg_FLAG = settings["settings"]["AutoChangeBg"];
-        var MinimalisticDesign_FLAG = settings["settings"]["MinimalisticDesign"];
-        if(MinimalisticDesign_FLAG == 1){
+        var changeBg_FLAG = settings["settings"]["AutoChangeBg"];   //  Флаг слены фона.
+        var OneStaticPicture_FLAG = settings["settings"]["OneStaticPicture"];
+        var MinimalisticDesign_FLAG = settings["settings"]["MinimalisticDesign"];   //  Флаг упрощенного дизайна.
+        if(MinimalisticDesign_FLAG === 1){
             $(".data-options").css("background-image","none");
         }else{
-            if(changeBg_FLAG == 1){
+            if(changeBg_FLAG === 1){
                var BgImageCounter = 1;
                //  Background image changer. Every 20 seconds.
                 setInterval(function(){
                      // Change bg image.
-                     if(BgImageCounter == 5){ BgImageCounter = 1; }
+                     if(BgImageCounter === 5){ BgImageCounter = 1; }
                      $(".data-options").css("background-image","url('/img/store/store-" + BgImageCounter + ".jpg')");
                      BgImageCounter++;
                  }, 20000); 
+            }else{
+                if(OneStaticPicture_FLAG === 1){
+                    $(".data-options").css("background-image","url('/img/store/store-2.jpg')");
+                }
             }
         }
         

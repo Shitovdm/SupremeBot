@@ -116,21 +116,20 @@ var dictionary = {
 //  Загрузка языка из локального хранилища.
 chrome.storage.local.get('settings',function(settings){
     var lang = settings["settings"]["InterfaceLanguage"];
-    console.log(lang);
-    //  Заполнение всех текстовых форм.
-    for(var text in dictionary[lang]){
-        if(dictionary[lang].hasOwnProperty(text)){
-           //console.log(text);
-             $("#" + text).html(dictionary[lang][text]);
+    if(lang !== undefined){
+        //  Заполнение всех текстовых форм.
+        for(var text in dictionary[lang]){
+            if(dictionary[lang].hasOwnProperty(text)){
+               //console.log(text);
+                 $("#" + text).html(dictionary[lang][text]);
+            }
+        }
+        //  Заполнение формы выбора языка.
+        for(var lang in dictionary){
+            if(dictionary.hasOwnProperty(lang)){
+                $("#InterfaceLanguage").append("<option>" + lang + "</option>");
+            }
         }
     }
-    //  Заполнение формы выбора языка.
-    for(var lang in dictionary){
-        if(dictionary.hasOwnProperty(lang)){
-            $("#InterfaceLanguage").append("<option>" + lang + "</option>");
-        }
-    }
-    
-    
 });
 
