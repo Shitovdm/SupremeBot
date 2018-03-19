@@ -7,13 +7,27 @@ var GLOBAL__ITEMS_ARRAY = {};
 var GLOBAL__SETTINGS = {};
 var GLOBAL__CARDS = {};
 var GLOBAL__MATCHING_ARRAY = {};
+var GLOBAL__LOG_ID = "";
 
 //  Chrome functions.
-chrome.runtime.onMessage.addListener(function(request, sender) { 
+chrome.runtime.onMessage.addListener(function (request, sender) {
     chrome.tabs.update(sender.tab.id, {url: request.redirect});
-    chrome.storage.local.set({ "operations": "start_actions"},function() {
+    chrome.storage.local.set({"operations": "start_actions"}, function () {
         //console.log("Complete!");
-     });
+    });
+    // На сообщение из контекста страницы, описанного здесь, ниже.
+    if (request === 'show__log') { //проверяется, от того ли окна и скрипта отправлено
+        chrome.windows.create({
+            url: "log.html",
+            type: "popup",
+            height: 800,
+            width: 500,
+            focused: false
+        }, function (newWindow) {});
+    }
+    /*
+     
+     */
 });
 
 function error__Exception(error__desc){
@@ -139,6 +153,7 @@ function selectItemSize(established__size){
 function addToLog(note){
     console.log(note);
     GLOBAL__LOG.push(note);
+    
 }
 
 /**
@@ -148,8 +163,11 @@ function addToLog(note){
 function toLogPage(){
     addToLog("redirect to log page...");
     console.log(GLOBAL__LOG);
-    chrome.storage.local.set({ "log" :  GLOBAL__LOG} , function(){});
-    chrome.runtime.sendMessage({redirect: "/log.html"});
+    //  Переносим все записи лога в локальное хранилище.
+    chrome.storage.local.set({ "log" :  GLOBAL__LOG} , function(){
+        chrome.extension.sendMessage('show__log');  //  Вызываем страницу лога.
+    });
+    
 }
 
 
@@ -468,6 +486,7 @@ function actionsOnItemPage(href__array, established__size){
                             }
                         }else{
                             addToLog("The item is already in the basket.");
+                            toLogPage();
                         } 
                     }
                     if(forced > maxExpired){    //  Если ожидание слишком долгое.
@@ -548,20 +567,9 @@ function Checkout__Payment(){
     function getResponse(){
         
     }
-    
-    chrome.browserAction.onClicked.addListener(function(tab) {
-        chrome.windows.create({ 
-            url: "http://www.google.com/",
-            width:  430,
-            height: 150,
-            top:    0,
-            left:   0
-        }, function(win) {
-            chrome.windows.update(tab.windowId, { focused: true });
-        });
-    });
-    
+
 }
+
 
 /**
  * Функция редиректа на страницу checkout.
@@ -619,6 +627,8 @@ function startActions(){
             
             //  Checkout and payment.
             goToCheckOutPage();
+            
+            toLogPage();
             /*
             if(GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER + 1]] !== undefined){    //  Если есть еще одна карта.
                 addToLog("Card number " + GLOBAL__CARD_COUNTER + " worked.");
@@ -671,7 +681,7 @@ $(document).ready(function () {
         } else {
             if (storage["operations"] !== undefined) {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
                 // Инициализация лога.
-                chrome.storage.local.set({"log": {}}, function () {
+                chrome.storage.local.set({"log": {}}, function () {   // Раскоментить 
                     addToLog("Initialize log page.");
                     addToLog("Reading cart and arranging the arrays.");
                     GLOBAL__SETTINGS = storage["settings"];
@@ -725,7 +735,7 @@ $(document).ready(function () {
                     }
                     addToLog("Start auto actions on page.");
                     startActions(); 
-                });
+               });
             } else {  //  Ничего не делаем. На страницу зашли не из под расширения.
                 console.log("Inactivity.");
             }
@@ -736,5 +746,4 @@ $(document).ready(function () {
      chrome.storage.local.remove( "operations", function() {
      //console.log('Operations array removed');
      });
-
 });
