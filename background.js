@@ -67,7 +67,7 @@ function checkOut(){
     setTimeout(function(){
         var selector = document.querySelector('a[href="https://www.supremenewyork.com/checkout"]');
         simulateClick(selector); 
-    },200);   
+    },100);   
 }
 
 
@@ -160,12 +160,14 @@ function addToLog(note){
  * Функция перехода на конечную страницу вывода результата работы.
  * @returns {undefined}
  */
-function toLogPage(){
+function showLogPage(){
     addToLog("redirect to log page...");
     console.log(GLOBAL__LOG);
     //  Переносим все записи лога в локальное хранилище.
     chrome.storage.local.set({ "log" :  GLOBAL__LOG} , function(){
-        chrome.extension.sendMessage('show__log');  //  Вызываем страницу лога.
+        if(GLOBAL__SETTINGS["LogInNewWindow"] === 1){   //  Если в настройках указано показать лог по завершению.
+            chrome.extension.sendMessage('show__log');  //  Вызываем страницу лога.
+        }
     });
     
 }
@@ -177,14 +179,13 @@ function toLogPage(){
  * @returns {undefined}
  */
 function toTypePage(sub__href){
-    addToLog("Go to type page: " + sub__href);
     var what = document.querySelector('a[href="' + sub__href + '"]'); 
     if(what === null){  //  Если предмет был добавлен в корзину, то переходим через основную страницу.
-        console.log("7787");
+        addToLog("Go to type page: /shop/all");
         var what = document.querySelector('a[href="http://www.supremenewyork.com/shop/all"]'); 
         simulateClick(what);
-        
     }else{
+        addToLog("Go to type page: " + sub__href);
         simulateClick(what);
     }
 }
@@ -219,7 +220,6 @@ function actionsOnTypePage(data){
     //  Переходим на страницу типа предмета.
     toTypePage("/shop/all/" + type);   //  Go to the subject page.
     if(document.querySelector('span[itemprop="price"]')){   //  Если переход осуществляется со страницы предмета.
-        console.log("On item page...");
         //  Дожидаемся загрузки страницы.
         var forced_w = 0; //  Счетчик ожидания.
         var maxExpired = 50;    //  Максимальное время ожидания. 50 - 5000 мс - 5 с.
@@ -478,7 +478,7 @@ function actionsOnItemPage(href__array, established__size){
                                 addToBasket(href__array[obj]);
                                 setTimeout(function(){
                                     startActions(); //  Переход к другим предметам.
-                                },500);
+                                },100);
                             }else{
                                 //  Размер не был выбран.
                                 addToLog("Size was not selected.");
@@ -486,7 +486,7 @@ function actionsOnItemPage(href__array, established__size){
                             }
                         }else{
                             addToLog("The item is already in the basket.");
-                            toLogPage();
+                            startActions(); //  Переход к другим предметам.
                         } 
                     }
                     if(forced > maxExpired){    //  Если ожидание слишком долгое.
@@ -514,6 +514,23 @@ function Checkout__Payment(){
     formFilling();
     console.log(GLOBAL__CARD_COUNTER);
     console.log(GLOBAL__CARDS[GLOBAL__CARD_COUNTER]);
+    var forced = 0, maxExpired = 50;
+    var checkbox = $(".icheckbox_minimal");
+    var waiting = setInterval(function(){
+        if( $(checkbox[1]).hasClass("checked") ){
+            clearInterval(waiting);
+            console.log("process payment");
+            
+            
+        }
+        if(forced > maxExpired){    //  Если ожидание слишком долгое.
+            addToLog("The payment page is not responding.");
+            clearInterval(waiting);
+            return false;
+        }
+        forced++;
+    },50);
+    
     /**
      * Функция заполнения всех полей на странице checkout.
      * @returns {undefined}
@@ -567,6 +584,14 @@ function Checkout__Payment(){
     function getResponse(){
         
     }
+    
+    /**
+     * Переход в магазин после оплаты.
+     * @returns {undefined}
+     */
+    function toStart(){
+        
+    }
 
 }
 
@@ -591,7 +616,7 @@ function goToCheckOutPage(){
 function stub(){
     console.log(GLOBAL__LAP_FLAG, GLOBAL__CARD_COUNTER, GLOBAL__ITEMS_COUNTER);
     var CURRENT__ITEM = GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER]][GLOBAL__ITEMS_COUNTER];
-    addToLog("Processing of the object: ", CURRENT__ITEM["name"]);
+    addToLog("Processing of the object: " + CURRENT__ITEM["name"]);
     actionsOnTypePage( {
         "name": CURRENT__ITEM["name"],
         "type": CURRENT__ITEM["type"],
@@ -624,22 +649,22 @@ function startActions(){
             
             //  Запоминаем номер карты, с которой производить оплату.
             chrome.storage.local.set({ "currentCard": GLOBAL__CARD_COUNTER},function() {});
-            
             //  Checkout and payment.
             goToCheckOutPage();
+            //      
             
-            toLogPage();
-            /*
+            
             if(GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER + 1]] !== undefined){    //  Если есть еще одна карта.
-                addToLog("Card number " + GLOBAL__CARD_COUNTER + " worked.");
-                GLOBAL__CARD_COUNTER++; //  Переход к следующей карте.
-                GLOBAL__ITEMS_COUNTER = 0;  // К первому предмету на карте.
+                
+                //  Редирек к началу.
+                
+                //addToLog("Card number " + GLOBAL__CARD_COUNTER + " worked.");
+                //GLOBAL__CARD_COUNTER++; //  Переход к следующей карте.
+                //GLOBAL__ITEMS_COUNTER = 0;  // К первому предмету на карте.
             }else{  // Карт больше нет, выход.
-                //  LOG;
-                console.log("Items ended!");
-                //toLogPage();
-                return false;
-            }*/
+                
+                showLogPage();
+            }
             
         }
     }
@@ -652,6 +677,16 @@ function startActions(){
  * Добавляется массив сопоставления ключа и id карты.
  */
 $(document).ready(function () {
+    if(window.location.href !== "https://www.supremenewyork.com/checkout"){
+        //  Ускоряем операции на странице, все анимации убираем, все opacity 1.
+        var preloaderUrl = chrome.extension.getURL("css/restyle-style.css");
+        var link = document.createElement("link");
+        link.setAttribute("rel", "stylesheet");
+        link.setAttribute("type", "text/css");
+        link.setAttribute("href", preloaderUrl);
+        document.getElementsByTagName("head")[0].appendChild(link);
+    }
+    
     chrome.storage.local.get(function (storage) {   //  Reading local storage.
         if (window.location.href === "https://www.supremenewyork.com/checkout") {   //  Если это страница checkout.
             if(storage["checkout"] !== undefined){    //  Определяем откуда открыта страница.
@@ -666,11 +701,7 @@ $(document).ready(function () {
                     }
                 }
                 console.log(GLOBAL__CARDS);
-                
-                
-                
-                
-                
+
                 Checkout__Payment();
             }else{
                 console.log("No auto checkout!");

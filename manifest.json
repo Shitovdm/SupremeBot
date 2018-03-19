@@ -6,11 +6,12 @@
     "options_page": "options.html",
     "description" : "Supreme bot.",
     "background": {
-        "scripts": ["js/jquery.min.js","background.js"],
+        "scripts": ["js/jquery.min.js","background.js", "js/log.js"],
         "persistent": false
     },
     "web_accessible_resources": [
-        "https://www.supremecommunity.com/" 
+        "https://www.supremecommunity.com/",
+        "css/restyle-style.css"
     ],  
     "browser_action": {
         "default_title": "Supreme Bot",
@@ -27,7 +28,7 @@
     "content_scripts": [
     {
       "matches": [ "http://www.supremenewyork.com/shop/*","https://www.supremenewyork.com/*",  "https://www.supremecommunity.com/*" ],
-      "js": [ "js/jquery.min.js", "background.js" ]
+      "js": [ "js/jquery.min.js", "background.js" , "js/log.js"]
     }
   ]
 }

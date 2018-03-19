@@ -1,0 +1,8 @@
+*{
+    -webkit-transition: all 0ms!important;
+    -moz-transition: all 0ms!important;
+    -ms-transition: all 0ms!important;
+    -o-transition: all 0ms!important;
+    transition: all 0ms!important;
+    opacity: 1!important;
+}
