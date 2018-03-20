@@ -1,21 +1,29 @@
 
 //  Current time;
-function getTime(){
+function getTime() {
     var date = new Date();
-    var h =  date.getUTCHours() - 4;
+    var h = date.getUTCHours();
     var m = date.getUTCMinutes();
-    (m < 10) ? ( m = "0" + m) : ( m = m );
     var s = date.getUTCSeconds();
-    (s < 10) ? ( s = "0" + s) : ( s = s );
-    var time = (h > 12) ? (h-12 + ':' + m + ':' + s + ' pm') : (h + ':' + m + ':' + s + ' am');
-    $("#LDN-time").text(time);
+    
+    var M = m;
+    (m < 10) ? (m = "0" + m) : (m = m);
+    var S = s;
+    (s < 10) ? (s = "0" + s) : (s = s);
+    //var time = (h > 12) ? (h - 12 + ':' + m + ':' + s + ' pm') : (h + ':' + m + ':' + s + ' am');
+    var time = (h + ':' + m + ':' + s );
+    $("#LDN-time").text("UTC: " + time);
+
+
+
     //  Действия по таймеру. Установить значение времени и все.
-    /*if(s == 10 || s == 40){
-        chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
-    }*/
-}
-    
-    
+    if (h === 11 && m === 0 && S === 0) {
+        //acceptCart();
+        console.log(h);
+        console.log(M);
+        console.log(S);
+    }
+}    
     
     
 //  Accept button availability.

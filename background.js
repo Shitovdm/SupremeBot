@@ -1,21 +1,42 @@
+/**
+ * Background script of SupremeBot for Chrome Extension.
+ * @author Shitov Dmitry
+ * @version 0.5
+ */
 
-var GLOBAL__ITEMS_COUNTER = 0;  //  Счетчик предметов, по нему определяем какой предмет вытаскивать из корзины.
-var GLOBAL__CARD_COUNTER = 0;  //  Счетчик карт.
+
+/*
+ * Global constants:
+ * GLOBAL__ITEMS_COUNTER - The counter of items when buying from a certain card.
+ * GLOBAL__CARD_COUNTER - The counter of payment card.
+ * GLOBAL__LOG - Local array of current actions.
+ * GLOBAL__LAP_FLAG - Specified flag of first lap.
+ * GLOBAL__ITEMS_ARRAY - Array of items participating in auto buying.
+ * GLOBAL__SETTINGS - Array of settings setup on setting page.(file "/settins.js").
+ * GLOBAL__CARDS - Array with data on payment cards.
+ * GLOBAL__MATCHING_ARRAY - Array with matching data for convert items array by id key.
+ * GLOBAL__TIMEOUT - The maximum time to wait for a page response.
+ * GLOBAL__INTERVAl - Interval of page access, while waiting for content.
+ */
+
+var GLOBAL__ITEMS_COUNTER = 0;
+var GLOBAL__CARD_COUNTER = 0;
 var GLOBAL__LOG = new Array();
 var GLOBAL__LAP_FLAG = false;
 var GLOBAL__ITEMS_ARRAY = {};
 var GLOBAL__SETTINGS = {};
 var GLOBAL__CARDS = {};
 var GLOBAL__MATCHING_ARRAY = {};
-var GLOBAL__LOG_ID = "";
+var GLOBAL__TIMEOUT = 100;  //  Equalse 5000 ms (100 segments of 50ms);
+var GLOBAL__INTERVAl = 50;
 
 
-//  Chrome functions.
+/*
+ * Если было принято сообщение из options.js, редиректим на пришедший в сообщении адрес.
+ */
 chrome.runtime.onMessage.addListener(function (request, sender) {
     chrome.tabs.update(sender.tab.id, {url: request.redirect});
-    chrome.storage.local.set({"operations": "start_actions"}, function () {
-        //console.log("Complete!");
-    });
+    chrome.storage.local.set({"operations": "start_actions"}, function () { });
     // На сообщение из контекста страницы, описанного здесь, ниже.
     if (request === 'show__log') { //проверяется, от того ли окна и скрипта отправлено
         chrome.windows.create({
@@ -26,50 +47,43 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
             focused: false
         }, function (newWindow) {});
     }
-    /*
-     
-     */
 });
 
 /*
-* Функция эмулирует событие нажатия на элемент.
-* @param {type} obj
-* @returns {undefined}
-*/
+ * Функция эмулирует событие нажатия на элемент.
+ * @param {object} obj Элемент, по которому следует сделать клик.
+ * @returns {undefined}
+ */
 function simulateClick(obj) {
     var evt = document.createEvent("MouseEvents");
     evt.initMouseEvent("click", true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
     var canceled = !obj.dispatchEvent(evt);
-    if(canceled) {
+    if (canceled) {
         //  A handler called preventDefault.
-    }else{
-       //   None of the handlers called preventDefault.
+    } else {
+        //   None of the handlers called preventDefault.
     }
 }
 
-function redirect(url){
-    window.location.href = url;
-}
 
-//  Action functions.
-
-function addToBasket(sub__href){
+/**
+ * Функция добавления предмета в корзину, эмитация клика на кнопку "Add to backet".
+ * @returns {undefined}
+ */
+function addToBasket() {
     addToLog("Adding to basket.");
     var element = document.querySelector('input[value="add to basket"]');
     simulateClick(element);
 }
 
-function checkOut(){
-    setTimeout(function(){
-        var selector = document.querySelector('a[href="https://www.supremenewyork.com/checkout"]');
-        simulateClick(selector); 
-    },500);   
-}
 
-
-
-function toSubjectPage(sub__href){
-    var what = document.querySelector('a[href="' + sub__href + '"]'); 
+/**
+ * Функция перехода на страницу предмета.
+ * @param {string} sub__href Значимая часть ссылки на страницу.
+ * @returns {undefined}
+ */
+function toSubjectPage(sub__href) {
+    var what = document.querySelector('a[href="' + sub__href + '"]');
     simulateClick(what);
 }
 
@@ -78,49 +92,49 @@ function toSubjectPage(sub__href){
  * @param {type} established__size
  * @returns {Boolean}
  */
-function selectItemSize(established__size){
+function selectItemSize(established__size) {
     //  Выбор размера, установленного пользователем.
     var sizes = document.querySelector('select[name="size"]');
     var item__size__code = choiceSize(sizes, established__size);
-    if(item__size__code !== false){   //  Если размер был найден.
+    if (item__size__code !== false) {   //  Если размер был найден.
         //  Выбираем его на странице.
         $(sizes).val(item__size__code); //  Устанавливаем в выпадающем списке.
         var resp = $(sizes).children('option[value="' + item__size__code + '"]').text();
         addToLog("Selected size : " + resp);
         return true;    //  Возвращмем выбранный размер.
-     }else{
-         return false;
-     }
-    
-    function choiceSize(sizes, established__size){
+    } else {
+        return false;
+    }
+
+    function choiceSize(sizes, established__size) {
         var pure__sizes = {};
-        
+
         //  Если у предмета нет параметров выбора размера.
-        
-        
-        
+
+
+
         //  Выбор всех размеров со страницы.
         var sizes__array = $(sizes).children("option");
-        for(var i = 0; i < $(sizes__array).length; i++){
+        for (var i = 0; i < $(sizes__array).length; i++) {
             pure__sizes[i] = {
                 label: $(sizes__array[i]).text(),
                 code: $(sizes__array[i]).val()
-            };  
+            };
         }
-        
+
         //  Разбитие строки размеров, указанной пользователем.
         var established__array = {};
-        for(var i = 0; i < established__size.split(",").length; i++){   //  Перебираем все указанные цвета.
+        for (var i = 0; i < established__size.split(",").length; i++) {   //  Перебираем все указанные цвета.
             established__array[i] = established__size.split(",")[i];
         }
-        
+
         //  Сопоставление и поиск нужного размера.
         //  Перебираем все указанные размеры в порядке указанного приоритета.
-        for(var size in established__array){    //  Перебор все введенных размеров.
-            if(established__array.hasOwnProperty(size)){ 
-                for(var present_size in pure__sizes){   //  Перебор всех размеров в наличии.
-                    if(pure__sizes.hasOwnProperty(present_size)){
-                        if(established__array[size].toString().replace(/\s/g, '') === pure__sizes[present_size]["label"].toString().replace(/\s/g, '')){
+        for (var size in established__array) {    //  Перебор все введенных размеров.
+            if (established__array.hasOwnProperty(size)) {
+                for (var present_size in pure__sizes) {   //  Перебор всех размеров в наличии.
+                    if (pure__sizes.hasOwnProperty(present_size)) {
+                        if (established__array[size].toString().replace(/\s/g, '') === pure__sizes[present_size]["label"].toString().replace(/\s/g, '')) {
                             //  Если найден размер. Возвращаем его код.
                             return pure__sizes[present_size]["code"];
                         }
@@ -131,14 +145,14 @@ function selectItemSize(established__size){
         //  Если размер не выбран из установленных:
         //  Если стоит галочка в настройках, установки любого рамера из присутствующих, если не найден указанный;
         //  Выбираем наименьший размер из присутствующих.
-        if(GLOBAL__SETTINGS["SelectAnySize"] === 1){    //  Если в настройках установлена галочка выбора любого размера.
+        if (GLOBAL__SETTINGS["SelectAnySize"] === 1) {    //  Если в настройках установлена галочка выбора любого размера.
             addToLog("The size is selected based on the settings.");
             return pure__sizes["0"]["code"];
-        }else{
+        } else {
             addToLog("The size is not selected, because there is no fixed size!");
             return false;
-        } 
-    } 
+        }
+    }
 }
 
 /**
@@ -146,26 +160,36 @@ function selectItemSize(established__size){
  * @param {string} note 
  * @returns {undefined}
  */
-function addToLog(note){
+function addToLog(note) {
     console.log(note);
     GLOBAL__LOG.push(note);
-    
+
 }
 
 /**
  * Функция перехода на конечную страницу вывода результата работы.
  * @returns {undefined}
  */
-function showLogPage(){
+function showLogPage() {
     addToLog("Show log page...");
     //console.log(GLOBAL__LOG);
     //  Переносим все записи лога в локальное хранилище.
-    chrome.storage.local.set({ "log" :  GLOBAL__LOG} , function(){
-        if(GLOBAL__SETTINGS["LogInNewWindow"] === 1){   //  Если в настройках указано показать лог по завершению.
+    chrome.storage.local.set({"log": GLOBAL__LOG}, function () {
+        if (GLOBAL__SETTINGS["LogInNewWindow"] === 1) {   //  Если в настройках указано показать лог по завершению.
             chrome.extension.sendMessage('show__log');  //  Вызываем страницу лога.
         }
     });
-    
+
+}
+
+
+/**
+ * Функция очистки лога из локального хранилища.
+ * @returns {undefined}
+ */
+function ClearLog() {
+    //  Переносим все записи лога в локальное хранилище.
+    chrome.storage.local.remove("log", function () {});
 }
 
 
@@ -174,17 +198,18 @@ function showLogPage(){
  * @param {string} sub__href
  * @returns {undefined}
  */
-function toTypePage(sub__href){
-    var what = document.querySelector('a[href="' + sub__href + '"]'); 
-    if(what === null){  //  Если предмет был добавлен в корзину, то переходим через основную страницу.
+function toTypePage(sub__href) {
+    var what = document.querySelector('a[href="' + sub__href + '"]');
+    if (what === null) {  //  Если предмет был добавлен в корзину, то переходим через основную страницу.
         addToLog("Go to type page: /shop/all");
-        var what = document.querySelector('a[href="http://www.supremenewyork.com/shop/all"]'); 
+        var what = document.querySelector('a[href="http://www.supremenewyork.com/shop/all"]');
         simulateClick(what);
-    }else{
+    } else {
         addToLog("Go to type page: " + sub__href);
         simulateClick(what);
     }
 }
+
 
 /**
  * Функция поиска страницы предмета, заданного параметрами.
@@ -203,181 +228,179 @@ function toTypePage(sub__href){
  * size    Установленные пользователем размеры предмета.
  * @returns {string} href Ссылка на страницу предмета.
  */
-function actionsOnTypePage(data){
+function actionsOnTypePage(data) {
     var foundItems = {};
     var name = data["name"];
     var type = data["type"];
     var size = data["size"];
     var colors = data["colors"];
     //  Исключение названия типа.
-    if(type === "tops"){
+    if (type === "tops") {
         type = "tops_sweaters";
     }
     //  Переходим на страницу типа предмета.
     toTypePage("/shop/all/" + type);   //  Go to the subject page.
-    if(document.querySelector('span[itemprop="price"]')){   //  Если переход осуществляется со страницы предмета.
+    if (document.querySelector('span[itemprop="price"]')) {   //  Если переход осуществляется со страницы предмета.
         //  Дожидаемся загрузки страницы.
         var forced_w = 0; //  Счетчик ожидания.
-        var maxExpired = 50;    //  Максимальное время ожидания. 50 - 5000 мс - 5 с.
-        var waiting = setInterval(function(){   //  Ждем прогрузки контента страницы.
-            if(document.querySelector('a[class="current"]') !== null){
+        var waiting = setInterval(function () {   //  Ждем прогрузки контента страницы.
+            if (document.querySelector('a[class="current"]') !== null) {
                 clearInterval(waiting);
-                if( GLOBAL__SETTINGS["ServerResponseTime"] === 1 ){   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                    addToLog("Waiting time for response: " + (forced_w * 100) + " ms." );
+                if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                    addToLog("Waiting time for response: " + (forced_w * 100) + " ms.");
                 }
                 toTypePage("/shop/all/" + type);   //  Go to the subject page.
                 var forced = 0; //  Счетчик ожидания.
-                var InnerWaiting = setInterval(function(){   //  Ждем прогрузки контента страницы.
-                    if(document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/" + type){
+                var InnerWaiting = setInterval(function () {   //  Ждем прогрузки контента страницы.
+                    if (document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/" + type) {
                         clearInterval(InnerWaiting);
-                        if( GLOBAL__SETTINGS["ServerResponseTime"] === 1 ){   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                            addToLog("Waiting time for response: " + (forced * 100) + " ms." );
+                        if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                            addToLog("Waiting time for response: " + (forced * 100) + " ms.");
                         }
                         //  Parse content.
                         foundItems = findItemsByName(name); //  Массив объектов отобранных по имени предметов.
                         var href__array = сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
                         var coi = 0;
-                        for(var g in href__array){
-                            if(href__array.hasOwnProperty(g)){
+                        for (var g in href__array) {
+                            if (href__array.hasOwnProperty(g)) {
                                 coi++;
                             }
                         }
                         addToLog("Found " + coi + " items.");
                         actionsOnItemPage(href__array, size);
                     }
-                    if(forced > maxExpired){    //  Если ожидание слишком долгое.
+                    if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
                         addToLog("<b class='error'>The page's wait period has expired.</b>");
                         clearInterval(InnerWaiting);
                         return false;
                     }
                     forced++;
-                },100);
+                }, GLOBAL__INTERVAl);
             }
-            if(forced_w > maxExpired){    //  Если ожидание слишком долгое.
+            if (forced_w > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
                 addToLog("<b class='error'>The page's wait period has expired.</b>");
                 clearInterval(waiting);
                 return false;
             }
-            forced_w++;         
-        },100);
-    }else{  //  Если переход осуществляется из /all.
+            forced_w++;
+        }, GLOBAL__INTERVAl);
+    } else {  //  Если переход осуществляется из /all.
         //  Дожидаемся загрузки страницы.
         var forced = 0; //  Счетчик ожидания.
-        var maxExpired = 50;    //  Максимальное время ожидания. 50 - 5000 мс - 5 с.
-        var waiting = setInterval(function(){   //  Ждем прогрузки контента страницы.
-            if(document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/" + type){
+        var waiting = setInterval(function () {   //  Ждем прогрузки контента страницы.
+            if (document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/" + type) {
                 clearInterval(waiting);
                 //  Parse content.
                 foundItems = findItemsByName(name); //  Массив объектов отобранных по имени предметов.
                 var href__array = сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
                 var coi = 0;
-                for(var g in href__array){
-                    if(href__array.hasOwnProperty(g)){
+                for (var g in href__array) {
+                    if (href__array.hasOwnProperty(g)) {
                         coi++;
                     }
                 }
-                addToLog("Found " + coi + " items." );
+                addToLog("Found " + coi + " items.");
                 //  Выводим время ответа сервера.
-                if( GLOBAL__SETTINGS["ServerResponseTime"] === 1 ){   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                    addToLog("Waiting time for response: " + (forced * 100) + " ms." );
+                if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                    addToLog("Waiting time for response: " + (forced * 100) + " ms.");
                 }
                 actionsOnItemPage(href__array, size);
             }
-            if(forced > maxExpired){    //  Если ожидание слишком долгое.
+            if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
                 addToLog("<b class='error'>The page's wait period has expired.</b>");
                 clearInterval(waiting);
                 return false;
             }
             forced++;
-        },100);
+        }, GLOBAL__INTERVAl);
     }
-    
+
     /**
      * Функция находит все цвета предмета, выбирает нужный и возвращает массив с ссылками.
      * @param {string} selectedColor    Строка указанных цветов.
      * @param {object} foundItems   Массив объектов найденных предметов после поиска по имени.
      * @returns {object} Массив ссылок на страницы предметов.
      */
-    function сolorSelection(selectedColor, foundItems){
+    function сolorSelection(selectedColor, foundItems) {
         var selectedColors = {};    //  Массив заданных цветов.
         var flag__color = true;    //  True - Любой цвет. False - Заданный.
-        if(selectedColor !== "Any"){    //  Если список цветов указан.
+        if (selectedColor !== "Any") {    //  Если список цветов указан.
             //  Разбиваем строку на цвета.
             var flag__color = false, f_c = 0, r_c = 0;  //  Счетчик запрещенных/разрешенных цветов.
             var forbiddenColors = {}, resolvedColors = {};
-            for(var i = 0; i < selectedColor.split(",").length; i++){   //  Перебираем все указанные цвета.
-                if((selectedColor.split(",")[i]).substr(0,1) === "!"){  //  Запрещенный цвет.
+            for (var i = 0; i < selectedColor.split(",").length; i++) {   //  Перебираем все указанные цвета.
+                if ((selectedColor.split(",")[i]).substr(0, 1) === "!") {  //  Запрещенный цвет.
                     forbiddenColors[f_c] = (selectedColor.split(",")[i]).substr(1);
                     f_c++;
-                }else{  //  Разрешенный цвет.
+                } else {  //  Разрешенный цвет.
                     resolvedColors[r_c] = selectedColor.split(",")[i];
                     r_c++;
-                }   
+                }
             }
         }
-        
+
         var foundColors = {}, hrefArray = {}, colorsAmount = 0;
         //  Строим массив всех существующих цветов.
-        for(var i = 0; i < foundItems.length; i++){
-            foundColors[i] = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;  
+        for (var i = 0; i < foundItems.length; i++) {
+            foundColors[i] = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;
             colorsAmount++;
         }
         //  Выбираем что указано пользователем, а что нет.
-        if(flag__color === true){   //  Выбираем все найденные цвета.
-            for(var i = 0; i < foundItems.length; i++){
+        if (flag__color === true) {   //  Выбираем все найденные цвета.
+            for (var i = 0; i < foundItems.length; i++) {
                 hrefArray[i] = foundItems[i].parentElement.parentElement.children["0"].attributes[1].value;
             }
-        }else{  //  Если цвета указаны точно.
-            if(forbiddenColors[0] === undefined){
-                if(resolvedColors[0] === undefined){ //  Не указаны ни запрещенные ни разрешенные.
+        } else {  //  Если цвета указаны точно.
+            if (forbiddenColors[0] === undefined) {
+                if (resolvedColors[0] === undefined) { //  Не указаны ни запрещенные ни разрешенные.
                     return false;
-                }else{  //  Разрешенные указаны, запрешенные нет.
+                } else {  //  Разрешенные указаны, запрешенные нет.
                     /**
                      * Перебираем все цвета.
                      * Перебираем указанные цвета.
                      * Ищем в массиве всех цветов, указанные, разрешенные.
                      */
                     var counter = 0;
-                    for(var color in foundColors){    //  Перебираем все найденные цвета.
-                        if(foundColors.hasOwnProperty(color)){
-                            for(var resolved__color in resolvedColors){
-                                if(resolvedColors.hasOwnProperty(resolved__color)){
-                                    if(foundColors[color] === resolvedColors[resolved__color]){
+                    for (var color in foundColors) {    //  Перебираем все найденные цвета.
+                        if (foundColors.hasOwnProperty(color)) {
+                            for (var resolved__color in resolvedColors) {
+                                if (resolvedColors.hasOwnProperty(resolved__color)) {
+                                    if (foundColors[color] === resolvedColors[resolved__color]) {
                                         hrefArray[counter] = foundItems[color].parentElement.parentElement.children["0"].attributes[1].value;
                                         counter++;
                                         break;
-                                    }   
+                                    }
                                 }
-                            } 
+                            }
                         }
                     }
                 }
-            }else{
-                if(resolvedColors[0] === undefined){   //  Разрешенные не указаны, запрещенные указаны.
+            } else {
+                if (resolvedColors[0] === undefined) {   //  Разрешенные не указаны, запрещенные указаны.
                     var counter = 0;
-                    for(var color in foundColors){    //  Перебираем все найденные цвета.
+                    for (var color in foundColors) {    //  Перебираем все найденные цвета.
                         var c__ = 0, flag = false, contin = true;
-                        if(foundColors.hasOwnProperty(color)){
-                            for(var forbidden__color in forbiddenColors){
-                                if(forbiddenColors.hasOwnProperty(forbidden__color) && (contin)){
-                                    if( (foundColors[color].toString().replace(/\s/g, '') === forbiddenColors[forbidden__color].toString().replace(/\s/g, '')) ){
+                        if (foundColors.hasOwnProperty(color)) {
+                            for (var forbidden__color in forbiddenColors) {
+                                if (forbiddenColors.hasOwnProperty(forbidden__color) && (contin)) {
+                                    if ((foundColors[color].toString().replace(/\s/g, '') === forbiddenColors[forbidden__color].toString().replace(/\s/g, ''))) {
                                         flag = true;
                                         contin = false;
                                         break;
-                                    }else{
-                                        if(!flag){
-                                            if(c__ === (f_c - 1) ){
+                                    } else {
+                                        if (!flag) {
+                                            if (c__ === (f_c - 1)) {
                                                 hrefArray[counter] = foundItems[color].parentElement.parentElement.children["0"].attributes[1].value;
-                                                counter++; 
+                                                counter++;
                                             }
                                         }
-                                    }  
+                                    }
                                 }
                                 c__++;
-                            } 
+                            }
                         }
                     }
-                }else{  //  Указаны и запрещенные и разрешенные.
+                } else {  //  Указаны и запрещенные и разрешенные.
                     //  Добавить алгоритм.
                     /**
                      * Построить массив всех присутствующих цветов.
@@ -387,25 +410,25 @@ function actionsOnTypePage(data){
                 }
             }
         }
-        return hrefArray; 
+        return hrefArray;
     }
-    
-    
+
+
     /**
      * Функция поиска предметов по имени.
      * @param {string} innerName Полное имя предмета.
      * @returns {object} Массив объектов отобранных предметов.
      */
-    function findItemsByName(innerName){
+    function findItemsByName(innerName) {
         /*  Принцип следующий:
-        *  Считываем все названия со страницы типа предмета.
-        *  Считаем количество совпадения слов в названии найденного предмкта и разыскиваемого.
-        *  Чем больше совпадений, тем больше шанс то что это именно разыскиваемый предмет.
-        *  Одинаковое количество совпадений - одинаковые найденные названия.
-        *  Чтобы отсеять предметы с одинаковыми словами но не совпадающими, проверяем длинну всего названия после подсчета совпадений.
-        */  
+         *  Считываем все названия со страницы типа предмета.
+         *  Считаем количество совпадения слов в названии найденного предмкта и разыскиваемого.
+         *  Чем больше совпадений, тем больше шанс то что это именно разыскиваемый предмет.
+         *  Одинаковое количество совпадений - одинаковые найденные названия.
+         *  Чтобы отсеять предметы с одинаковыми словами но не совпадающими, проверяем длинну всего названия после подсчета совпадений.
+         */
         var mainWord__Arr = innerName.split(" ");   //  Массив слов из названия предмета.
-        for(var k = 0; k < mainWord__Arr.length; k++){
+        for (var k = 0; k < mainWord__Arr.length; k++) {
             mainWord__Arr[k] = mainWord__Arr[k].toString().replace(/\s/g, '');
         }
         var itemWord__Arr = {}, foundItems = new Array();
@@ -413,39 +436,39 @@ function actionsOnTypePage(data){
         var coincidenceWords__Arr = {}; //  Количество совпадений слов в каждом найденном предмете с розыскиваемым предметом.
         //  Парсинг контента страницы и нахождение ссылки.
         var content = document.querySelectorAll('a[class="name-link"]');
-        for(var i = 0; i < content.length; i++){    //  Перебор всех названий и цветов.
-            if( i % 2 === 0){   //  Все названия.
+        for (var i = 0; i < content.length; i++) {    //  Перебор всех названий и цветов.
+            if (i % 2 === 0) {   //  Все названия.
                 itemWord__Arr = (content[i].innerHTML).split(" "); //    Массив слов найденного предмета.
                 //  Находим количество совпадений по словам.
-                for(var l = 0; l < itemWord__Arr.length; l++){   //  Перебираем все слова из названия найденного предмета.
+                for (var l = 0; l < itemWord__Arr.length; l++) {   //  Перебираем все слова из названия найденного предмета.
                     itemWord__Arr[l] = itemWord__Arr[l].toString().replace(/\s/g, '');
-                    for(var k = 0; k < mainWord__Arr.length; k++){ //  Перебираем все слова из названия розыскиваемого предмета.
-                        if(mainWord__Arr[k] === itemWord__Arr[l]){   //  Совпадения вложенного слова.
-                            if(coincidenceWords__Arr[counter] === undefined){
+                    for (var k = 0; k < mainWord__Arr.length; k++) { //  Перебираем все слова из названия розыскиваемого предмета.
+                        if (mainWord__Arr[k] === itemWord__Arr[l]) {   //  Совпадения вложенного слова.
+                            if (coincidenceWords__Arr[counter] === undefined) {
                                 coincidenceWords__Arr[counter] = 1;
-                            }else{
+                            } else {
                                 coincidenceWords__Arr[counter] += 1;
                             }
                         }
-                    } 
+                    }
                 }
                 //  Количество слов в названии.
-                if(itemWord__Arr.length !== mainWord__Arr.length){
-                    coincidenceWords__Arr[counter] = 0;  
+                if (itemWord__Arr.length !== mainWord__Arr.length) {
+                    coincidenceWords__Arr[counter] = 0;
                 }
                 counter++;
             }
         }
         //  Выбираем предметы с максимальным количеством совпаденний слов.
         var MAX_coinc = 0;
-        for(var y = 0; y < counter; y++){
-            if(coincidenceWords__Arr[y] > MAX_coinc){
+        for (var y = 0; y < counter; y++) {
+            if (coincidenceWords__Arr[y] > MAX_coinc) {
                 MAX_coinc = coincidenceWords__Arr[y];
             }
         }
         //  Сопоставляем и формируем массив объектов предметов, подходящий по назнавию.
-        for(var i = 0, j = 0; i < content.length; i = i + 2, j++){
-            if(coincidenceWords__Arr[j] === MAX_coinc){
+        for (var i = 0, j = 0; i < content.length; i = i + 2, j++) {
+            if (coincidenceWords__Arr[j] === MAX_coinc) {
                 foundItems.push(content[i]);
             }
         }
@@ -460,65 +483,65 @@ function actionsOnTypePage(data){
  * @param {string} established__size Строка с выбранными размерами.
  * @returns {undefined}
  */
-function actionsOnItemPage(href__array, established__size){
-    for(var obj in href__array){    //  Перебираем все найденные предметы.
-        if(href__array.hasOwnProperty(obj)){
+function actionsOnItemPage(href__array, established__size) {
+    for (var obj in href__array) {    //  Перебираем все найденные предметы.
+        if (href__array.hasOwnProperty(obj)) {
             var container = document.querySelector('a[href="' + href__array[obj] + '"]');
-            if($(container).children("div").text().toString().replace(/\s/g, '') !== "soldout"){    //  Проверяем наличие предмета в магазине.
+            if ($(container).children("div").text().toString().replace(/\s/g, '') !== "soldout") {    //  Проверяем наличие предмета в магазине.
                 //  Действия на странице предмета.
                 toSubjectPage(href__array[obj]);   //  Go to the subject page.
                 addToLog("Go to item page: " + href__array[obj]);
                 //  Задержка подгрузки страницы.
-                var forced = 0, maxExpired = 30;
-                var waiting = setInterval(function(){   //  Ждем прогрузки контента страницы выбранного предмета.
-                    if(document.querySelector('span[itemprop="price"]')){   //  Если страница загрузилась.
+                var forced = 0;
+                var waiting = setInterval(function () {   //  Ждем прогрузки контента страницы выбранного предмета.
+                    if (document.querySelector('span[itemprop="price"]')) {   //  Если страница загрузилась.
                         clearInterval(waiting);
                         //  Если предмета еще нет в корзине.
-                        if(document.querySelector('input[value="add to basket"]')){ //  Если есть кнопка добавления в корзину.
+                        if (document.querySelector('input[value="add to basket"]')) { //  Если есть кнопка добавления в корзину.
                             //  Выбор размера.
                             var size__flag = selectItemSize(established__size);
-                            if(size__flag !== false){
+                            if (size__flag !== false) {
                                 //  Добавление в корзину.
                                 addToBasket(href__array[obj]);
-                                setTimeout(function(){
+                                setTimeout(function () {
                                     startActions(); //  Переход к другим предметам.
-                                },100);
-                            }else{
+                                }, GLOBAL__INTERVAl);
+                            } else {
                                 //  Размер не был выбран.
                                 addToLog("Size was not selected.");
                                 startActions(); //  Переход к другим предметам.
                             }
-                        }else{
+                        } else {
                             addToLog("<b class='warning'>The item is already in the basket.<b>");
                             startActions(); //  Переход к другим предметам.
-                        } 
+                        }
                     }
-                    if(forced > maxExpired){    //  Если ожидание слишком долгое.
+                    if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
                         addToLog("<b class='error'>The page's wait period has expired.</b>");
                         clearInterval(waiting);
                     }
                     forced++;
-                },100);
+                }, GLOBAL__INTERVAl);
                 break;
-            }else{  //  Все экземпляры предмета раскуплены.
+            } else {  //  Все экземпляры предмета раскуплены.
                 addToLog("<b class='warning'>All copies of the item are sold out.</b>");
                 startActions(); //  Переход к другим предметам.
-                break; 
+                break;
             }
         }
-    }  
+    }
 }
 
 /**
  * Функция обработки страницы chrckout.
  * @returns {undefined}
  */
-function Checkout__Payment(){
+function Checkout__Payment() {
     //  Заполнение формы.
     formFilling();
     //console.log(GLOBAL__CARD_COUNTER);
     //console.log(GLOBAL__CARDS[GLOBAL__CARD_COUNTER]);
-    var forced = 0, maxExpired = 50;
+    var forced = 0;
     var checkbox = $(".icheckbox_minimal");
     var waiting = setInterval(function () {
         if ($(checkbox[1]).hasClass("checked")) {
@@ -532,7 +555,7 @@ function Checkout__Payment(){
             var forced_p = 0;
             var waiting_p = setInterval(function () {
                 //  Ожидание загрузки страницы.
-                if ( document.querySelector('div[id="confirmation"]') !== null ) {
+                if (document.querySelector('div[id="confirmation"]') !== null) {
                     clearInterval(waiting_p);
                     addToLog("Payment request was successfully sent.");
                     if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
@@ -541,41 +564,42 @@ function Checkout__Payment(){
                     // Читаем ответ сервера.
                     var response = $("#confirmation").children("p");
                     addToLog($(response[0]).text());
-                    
+
                     //  Расчет времени выполнения.
-                    var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
-                    addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs);
-                    
-                    chrome.storage.local.get("timestamp", function (stor) {
-                        var time_diff = Math.floor(timeStampInMs - stor["timestamp"]);
-                        addToLog("Total execution time: " + (time_diff / 1000) + " sec.");
-                        showLogPage();
-                        return true;
-                    });
-                    
-                    
+                    if (GLOBAL__SETTINGS["CalculateTotalTime"] === 1) {
+                        var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
+                        addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs);
+                        chrome.storage.local.get("timestamp", function (stor) {
+                            var time_diff = Math.floor(timeStampInMs - stor["timestamp"]);
+                            addToLog("Total execution time: " + (time_diff / 1000) + " sec.");
+                            showLogPage();
+                            // Удаляем 
+                            chrome.storage.local.remove("operations", function () {});
+                            return true;
+                        });
+                    }
                 }
-                if (forced > maxExpired) {    //  Если ожидание слишком долгое.
+                if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
                     addToLog("<b class='error'>Payment timeout expired.</b>");
                     clearInterval(waiting);
                     return false;
                 }
                 forced_p++;
-            }, 50);
+            }, GLOBAL__INTERVAl);
         }
-        if (forced > maxExpired) {    //  Если ожидание слишком долгое.
+        if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
             addToLog("<b class='error'>The payment page is not responding.</b>");
             clearInterval(waiting);
             return false;
         }
         forced++;
-    }, 50);
-    
+    }, GLOBAL__INTERVAl);
+
     /**
      * Функция заполнения всех полей на странице checkout.
      * @returns {undefined}
      */
-    function formFilling(){
+    function formFilling() {
         addToLog("Filling in the card data.");
         //  Common.
         fillingField("order_billing_name", "fullName");
@@ -595,9 +619,9 @@ function Checkout__Payment(){
         fillingField("vval", "cardCVV", "nonfloating");
         //  Confirmation terms.
         var selector = document.querySelector('input[name="order[terms]"]');
-        simulateClick(selector); 
+        simulateClick(selector);
     }
-    
+
     /**
      * Функция заполнения поля ввода.
      * @param {string} fieldID  ID поля ввода.
@@ -605,23 +629,23 @@ function Checkout__Payment(){
      * @param {string} fieldType    Особые флаги. Определяют положение текста в поле ввода или тип поля.
      * @returns {undefined}
      */
-    function fillingField(fieldID, fieldName, fieldType){
-        if( (fieldType === "drop-list") || (fieldType === "nonfloating") ){   //  If Drop-down list.
+    function fillingField(fieldID, fieldName, fieldType) {
+        if ((fieldType === "drop-list") || (fieldType === "nonfloating")) {   //  If Drop-down list.
             $("#" + fieldID).val(GLOBAL__CARDS[GLOBAL__CARD_COUNTER][fieldName]);
-        }else{  //  Обычное поле.
-            if(GLOBAL__CARDS[GLOBAL__CARD_COUNTER][fieldName] !== ""){
+        } else {  //  Обычное поле.
+            if (GLOBAL__CARDS[GLOBAL__CARD_COUNTER][fieldName] !== "") {
                 $("#" + fieldID).val(GLOBAL__CARDS[GLOBAL__CARD_COUNTER][fieldName]);
                 $("#" + fieldID).addClass("floating");
                 $("#" + fieldID).parent("div").children("label").addClass("floating");
             }
-        } 
+        }
     }
-    
+
     /**
      * Функция эмуляции нажатия кнопки "process payment";
      * @returns {undefined}
      */
-    function pressProcessPayment(){
+    function pressProcessPayment() {
         addToLog("Send a request for payment.");
         var selector = document.querySelector('input[name="commit"]');
         simulateClick(selector);
@@ -633,16 +657,16 @@ function Checkout__Payment(){
  * Функция редиректа на страницу checkout.
  * @returns {undefined}
  */
-function goToCheckOutPage(){
-    chrome.storage.local.set({"checkout": "start_actions"}, function (){}); // Указываем место, откуда был сделан редирект на страницу checkout.
+function goToCheckOutPage() {
+    chrome.storage.local.set({"checkout": "start_actions"}, function () {}); // Указываем место, откуда был сделан редирект на страницу checkout.
     addToLog("Go to checkout page.");
-    if( GLOBAL__SETTINGS["ServerResponseTime"] === 1 ){   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-        addToLog("Waiting time for response: 300 ms." );
+    if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+        addToLog("Waiting time for response: 300 ms.");
     }
-    setTimeout(function(){
+    setTimeout(function () {
         var selector = document.querySelector('a[href="https://www.supremenewyork.com/checkout"]');
-        simulateClick(selector); 
-    },300);   
+        simulateClick(selector);
+    }, 300);
 }
 
 
@@ -651,11 +675,11 @@ function goToCheckOutPage(){
  * Выполняет функцию вызова основного алгоритма перебора и поиска.
  * @returns {undefined}
  */
-function stub(){
+function stub() {
     console.log(GLOBAL__LAP_FLAG, GLOBAL__CARD_COUNTER, GLOBAL__ITEMS_COUNTER);
     var CURRENT__ITEM = GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER]][GLOBAL__ITEMS_COUNTER];
     addToLog("Processing of the object: " + CURRENT__ITEM["name"]);
-    actionsOnTypePage( {
+    actionsOnTypePage({
         "name": CURRENT__ITEM["name"],
         "type": CURRENT__ITEM["type"],
         "size": CURRENT__ITEM["size"],
@@ -668,59 +692,59 @@ function stub(){
  * Выполняет инкрементирующую функцию. Первыми перебираются предметы на карте, затем карты.
  * @returns {Boolean} Если предметов больше нет, возвращает false;
  */
-function startActions(){
-    if(!GLOBAL__LAP_FLAG){  //  Вход.
+function startActions() {
+    if (!GLOBAL__LAP_FLAG) {  //  Вход.
         //  Предусматривает наличие хотя бы 1й карты и 1 предмета на ней.
         stub();
         GLOBAL__LAP_FLAG = true;
-    }else{  //  Последующие.
-        if(GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER]][GLOBAL__ITEMS_COUNTER + 1] !== undefined) {   //  Если есть еще предметы на данной карте.
+    } else {  //  Последующие.
+        if (GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER]][GLOBAL__ITEMS_COUNTER + 1] !== undefined) {   //  Если есть еще предметы на данной карте.
             GLOBAL__ITEMS_COUNTER++;    //  Переход к следующему предмету на карте.
             stub();
-            
-            
-        }else{  //  Предметов на карте нет, переходим к оплате. Переход к следующей карте.
-            
+
+
+        } else {  //  Предметов на карте нет, переходим к оплате. Переход к следующей карте.
+
             //  Удаление из корзины уже купленных предметов.
-            
+
             //  Запоминаем все глобальные переменные.
-            
+
             //  Запоминаем номер карты, с которой производить оплату.
-            chrome.storage.local.set({ "currentCard": GLOBAL__CARD_COUNTER},function() {});
+            chrome.storage.local.set({"currentCard": GLOBAL__CARD_COUNTER}, function () {});
             //  Checkout and payment.
             var checkout_finish = goToCheckOutPage();
             // Сохраняем все данные, потому что переменные сбросятся при переходе на формально другую чтраницу.
-            chrome.storage.local.set({ "log": GLOBAL__LOG},function() {});
-            
-            
-            if(GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER + 1]] !== undefined){    //  Если есть еще одна карта.
-                
+            chrome.storage.local.set({"log": GLOBAL__LOG}, function () {});
+
+
+            if (GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER + 1]] !== undefined) {    //  Если есть еще одна карта.
+
                 //  Редирек к началу.
-                
+
                 //addToLog("Card number " + GLOBAL__CARD_COUNTER + " worked.");
                 //GLOBAL__CARD_COUNTER++; //  Переход к следующей карте.
                 //GLOBAL__ITEMS_COUNTER = 0;  // К первому предмету на карте.
-            }else{  // Карт больше нет, выход.
+            } else {  // Карт больше нет, выход.
                 console.log("gggggggggggggggg!");
-                var forced = 0, maxExpired = 50;
-                var waiting = setInterval(function(){
-                    if(checkout_finish){
+                var forced = 0;
+                var waiting = setInterval(function () {
+                    if (checkout_finish) {
                         clearInterval(waiting);
                         console.log("process payment");
                         showLogPage();
                     }
-                    if(forced > maxExpired){    //  Если ожидание слишком долгое.
+                    if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
                         addToLog("<b class='error'>The payment page is not responding.</b>");
                         clearInterval(waiting);
                         return false;
                     }
                     forced++;
-                },50);
+                }, GLOBAL__INTERVAl);
             }
-            
+
         }
     }
-    
+
 }
 
 /**
@@ -729,23 +753,31 @@ function startActions(){
  * Добавляется массив сопоставления ключа и id карты.
  */
 $(document).ready(function () {
-    if(window.location.href !== "https://www.supremenewyork.com/checkout"){
-        //  Ускоряем операции на странице, все анимации убираем, все opacity 1.
-        var preloaderUrl = chrome.extension.getURL("css/restyle-style.css");
-        var link = document.createElement("link");
-        link.setAttribute("rel", "stylesheet");
-        link.setAttribute("type", "text/css");
-        link.setAttribute("href", preloaderUrl);
-        document.getElementsByTagName("head")[0].appendChild(link);
-    }
-    
+    chrome.storage.local.get("settings", function (resp) {
+        if (resp["settings"]["HideAllAnimations"] === 1) {   //  Hide all animations on supreme site.
+            if (window.location.href !== "https://www.supremenewyork.com/checkout") {
+                //  Ускоряем операции на странице, все анимации убираем, все opacity 1.
+                var preloaderUrl = chrome.extension.getURL("css/restyle-style.css");
+                var link = document.createElement("link");
+                link.setAttribute("rel", "stylesheet");
+                link.setAttribute("type", "text/css");
+                link.setAttribute("href", preloaderUrl);
+                document.getElementsByTagName("head")[0].appendChild(link);
+            }
+        }
+        //  Другие настраиваемые действия с оформлением сайта supreme.
+
+
+    });
+
+
     chrome.storage.local.get(function (storage) {   //  Reading local storage.
         if (window.location.href === "https://www.supremenewyork.com/checkout") {   //  Если это страница checkout.
-            if(storage["checkout"] !== undefined){    //  Определяем откуда открыта страница.
+            if (storage["checkout"] !== undefined) {    //  Определяем откуда открыта страница.
                 GLOBAL__SETTINGS = storage["settings"];
                 //  Переносим лог на эту страницу.
-                for( var note in storage["log"]){
-                    if(storage["log"].hasOwnProperty(note)){
+                for (var note in storage["log"]) {
+                    if (storage["log"].hasOwnProperty(note)) {
                         GLOBAL__LOG.push(storage["log"][note]);
                         console.log(storage["log"][note]);
                     }
@@ -761,12 +793,12 @@ $(document).ready(function () {
                     }
                 }
                 Checkout__Payment();
-            }else{
+            } else {
                 console.log("No auto checkout!");
             }
-        chrome.storage.local.remove( "checkout", function() {
-            //console.log('Operations array removed');
-        });
+            chrome.storage.local.remove("checkout", function () {
+                //console.log('Operations array removed');
+            });
         } else {
             if (storage["operations"] !== undefined) {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
                 // Инициализация лога.
@@ -776,6 +808,7 @@ $(document).ready(function () {
                     addToLog("Initialize total running stopwatch. Timestamp: " + timeStampInMs);
                     chrome.storage.local.set({"timestamp": timeStampInMs}, function () {
                         addToLog("Initialize log page.");
+                        ClearLog();
                         addToLog("Reading cart and arranging the arrays.");
                         GLOBAL__SETTINGS = storage["settings"];
                         var cardsArray = storage["card"];
@@ -827,9 +860,9 @@ $(document).ready(function () {
                             }
                         }
                         addToLog("Start auto actions on page.");
-                        startActions(); 
+                        startActions();
                     });
-               });
+                });
             } else {  //  Ничего не делаем. На страницу зашли не из под расширения.
                 console.log("Inactivity.");
             }
@@ -837,5 +870,5 @@ $(document).ready(function () {
 
     });
     //  Удаление массива операций, сделано для того, чтобы при каждом посещении страницы магазина самопроизвольно не запускался скрипт расширения.
-     chrome.storage.local.remove( "operations", function() {});
+    chrome.storage.local.remove("operations", function () {});
 });

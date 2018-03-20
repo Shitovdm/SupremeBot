@@ -6,7 +6,7 @@ function setDefaultParams(){
         if(resp["settings"] === undefined){  //  Если в локальном хранилище еще нет сохраненных настроек.
             var settingsArray = {
                 LabelSoldOutItems : 0,
-                ShowSoldOutItems : 1,
+                HideAllAnimations : 1,
                 HideSoldOutItemsOnSupreme : 1,
                 EnableTimeSynchronization : 0,
                 
