@@ -30,6 +30,10 @@ body{
     text-align: left;
     padding-left:5px;
 }
+.popup-actions a:last-child .action-button{
+    border-bottom: none;
+}   
+
 .popup-actions div:hover{
     background-color: #f0f0f0;
 }

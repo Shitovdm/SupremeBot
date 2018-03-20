@@ -23,7 +23,9 @@ function setDefaultParams(){
                 AutoFillPaymentForm : 1,
                 MaintainFullLog : 1,
                 OutputResponseInLog: 1,
-                LogInNewWindow: 1
+                LogInNewWindow: 1,
+                ServerResponseTime: 1,
+                CalculateTotalTime: 1
             };
             chrome.storage.local.set({ 'settings' : settingsArray},function(){
                 console.log("Настройки сохранены в локальном хранилище.");

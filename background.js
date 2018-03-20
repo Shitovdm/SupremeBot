@@ -9,6 +9,7 @@ var GLOBAL__CARDS = {};
 var GLOBAL__MATCHING_ARRAY = {};
 var GLOBAL__LOG_ID = "";
 
+
 //  Chrome functions.
 chrome.runtime.onMessage.addListener(function (request, sender) {
     chrome.tabs.update(sender.tab.id, {url: request.redirect});
@@ -29,11 +30,6 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
      
      */
 });
-
-function error__Exception(error__desc){
-    alert(error__desc);
-}
-
 
 /*
 * Функция эмулирует событие нажатия на элемент.
@@ -67,7 +63,7 @@ function checkOut(){
     setTimeout(function(){
         var selector = document.querySelector('a[href="https://www.supremenewyork.com/checkout"]');
         simulateClick(selector); 
-    },100);   
+    },500);   
 }
 
 
@@ -161,8 +157,8 @@ function addToLog(note){
  * @returns {undefined}
  */
 function showLogPage(){
-    addToLog("redirect to log page...");
-    console.log(GLOBAL__LOG);
+    addToLog("Show log page...");
+    //console.log(GLOBAL__LOG);
     //  Переносим все записи лога в локальное хранилище.
     chrome.storage.local.set({ "log" :  GLOBAL__LOG} , function(){
         if(GLOBAL__SETTINGS["LogInNewWindow"] === 1){   //  Если в настройках указано показать лог по завершению.
@@ -226,11 +222,17 @@ function actionsOnTypePage(data){
         var waiting = setInterval(function(){   //  Ждем прогрузки контента страницы.
             if(document.querySelector('a[class="current"]') !== null){
                 clearInterval(waiting);
+                if( GLOBAL__SETTINGS["ServerResponseTime"] === 1 ){   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                    addToLog("Waiting time for response: " + (forced_w * 100) + " ms." );
+                }
                 toTypePage("/shop/all/" + type);   //  Go to the subject page.
                 var forced = 0; //  Счетчик ожидания.
                 var InnerWaiting = setInterval(function(){   //  Ждем прогрузки контента страницы.
                     if(document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/" + type){
                         clearInterval(InnerWaiting);
+                        if( GLOBAL__SETTINGS["ServerResponseTime"] === 1 ){   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                            addToLog("Waiting time for response: " + (forced * 100) + " ms." );
+                        }
                         //  Parse content.
                         foundItems = findItemsByName(name); //  Массив объектов отобранных по имени предметов.
                         var href__array = сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
@@ -244,8 +246,7 @@ function actionsOnTypePage(data){
                         actionsOnItemPage(href__array, size);
                     }
                     if(forced > maxExpired){    //  Если ожидание слишком долгое.
-                        addToLog("The page's wait period has expired.");
-                        console.log("waiting 2");
+                        addToLog("<b class='error'>The page's wait period has expired.</b>");
                         clearInterval(InnerWaiting);
                         return false;
                     }
@@ -253,8 +254,7 @@ function actionsOnTypePage(data){
                 },100);
             }
             if(forced_w > maxExpired){    //  Если ожидание слишком долгое.
-                addToLog("The page's wait period has expired.");
-                console.log("waiting 1");
+                addToLog("<b class='error'>The page's wait period has expired.</b>");
                 clearInterval(waiting);
                 return false;
             }
@@ -276,11 +276,15 @@ function actionsOnTypePage(data){
                         coi++;
                     }
                 }
-                addToLog("Found " + coi + " items.");
+                addToLog("Found " + coi + " items." );
+                //  Выводим время ответа сервера.
+                if( GLOBAL__SETTINGS["ServerResponseTime"] === 1 ){   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                    addToLog("Waiting time for response: " + (forced * 100) + " ms." );
+                }
                 actionsOnItemPage(href__array, size);
             }
             if(forced > maxExpired){    //  Если ожидание слишком долгое.
-                addToLog("The page's wait period has expired.");
+                addToLog("<b class='error'>The page's wait period has expired.</b>");
                 clearInterval(waiting);
                 return false;
             }
@@ -485,19 +489,19 @@ function actionsOnItemPage(href__array, established__size){
                                 startActions(); //  Переход к другим предметам.
                             }
                         }else{
-                            addToLog("The item is already in the basket.");
+                            addToLog("<b class='warning'>The item is already in the basket.<b>");
                             startActions(); //  Переход к другим предметам.
                         } 
                     }
                     if(forced > maxExpired){    //  Если ожидание слишком долгое.
-                        addToLog("The page's wait period has expired.");
+                        addToLog("<b class='error'>The page's wait period has expired.</b>");
                         clearInterval(waiting);
                     }
                     forced++;
                 },100);
                 break;
             }else{  //  Все экземпляры предмета раскуплены.
-                addToLog("All copies of the item are sold out.");
+                addToLog("<b class='warning'>All copies of the item are sold out.</b>");
                 startActions(); //  Переход к другим предметам.
                 break; 
             }
@@ -512,31 +516,67 @@ function actionsOnItemPage(href__array, established__size){
 function Checkout__Payment(){
     //  Заполнение формы.
     formFilling();
-    console.log(GLOBAL__CARD_COUNTER);
-    console.log(GLOBAL__CARDS[GLOBAL__CARD_COUNTER]);
+    //console.log(GLOBAL__CARD_COUNTER);
+    //console.log(GLOBAL__CARDS[GLOBAL__CARD_COUNTER]);
     var forced = 0, maxExpired = 50;
     var checkbox = $(".icheckbox_minimal");
-    var waiting = setInterval(function(){
-        if( $(checkbox[1]).hasClass("checked") ){
+    var waiting = setInterval(function () {
+        if ($(checkbox[1]).hasClass("checked")) {
             clearInterval(waiting);
-            console.log("process payment");
-            
-            
+            if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                addToLog("Waiting time for response: " + (forced * 50) + " ms.");
+            }
+            //  Проводим платежную операцию.
+            pressProcessPayment();
+            //  Ожидание ответа сервера.
+            var forced_p = 0;
+            var waiting_p = setInterval(function () {
+                //  Ожидание загрузки страницы.
+                if ( document.querySelector('div[id="confirmation"]') !== null ) {
+                    clearInterval(waiting_p);
+                    addToLog("Payment request was successfully sent.");
+                    if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                        addToLog("Payment timeout: " + (forced_p * 50) + " ms.");
+                    }
+                    // Читаем ответ сервера.
+                    var response = $("#confirmation").children("p");
+                    addToLog($(response[0]).text());
+                    
+                    //  Расчет времени выполнения.
+                    var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
+                    addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs);
+                    
+                    chrome.storage.local.get("timestamp", function (stor) {
+                        var time_diff = Math.floor(timeStampInMs - stor["timestamp"]);
+                        addToLog("Total execution time: " + (time_diff / 1000) + " sec.");
+                        showLogPage();
+                        return true;
+                    });
+                    
+                    
+                }
+                if (forced > maxExpired) {    //  Если ожидание слишком долгое.
+                    addToLog("<b class='error'>Payment timeout expired.</b>");
+                    clearInterval(waiting);
+                    return false;
+                }
+                forced_p++;
+            }, 50);
         }
-        if(forced > maxExpired){    //  Если ожидание слишком долгое.
-            addToLog("The payment page is not responding.");
+        if (forced > maxExpired) {    //  Если ожидание слишком долгое.
+            addToLog("<b class='error'>The payment page is not responding.</b>");
             clearInterval(waiting);
             return false;
         }
         forced++;
-    },50);
+    }, 50);
     
     /**
      * Функция заполнения всех полей на странице checkout.
      * @returns {undefined}
      */
     function formFilling(){
-        addToLog("Form filling...");
+        addToLog("Filling in the card data.");
         //  Common.
         fillingField("order_billing_name", "fullName");
         fillingField("order_email", "email");
@@ -578,21 +618,14 @@ function Checkout__Payment(){
     }
     
     /**
-     * Функция обработки ответа магазина на попытку произвести оплату покупки.
+     * Функция эмуляции нажатия кнопки "process payment";
      * @returns {undefined}
      */
-    function getResponse(){
-        
+    function pressProcessPayment(){
+        addToLog("Send a request for payment.");
+        var selector = document.querySelector('input[name="commit"]');
+        simulateClick(selector);
     }
-    
-    /**
-     * Переход в магазин после оплаты.
-     * @returns {undefined}
-     */
-    function toStart(){
-        
-    }
-
 }
 
 
@@ -603,8 +636,13 @@ function Checkout__Payment(){
 function goToCheckOutPage(){
     chrome.storage.local.set({"checkout": "start_actions"}, function (){}); // Указываем место, откуда был сделан редирект на страницу checkout.
     addToLog("Go to checkout page.");
-    var selector = document.querySelector('a[href="https://www.supremenewyork.com/checkout"]');
-    simulateClick(selector); 
+    if( GLOBAL__SETTINGS["ServerResponseTime"] === 1 ){   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+        addToLog("Waiting time for response: 300 ms." );
+    }
+    setTimeout(function(){
+        var selector = document.querySelector('a[href="https://www.supremenewyork.com/checkout"]');
+        simulateClick(selector); 
+    },300);   
 }
 
 
@@ -627,7 +665,7 @@ function stub(){
 
 /**
  * Функция является частью рекурсивного алгоритма перебора всех предметов в корзине.
- * Выполняет инкрементирующую функцию. Перевыми перебираются предметы на карте, затем карты.
+ * Выполняет инкрементирующую функцию. Первыми перебираются предметы на карте, затем карты.
  * @returns {Boolean} Если предметов больше нет, возвращает false;
  */
 function startActions(){
@@ -650,8 +688,9 @@ function startActions(){
             //  Запоминаем номер карты, с которой производить оплату.
             chrome.storage.local.set({ "currentCard": GLOBAL__CARD_COUNTER},function() {});
             //  Checkout and payment.
-            goToCheckOutPage();
-            //      
+            var checkout_finish = goToCheckOutPage();
+            // Сохраняем все данные, потому что переменные сбросятся при переходе на формально другую чтраницу.
+            chrome.storage.local.set({ "log": GLOBAL__LOG},function() {});
             
             
             if(GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER + 1]] !== undefined){    //  Если есть еще одна карта.
@@ -662,8 +701,21 @@ function startActions(){
                 //GLOBAL__CARD_COUNTER++; //  Переход к следующей карте.
                 //GLOBAL__ITEMS_COUNTER = 0;  // К первому предмету на карте.
             }else{  // Карт больше нет, выход.
-                
-                showLogPage();
+                console.log("gggggggggggggggg!");
+                var forced = 0, maxExpired = 50;
+                var waiting = setInterval(function(){
+                    if(checkout_finish){
+                        clearInterval(waiting);
+                        console.log("process payment");
+                        showLogPage();
+                    }
+                    if(forced > maxExpired){    //  Если ожидание слишком долгое.
+                        addToLog("<b class='error'>The payment page is not responding.</b>");
+                        clearInterval(waiting);
+                        return false;
+                    }
+                    forced++;
+                },50);
             }
             
         }
@@ -690,6 +742,14 @@ $(document).ready(function () {
     chrome.storage.local.get(function (storage) {   //  Reading local storage.
         if (window.location.href === "https://www.supremenewyork.com/checkout") {   //  Если это страница checkout.
             if(storage["checkout"] !== undefined){    //  Определяем откуда открыта страница.
+                GLOBAL__SETTINGS = storage["settings"];
+                //  Переносим лог на эту страницу.
+                for( var note in storage["log"]){
+                    if(storage["log"].hasOwnProperty(note)){
+                        GLOBAL__LOG.push(storage["log"][note]);
+                        console.log(storage["log"][note]);
+                    }
+                }
                 // Перестройка массива с платежными картами.
                 GLOBAL__CARD_COUNTER = storage["currentCard"];
                 var cardsArray = storage["card"];
@@ -700,8 +760,6 @@ $(document).ready(function () {
                         card_counter++;
                     }
                 }
-                console.log(GLOBAL__CARDS);
-
                 Checkout__Payment();
             }else{
                 console.log("No auto checkout!");
@@ -713,59 +771,64 @@ $(document).ready(function () {
             if (storage["operations"] !== undefined) {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
                 // Инициализация лога.
                 chrome.storage.local.set({"log": {}}, function () {   // Раскоментить 
-                    addToLog("Initialize log page.");
-                    addToLog("Reading cart and arranging the arrays.");
-                    GLOBAL__SETTINGS = storage["settings"];
-                    var cardsArray = storage["card"];
+                    // Делаем метку времени, на ее основании вычислим полное время выполнения операций.
+                    var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
+                    addToLog("Initialize total running stopwatch. Timestamp: " + timeStampInMs);
+                    chrome.storage.local.set({"timestamp": timeStampInMs}, function () {
+                        addToLog("Initialize log page.");
+                        addToLog("Reading cart and arranging the arrays.");
+                        GLOBAL__SETTINGS = storage["settings"];
+                        var cardsArray = storage["card"];
 
-                    // Перестройка массива с платежными картами.
-                    var card_counter = 0;
-                    for (var card in cardsArray) {
-                        if (cardsArray.hasOwnProperty(card)) {
-                            GLOBAL__CARDS[card_counter] = cardsArray[card];
-                            card_counter++;
-                        }
-                    }
-                    console.log(GLOBAL__CARDS);
-
-                    var cart = storage["cart"], cardItems__counter = {};
-                    for (var item in cart) {
-                        if (cart.hasOwnProperty(item)) {
-                            // Сортировка по id карты.
-                            if (cardItems__counter[cart[item]["card"]] !== undefined) {
-                                cardItems__counter[cart[item]["card"]] += 1;
-                            } else {
-                                cardItems__counter[cart[item]["card"]] = 0;
+                        // Перестройка массива с платежными картами.
+                        var card_counter = 0;
+                        for (var card in cardsArray) {
+                            if (cardsArray.hasOwnProperty(card)) {
+                                GLOBAL__CARDS[card_counter] = cardsArray[card];
+                                card_counter++;
                             }
-                            if (GLOBAL__ITEMS_ARRAY[cart[item]["card"]] !== undefined) {   //  Если в глобальном массиве уже есть эта карта.
-                                GLOBAL__ITEMS_ARRAY[cart[item]["card"]][cardItems__counter[cart[item]["card"]]] = {
-                                    name: cart[item]["name"],
-                                    type: cart[item]["type"],
-                                    size: cart[item]["size"],
-                                    color: cart[item]["color"]
-                                };
-                            } else {
-                                GLOBAL__ITEMS_ARRAY[cart[item]["card"]] = {
-                                    0: {
+                        }
+                        console.log(GLOBAL__CARDS);
+
+                        var cart = storage["cart"], cardItems__counter = {};
+                        for (var item in cart) {
+                            if (cart.hasOwnProperty(item)) {
+                                // Сортировка по id карты.
+                                if (cardItems__counter[cart[item]["card"]] !== undefined) {
+                                    cardItems__counter[cart[item]["card"]] += 1;
+                                } else {
+                                    cardItems__counter[cart[item]["card"]] = 0;
+                                }
+                                if (GLOBAL__ITEMS_ARRAY[cart[item]["card"]] !== undefined) {   //  Если в глобальном массиве уже есть эта карта.
+                                    GLOBAL__ITEMS_ARRAY[cart[item]["card"]][cardItems__counter[cart[item]["card"]]] = {
                                         name: cart[item]["name"],
                                         type: cart[item]["type"],
                                         size: cart[item]["size"],
                                         color: cart[item]["color"]
-                                    }
-                                };
+                                    };
+                                } else {
+                                    GLOBAL__ITEMS_ARRAY[cart[item]["card"]] = {
+                                        0: {
+                                            name: cart[item]["name"],
+                                            type: cart[item]["type"],
+                                            size: cart[item]["size"],
+                                            color: cart[item]["color"]
+                                        }
+                                    };
+                                }
                             }
                         }
-                    }
-                    //  Сопоставление ключа и id карты.
-                    var matching_counter = 0;
-                    for (var card in GLOBAL__ITEMS_ARRAY) {
-                        if (GLOBAL__ITEMS_ARRAY.hasOwnProperty(card)) {
-                            GLOBAL__MATCHING_ARRAY[matching_counter] = card;
-                            matching_counter++;
+                        //  Сопоставление ключа и id карты.
+                        var matching_counter = 0;
+                        for (var card in GLOBAL__ITEMS_ARRAY) {
+                            if (GLOBAL__ITEMS_ARRAY.hasOwnProperty(card)) {
+                                GLOBAL__MATCHING_ARRAY[matching_counter] = card;
+                                matching_counter++;
+                            }
                         }
-                    }
-                    addToLog("Start auto actions on page.");
-                    startActions(); 
+                        addToLog("Start auto actions on page.");
+                        startActions(); 
+                    });
                });
             } else {  //  Ничего не делаем. На страницу зашли не из под расширения.
                 console.log("Inactivity.");
@@ -774,7 +837,5 @@ $(document).ready(function () {
 
     });
     //  Удаление массива операций, сделано для того, чтобы при каждом посещении страницы магазина самопроизвольно не запускался скрипт расширения.
-     chrome.storage.local.remove( "operations", function() {
-     //console.log('Operations array removed');
-     });
+     chrome.storage.local.remove( "operations", function() {});
 });
