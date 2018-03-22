@@ -239,7 +239,7 @@ class ItemsActions{
      */
     choiceSize(sizes, established__size) {
         var pure__sizes = {};
-        //  Если у предмета нет параметров выбора размера. Например кепки или аксессуары.
+        //  Если у предмета нет параметров выбора размера. Например кепки или аксессуаров.
         if(sizes !== undefined){
             //  Выбор всех размеров со страницы.
             var sizes__array = $(sizes).children("option");
@@ -250,36 +250,40 @@ class ItemsActions{
                 };
             }
 
-            //  Разбитие строки размеров, указанной пользователем.
-            var established__array = {};
-            for (var i = 0; i < established__size.split(",").length; i++) {   //  Перебираем все указанные цвета.
-                established__array[i] = established__size.split(",")[i];
-            }
+            if(established__size === "Any"){    //  Выбираем любой размер.
+                return pure__sizes["0"]["code"];    //  Первый попавшийся размер.
+            }else{  //  Размер указан явно.
+                //  Разбитие строки размеров, указанной пользователем.
+                var established__array = {};
+                for (var i = 0; i < established__size.split(",").length; i++) {   //  Перебираем все указанные цвета.
+                    established__array[i] = established__size.split(",")[i];
+                }
 
-            //  Сопоставление и поиск нужного размера.
-            //  Перебираем все указанные размеры в порядке указанного приоритета.
-            for (var size in established__array) {    //  Перебор все введенных размеров.
-                if (established__array.hasOwnProperty(size)) {
-                    for (var present_size in pure__sizes) {   //  Перебор всех размеров в наличии.
-                        if (pure__sizes.hasOwnProperty(present_size)) {
-                            if (established__array[size].toString().replace(/\s/g, '') === pure__sizes[present_size]["label"].toString().replace(/\s/g, '')) {
-                                //  Если найден размер. Возвращаем его код.
-                                return pure__sizes[present_size]["code"];
+                //  Сопоставление и поиск нужного размера.
+                //  Перебираем все указанные размеры в порядке указанного приоритета.
+                for (var size in established__array) {    //  Перебор все введенных размеров.
+                    if (established__array.hasOwnProperty(size)) {
+                        for (var present_size in pure__sizes) {   //  Перебор всех размеров в наличии.
+                            if (pure__sizes.hasOwnProperty(present_size)) {
+                                if (established__array[size].toString().replace(/\s/g, '') === pure__sizes[present_size]["label"].toString().replace(/\s/g, '')) {
+                                    //  Если найден размер. Возвращаем его код.
+                                    return pure__sizes[present_size]["code"];
+                                }
                             }
                         }
                     }
                 }
-            }
-            
-            //  Если размер не выбран из установленных:
-            //  Если стоит галочка в настройках, установки любого рамера из присутствующих, если не найден указанный;
-            //  Выбираем наименьший размер из присутствующих.
-            if (GLOBAL__SETTINGS["SelectAnySize"] === 1) {    //  Если в настройках установлена галочка выбора любого размера.
-                LogActions.addToLog("The size is selected based on the settings.");
-                return pure__sizes["0"]["code"];
-            } else {
-                LogActions.addToLog("The size is not selected, because there is no fixed size!");
-                return false;
+
+                //  Если размер не выбран из установленных:
+                //  Если стоит галочка в настройках, установки любого рамера из присутствующих, если не найден указанный;
+                //  Выбираем наименьший размер из присутствующих.
+                if (GLOBAL__SETTINGS["SelectAnySize"] === 1) {    //  Если в настройках установлена галочка выбора любого размера.
+                    LogActions.addToLog("The size is selected based on the settings.");
+                    return pure__sizes["0"]["code"];
+                } else {
+                    LogActions.addToLog("The size is not selected, because there is no fixed size!");
+                    return false;
+                }
             }
         }else{  //  Предмет не имеет размера.
             return true;
@@ -319,10 +323,54 @@ class ItemsActions{
      * @param {string} established__size Строка с выбранными размерами.
      * @returns {undefined}
      */
-    actionsOnItemPage(href__array, established__size) {
+    actionsOnItemPage(colors__array, foundItems, established__size) {
+        if(colors__array[0] !== undefined){ //  Если есть хотя бы один цвет предмета.
+            //  Переходим на страницу первого найденного предмета.
+            var f__href = {};
+            for (var i = 0; i < foundItems.length; i++) {   //  Находим ссылку на первый найденный предмет.
+                var temp__color = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;
+                if(temp__color.toString().replace(/\s/g, '') === colors__array[0]){
+                    f__href = foundItems[i].parentElement.parentElement.children["0"].attributes[1].value;
+                    break;
+                }
+            }
+            BasicFunctions.toSubjectPage(f__href);   //  Go to the subject page.
+            var forced = 0;
+            var waiting = setInterval(function () {   //  Ждем прогрузки контента страницы выбранного предмета.
+                if (document.querySelector('span[itemprop="price"]')) {   //  Если страница загрузилась.
+                    clearInterval(waiting);
+                    
+                    //  Находим все ссылки
+                    
+                    for(var color in colors__array){    //  Перебираем все цвета, в отсортированном виде.
+                        if(colors__array.hasOwnProperty(color)){
+                            // Открываем страницу предмета по полученной ссылке.
+                            
+                            //  Проверяем наличие.
+                            
+                            //  Проверяем размер.
+                            console.log(colors__array[color]);
+                        }
+                    }
+
+
+                }
+                if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
+                    LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>");
+                    clearInterval(waiting);
+                }
+                forced++;
+            }, GLOBAL__INTERVAl);
+
+        }
+        
+        
+        
+        /*
         var _proto__selectItemSize = ItemsActions.selectItemSize;
+        var endFlag = 0;
         for (var obj in href__array) {    //  Перебираем все найденные предметы.
-            if (href__array.hasOwnProperty(obj)) {
+            if (href__array.hasOwnProperty(obj) && (endFlag === 0)) {
                 var container = document.querySelector('a[href="' + href__array[obj] + '"]');
                 if ($(container).children("div").text().toString().replace(/\s/g, '') !== "soldout") {    //  Проверяем наличие предмета в магазине.
                     //  Действия на странице предмета.
@@ -339,14 +387,19 @@ class ItemsActions{
                                 var size__flag = ItemsActions.prototype.selectItemSize(established__size);
                                 if (size__flag !== false) {
                                     //  Добавление в корзину.
-                                    BasicFunctions.addToBasket(href__array[obj]);
+                                    BasicFunctions.addToBasket();
                                     setTimeout(function () {
+                                        endFlag = 1;
                                         BasicFunctions.startActions(); //  Переход к другим предметам.
+                                        
                                     }, GLOBAL__INTERVAl);
                                 } else {
                                     //  Размер не был выбран.
                                     LogActions.addToLog("Size was not selected.");
-                                    BasicFunctions.startActions(); //  Переход к другим предметам.
+                                    
+                                    
+                                    console.log("К этому же предмету другого цвета.");
+                                    //BasicFunctions.startActions(); //  Переход к другим предметам.
                                 }
                             } else {
                                 LogActions.addToLog("<b class='warning'>The item is already in the basket.<b>");
@@ -360,13 +413,20 @@ class ItemsActions{
                         forced++;
                     }, GLOBAL__INTERVAl);
                     break;
-                } else {  //  Все экземпляры предмета раскуплены.
+                } else {  //  Все экземпляры предмета данного цвета раскуплены.
                     LogActions.addToLog("<b class='warning'>All copies of the item are sold out.</b>");
-                    BasicFunctions.startActions(); //  Переход к другим предметам.
-                    break;
+                    if(GLOBAL__SETTINGS["SelectAnyColor"] === 1){   //  Если стоит галочка выбор любого цвета.
+                        //  Переход к данному предмету другого цвета.
+                        console.log("Переход к данному предмету другого цвета.");
+                    }else{
+                        //  Переход к другому предмету.
+                        
+                    }
+                    //BasicFunctions.startActions(); //  Переход к другим предметам.
+                    //break;
                 }
             }
-        }
+        }*/
     }
     
     
@@ -421,15 +481,15 @@ class ItemsActions{
                             }
                             //  Parse content.
                             foundItems = _proto__findItemsByName(name); //  Массив объектов отобранных по имени предметов.
-                            var href__array = _proto__сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
+                            var colors__array = _proto__сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
                             var coi = 0;
-                            for (var g in href__array) {
-                                if (href__array.hasOwnProperty(g)) {
+                            for (var g in colors__array) {
+                                if (colors__array.hasOwnProperty(g)) {
                                     coi++;
                                 }
                             }
                             LogActions.addToLog("Found " + coi + " items.");
-                            _proto__actionsOnItemPage(href__array, size);
+                            _proto__actionsOnItemPage(colors__array, foundItems, size);
                         }
                         if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
                             LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>");
@@ -454,10 +514,10 @@ class ItemsActions{
                     clearInterval(waiting);
                     //  Parse content.
                     foundItems = _proto__findItemsByName(name); //  Массив объектов отобранных по имени предметов.
-                    var href__array = _proto__сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
+                    var colors__array = _proto__сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
                     var coi = 0;
-                    for (var g in href__array) {
-                        if (href__array.hasOwnProperty(g)) {
+                    for (var g in colors__array) {
+                        if (colors__array.hasOwnProperty(g)) {
                             coi++;
                         }
                     }
@@ -466,7 +526,7 @@ class ItemsActions{
                     if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
                         LogActions.addToLog("Waiting time for response: " + (forced * 100) + " ms.");
                     }
-                    _proto__actionsOnItemPage(href__array, size);
+                    _proto__actionsOnItemPage(colors__array, foundItems, size);
                 }
                 if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
                     LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>");
@@ -479,20 +539,26 @@ class ItemsActions{
     }
     
     /**
-     * Функция находит все цвета предмета, выбирает нужный и возвращает массив с ссылками.
+     * Функция находит все цвета предмета, выбирает нужный и возвращает массив с цветами.
      * @param {string} selectedColor    Строка указанных цветов.
      * @param {object} foundItems   Массив объектов найденных предметов после поиска по имени.
-     * @returns {object} Массив ссылок на страницы предметов.
+     * @returns {object} Массив цветов, соответствующих условию поиска.
      */
     сolorSelection(selectedColor, foundItems) {
-        console.log(selectedColor);
-        console.log(foundItems);
+        //  Формируем массив цветов, из которых следует выбрать в дальнейшем.
         var selectedColors = {};    //  Массив заданных цветов.
-        var flag__color = true;    //  True - Любой цвет. False - Заданный.
-        if (selectedColor !== "Any") {    //  Если список цветов указан.
+
+        //  Строим массив всех существующих цветов.
+        var foundColors = {}, colorsAmount = 0;
+        for (var i = 0; i < foundItems.length; i++) {
+            foundColors[i] = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;
+            colorsAmount++;
+        }
+        
+        if (selectedColor !== "Any" || selectedColor !== "" || selectedColor !== " ") {    //  Если список цветов указан.
             //  Разбиваем строку на цвета.
             var f_c = 0, r_c = 0, selected__color = "";  //  Счетчик запрещенных/разрешенных цветов.
-            flag__color = false;
+
             var forbiddenColors = {}, resolvedColors = {};
             for (var i = 0; i < selectedColor.split(",").length; i++) {   //  Перебираем все указанные цвета.
                 if ((selectedColor.split(",")[i]).substr(0, 1) === "!") {  //  Запрещенный цвет.
@@ -503,97 +569,87 @@ class ItemsActions{
                     r_c++;
                 }
             }
-        }
-
-        var foundColors = {}, hrefArray = {}, colorsAmount = 0;
-        //  Строим массив всех существующих цветов.
-        for (var i = 0; i < foundItems.length; i++) {
-            foundColors[i] = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;
-            colorsAmount++;
-        }
-        console.log(foundColors);
-        //  Выбираем что указано пользователем, а что нет.
-        if (flag__color === true) {   //  Выбираем все найденные цвета.
-            for (var i = 0; i < foundItems.length; i++) {
-                hrefArray[i] = foundItems[i].parentElement.parentElement.children["0"].attributes[1].value;
-            }
-        } else {  //  Если цвета указаны точно.
-            if (forbiddenColors[0] === undefined) {
-                if (resolvedColors[0] === undefined) { //  Не указаны ни запрещенные ни разрешенные.
-                    return false;
-                } else {  //  Разрешенные указаны, запрешенные нет.
-                    /**
-                     * Перебираем все цвета.
-                     * Перебираем указанные цвета.
-                     * Ищем в массиве всех цветов, указанные, разрешенные.
-                     */
-                    var counter = 0;
-                    for (var color in foundColors) {    //  Перебираем все найденные цвета.
-                        if (foundColors.hasOwnProperty(color)) {
-                            for (var resolved__color in resolvedColors) {
-                                if (resolvedColors.hasOwnProperty(resolved__color)) {
-                                    if (foundColors[color].toString().replace(/\s/g, '') === resolvedColors[resolved__color].toString().replace(/\s/g, '')) {
-                                        //  Выбранный цвет найден.
-                                        hrefArray[counter] = foundItems[color].parentElement.parentElement.children["0"].attributes[1].value;
-                                        counter++;
-                                        break;
-                                    }
-                                }
-                            }   
-                        }
-                    }
-                }
-            } else {
-                if (resolvedColors[0] === undefined) {   //  Разрешенные не указаны, запрещенные указаны.
-                    var counter = 0;
-                    for (var color in foundColors) {    //  Перебираем все найденные цвета.
-                        var c__ = 0, flag = false, contin = true;
-                        if (foundColors.hasOwnProperty(color)) {
-                            for (var forbidden__color in forbiddenColors) {
-                                if (forbiddenColors.hasOwnProperty(forbidden__color) && (contin)) {
-                                    if ((foundColors[color].toString().replace(/\s/g, '') === forbiddenColors[forbidden__color].toString().replace(/\s/g, ''))) {
-                                        flag = true;
-                                        contin = false;
-                                        break;
-                                    } else {
-                                        if (!flag) {
-                                            if (c__ === (f_c - 1)) {
-                                                hrefArray[counter] = foundItems[color].parentElement.parentElement.children["0"].attributes[1].value;
-                                                counter++;
-                                            }
-                                        }
-                                    }
-                                }
-                                c__++;
+            
+            //  Берем массив найденных цветов и вычеркиваем запрещенные.
+            var colors_arr = new Array();
+            var coinc__flag = false;
+            console.log(foundColors.length);
+            for(var i in foundColors){
+                if(foundColors.hasOwnProperty(i)){
+                    coinc__flag = false;
+                    for(var j in forbiddenColors){
+                        if(forbiddenColors.hasOwnProperty(j)){
+                            if(foundColors[i].toString().replace(/\s/g, '') === forbiddenColors[j].toString().replace(/\s/g, '')){
+                                //  Если в найденных предметах есть те, которые запрещены.
+                                coinc__flag = true;
+                                //console.log(foundColors[i], forbiddenColors[j]);
+                                break;
                             }
                         }
                     }
-                } else {  //  Указаны и запрещенные и разрешенные.
-                    console.log("Указаны и запрещенные и разрешенные.");
-                    //  Добавить алгоритм.
-                    /**
-                     * Построить массив всех присутствующих цветов.
-                     * Оставить только разрешенные цвета.
-                     * Запретить к выбору запрещенные цвета.
-                     */
+                    if(coinc__flag === false){
+                        colors_arr.push(foundColors[i].toString().replace(/\s/g, ''));
+                    }
                 }
             }
-        }
-        if(hrefArray[0] === undefined){
-            LogActions.addToLog("Selected color not found!");
-            if(GLOBAL__SETTINGS["SelectAnyColor"] === 1){
-                for (var i = 0; i < foundItems.length; i++) {
-                    hrefArray[i] = foundItems[i].parentElement.parentElement.children["0"].attributes[1].value;
+            
+            //  Сортируем с приоритетными цветами. Получаем массив только с приоритетными цветами.
+            var resolved_plus_finded = new Array();
+            coinc__flag = false;
+            var only_resolved = new Array();
+            for(var k in resolvedColors){   //  Перебираем все приоритетные цвета.
+                if(resolvedColors.hasOwnProperty(k)){
+                    coinc__flag = false;
+                    for(var m in colors_arr){   //  Перебираем все найденные цыета с исключенными запрещенными.
+                        if(colors_arr.hasOwnProperty(m)){
+                            if(resolvedColors[k].toString().replace(/\s/g, '') === colors_arr[m].toString().replace(/\s/g, '')){
+                                //  Помещаем в новый массив.
+                                coinc__flag = true;
+                            } 
+                        }
+                    }
+                    if(coinc__flag === true){
+                        resolved_plus_finded.push(resolvedColors[k].toString().replace(/\s/g, ''));
+                        only_resolved.push(resolvedColors[k].toString().replace(/\s/g, ''));
+                    }
                 }
-                LogActions.addToLog("Select any color is checked! Select any color with entered size.");
-                return hrefArray;
-            }else{
-                LogActions.addToLog("<b class='error'>No color selected!</b>");
-                return false;
+            }
+            
+            //  Строим массив всех присутствующих цветов, с приоритетными в начале.
+            coinc__flag = false;
+            for(var i in colors_arr){   //  Перебираем все приоритетные цвета.
+                if(colors_arr.hasOwnProperty(i)){
+                    coinc__flag = false;
+                    for(var j in resolvedColors){   //  Перебираем все найденные цыета с исключенными запрещенными.
+                        if(resolvedColors.hasOwnProperty(j)){
+                            if(colors_arr[i].toString().replace(/\s/g, '') === resolvedColors[j].toString().replace(/\s/g, '') && (!colors_arr.hasOwnProperty(j+1))){
+                                //  Помещаем в новый массив.
+                                coinc__flag = true;
+                                break;
+                            }
+                        }
+                    }
+                    if(coinc__flag === false){
+                        resolved_plus_finded.push(colors_arr[i].toString().replace(/\s/g, ''));
+                    }
+                    
+                }
+            }
+            
+            //  Если указано выбирать любой размер. Первыми проверятся только приоритетные затем все остальные.
+            if(GLOBAL__SETTINGS["SelectAnyColor"] === 1){
+                console.log("Первые приоритетные, затем все остальные.");
+                console.log(resolved_plus_finded);
+                return resolved_plus_finded;
+            }else{  //  Если галочки нет, берем только указанные цвета. Возвращаем массив цветов, только подходящих под условия поиска.
+                console.log("Только присутствующие разрешенные.");
+                console.log(only_resolved);
+                return only_resolved;
             }
         }else{
-            LogActions.addToLog("Selected some colors. Choose the one that has the specified size.");
-            return hrefArray;
+            // Все цвета.
+            console.log(foundColors);
+            return foundColors;
         }
     }
 }

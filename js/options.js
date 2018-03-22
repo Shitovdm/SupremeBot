@@ -14,11 +14,13 @@ function getTime() {
     var time = (h + ':' + m + ':' + s );
     $("#LDN-time").text("UTC: " + time);
 
-
+console.log(h);
+        console.log(M);
+        console.log(S);
 
     //  Действия по таймеру. Установить значение времени и все.
-    if (h === 11 && m === 0 && S === 0) {
-        //acceptCart();
+    if (h === 18 && M === 8 && S === 0) {
+        acceptCart();
         console.log(h);
         console.log(M);
         console.log(S);
