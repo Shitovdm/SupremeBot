@@ -752,8 +752,8 @@ class CheckoutActions{
                     LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.");
                 }
                 //  Проводим платежную операцию.
-                CheckoutActions.prototype.pressProcessPayment();
-                //LogActions.showLogPage();
+                // CheckoutActions.prototype.pressProcessPayment();
+                 LogActions.showLogPage();
                 
                 //  Ожидание ответа сервера.
                 var forced_p = 0;
