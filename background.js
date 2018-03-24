@@ -329,29 +329,132 @@ class ItemsActions{
             var f__href = {};
             for (var i = 0; i < foundItems.length; i++) {   //  Находим ссылку на первый найденный предмет.
                 var temp__color = foundItems[i].parentElement.parentElement.children[2].children["0"].innerHTML;
-                if(temp__color.toString().replace(/\s/g, '') === colors__array[0]){
+                if(temp__color.toString().replace(/\s/g, '') === colors__array[0].toString().replace(/\s/g, '')){
                     f__href = foundItems[i].parentElement.parentElement.children["0"].attributes[1].value;
                     break;
                 }
             }
-            BasicFunctions.toSubjectPage(f__href);   //  Go to the subject page.
+            BasicFunctions.toSubjectPage(f__href);   //  Go to the subject page. 
+
+            
             var forced = 0;
             var waiting = setInterval(function () {   //  Ждем прогрузки контента страницы выбранного предмета.
                 if (document.querySelector('span[itemprop="price"]')) {   //  Если страница загрузилась.
                     clearInterval(waiting);
                     
                     //  Находим все ссылки
+                    var colors__container = $("#details").children("ul").children("li");
+                    //  Строим массив цветов, которые будем проверять.
+                    var items_data = {};
+                    var items__counter = 0;
+                    var soldout__all = true;    //  Пусть все предметы проданы.
+                    for (var color in colors__array) {    //  Перебираем все цвета, в отсортированном виде.(которые нам подходят.)
+                        if (colors__array.hasOwnProperty(color)) {
+                            for (var i = 0; i < colors__container.length; i++) {  //  Перебираем все найденные цвета.
+                                if (colors__array[color].toString().replace(/\s/g, '') === $(colors__container[i]).children("a").attr("data-style-name").toString().replace(/\s/g, '')) {
+                                    console.log("Найдено соответствие цвета.", colors__array[color]);
+                                    items_data[items__counter] = {
+                                        "color" : colors__array[color],
+                                        "href" : $(colors__container[i]).children("a").attr("href"),
+                                        "status" : $(colors__container[i]).children("a").attr("data-sold-out")
+                                    };
+                                    items__counter++;
+                                    //  Если есть еще не проданные предмет.
+                                    if( ($(colors__container[i]).children("a").attr("data-sold-out") === "false") && (soldout__all) ){
+                                        soldout__all = false;
+                                    }
+                                    break;
+                                }
+                            }
+                        }
+                    }
                     
+                    
+                    var index, promise, _i;
+                    //  Переходим на страницы предметов по цветам проверяем наличие нужного размера.
+                    if(!soldout__all){  //  Если есть еще не проданные предметы.
+                        console.log(items_data.length);
+                        for(var color in items_data){   //  Перебираем все цвета.
+                            
+                            
+                            
+                            if(items_data.hasOwnProperty(color)){
+                                if(items_data[color]["status"] === "false" ){ //  Если не sold out.
+                                    console.log("Находим размеры предмета цвета ", items_data[color]["color"] ," :",items_data[color]["href"] );
+                                    
+                                    promise = (function (color) {
+                                        var dfd;
+                                        dfd = new $.Deferred();
+
+                                        setTimeout(function () {
+                                            BasicFunctions.toSubjectPage(items_data[color]["href"]);
+                                            console.log(document.querySelector('p[itemprop="model"]')); 
+
+
+                                            return dfd.resolve();
+                                        }, 5000);
+
+                                        return dfd.promise();
+                                    })(color);
+                            
+                                    
+                                    //  Переходим на страницу предмета, нажав на соответствующий цвет.
+                                    //console.log(document.querySelector('p[itemprop="model"]'));
+                                    
+                                        
+                                        
+                                        
+                                        
+                                        
+                                    console.log('Next');
+                                    
+                                    
+                                    
+                                }else{  // Предмета уже нет.
+                                    
+                                }
+                            }
+
+                            
+                            
+                            
+                            /*
+                            if(items_data.hasOwnProperty(color)){
+                                if(items_data[color]["status"] === "false" ){ //  Если не sold out.
+                                    console.log("Находим размеры предмета цвета ", items_data[color]["color"] ," :",items_data[color]["href"] );
+                                    //  Переходим на страницу предмета, нажав на соответствующий цвет.
+                                    //console.log(document.querySelector('p[itemprop="model"]'));
+                                    
+                                        BasicFunctions.toSubjectPage(items_data[color]["href"]);
+                                        console.log(document.querySelector('p[itemprop="model"]')); 
+                                        
+                                    console.log('Next');
+                                }else{  // Предмета уже нет.
+                                    
+                                }
+                            }*/
+                        }
+                    }else{
+                        console.log("All items are sold out!");
+                    }
+                    
+                    /*
+                    console.log(colors__container.length);
+                    var color__counter = 0;
                     for(var color in colors__array){    //  Перебираем все цвета, в отсортированном виде.
                         if(colors__array.hasOwnProperty(color)){
                             // Открываем страницу предмета по полученной ссылке.
-                            
+                            //$(colors__container[1]).children("li").children("a");
+                            //var next__color = colors__array[color].toString().replace(/\s/g, '');
+                            //var next__element = document.querySelector('a[data-style-name="' + next__color + '"]');
+                            console.log($(colors__container[0]).children("a").attr("href"));
                             //  Проверяем наличие.
-                            
+                            //  
+                            //  
                             //  Проверяем размер.
                             console.log(colors__array[color]);
                         }
-                    }
+                    }*/
 
 
                 }
@@ -362,6 +465,8 @@ class ItemsActions{
                 forced++;
             }, GLOBAL__INTERVAl);
 
+        }else{
+            console.log("All items sold out!");
         }
         
         
@@ -555,7 +660,7 @@ class ItemsActions{
             colorsAmount++;
         }
         
-        if (selectedColor !== "Any" || selectedColor !== "" || selectedColor !== " ") {    //  Если список цветов указан.
+        if (selectedColor !== "Any" && selectedColor !== "" && selectedColor !== " ") {    //  Если список цветов указан.
             //  Разбиваем строку на цвета.
             var f_c = 0, r_c = 0, selected__color = "";  //  Счетчик запрещенных/разрешенных цветов.
 
@@ -573,7 +678,6 @@ class ItemsActions{
             //  Берем массив найденных цветов и вычеркиваем запрещенные.
             var colors_arr = new Array();
             var coinc__flag = false;
-            console.log(foundColors.length);
             for(var i in foundColors){
                 if(foundColors.hasOwnProperty(i)){
                     coinc__flag = false;
@@ -648,6 +752,7 @@ class ItemsActions{
             }
         }else{
             // Все цвета.
+            console.log("Color not selected or color field is empty!");
             console.log(foundColors);
             return foundColors;
         }
