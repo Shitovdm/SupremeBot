@@ -4,7 +4,6 @@
  * @version 0.5
  */
 
-
 /*
  * Global constants:
  * GLOBAL__ITEMS_COUNTER - The counter of items when buying from a certain card.
@@ -77,7 +76,21 @@ class BasicFunctions{
      * @param {string} sub__href
      * @returns {undefined}
      */
-    toTypePage(sub__href) {
+    /*toTypePage(sub__href) {
+        window.location.href = "http://www.supremenewyork.com" + sub__href;
+        /*var what = document.querySelector('a[href="' + sub__href + '"]');
+        if (what === null) {  //  Если предмет был добавлен в корзину, то переходим через основную страницу.
+            LogActions.addToLog("Go to type page: /shop/all");
+            var what = document.querySelector('a[href="http://www.supremenewyork.com/shop/all"]');
+            this.simulateClick(what);
+        } else {
+            LogActions.addToLog("Go to type page: " + sub__href);
+            this.simulateClick(what);
+        }
+    }*/
+    
+    
+     toTypePage(sub__href) {
         var what = document.querySelector('a[href="' + sub__href + '"]');
         if (what === null) {  //  Если предмет был добавлен в корзину, то переходим через основную страницу.
             LogActions.addToLog("Go to type page: /shop/all");
@@ -281,7 +294,7 @@ class ItemsActions{
                     LogActions.addToLog("The size is selected based on the settings.");
                     return pure__sizes["0"]["code"];
                 } else {
-                    LogActions.addToLog("The size is not selected, because there is no fixed size!");
+                    LogActions.addToLog("This color does not have the required size!");
                     return false;
                 }
             }
@@ -324,6 +337,7 @@ class ItemsActions{
      * @returns {undefined}
      */
     actionsOnItemPage(colors__array, foundItems, established__size) {
+        var _proto__selectItemSize = ItemsActions.selectItemSize;
         if(colors__array[0] !== undefined){ //  Если есть хотя бы один цвет предмета.
             //  Переходим на страницу первого найденного предмета.
             var f__href = {};
@@ -334,8 +348,8 @@ class ItemsActions{
                     break;
                 }
             }
+            
             BasicFunctions.toSubjectPage(f__href);   //  Go to the subject page. 
-
             
             var forced = 0;
             var waiting = setInterval(function () {   //  Ждем прогрузки контента страницы выбранного предмета.
@@ -368,10 +382,42 @@ class ItemsActions{
                         }
                     }
                     
+                    //  Если есть не распроданные предметы.
                     if(!soldout__all){  //  Если есть еще не проданные предметы.
                         
-                        function sniffSizes(j){
-                            
+                        function sniffSizes(i){
+                            var search__size = setInterval(function () {    //  Если список размеров загружен.
+                                if(document.querySelector('select[name="size"]') !== null){
+                                    clearInterval(search__size);
+                                    //  Счетчик i завершил свою работу.
+                                    clearInterval(promise__arr[i]);
+                                    promise__arr[i] = 0;   
+                                    
+                                     //  Размер данного цвета считан, ищем совпадения.
+                                    var size__flag = ItemsActions.prototype.selectItemSize(established__size);
+                                    if (size__flag){
+                                        //  Если нужный размер был выбран, удаляем все последующие таймеры.
+                                        for (var k in promise__arr) {
+                                            if (promise__arr.hasOwnProperty(k)) {
+                                                if (promise__arr[k] !== 0) {   //  Если интервал еще не удален.
+                                                    //  Удаляем интервал.
+                                                    clearInterval(promise__arr[k]);
+                                                    promise__arr[k] = 0;
+                                                    console.log("Remove interval ", k);
+                                                }
+                                            }
+                                        }
+                                        
+                                        // Добавляем в корзину.
+                                        // BasicFunctions.addToBasket();
+                                        
+                                    }else{
+                                        if(promise__arr[i+1] === undefined){   //  Если это последний проверяемый цвет.
+                                            console.log("Fatal! Size was not selected!");
+                                        }
+                                    }
+                                }
+                            },100);
                         }
                         
                         /**
@@ -382,57 +428,43 @@ class ItemsActions{
                         function newInterval(i) {
                             promise__arr[i] = setInterval(function () {  //  Создаем новый счетчик.
                                 if (i === 0) {    //  Если это первый интервал.
-                                    console.log("Waiting to upload color page! Color: ", items_data[i]["color"]);
-                                    //if (promise__counter[0] >= 5) {  //  Если страница корректно загрузилась.
-                                    if(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, '') === (items_data[i]["color"]).toString().replace(/\s/g, '')){
-                                        console.log("Находим размеры предмета цвета ", items_data[0]["color"] ," :",items_data[0]["href"] );
-                                        //  Читаем список размеров.
-                                        var sizes = document.querySelector('select[name="size"]');
-                                        console.log(sizes);
-                                        
-                                        //  Счетчик 0 завершил свою работу.
-                                        clearInterval(promise__arr[0]);
-                                        promise__arr[0] = 0;   
-                                        
+                                    BasicFunctions.toSubjectPage(only__not_sold_out[i]["href"]);
+                                    if(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, '') === (only__not_sold_out[i]["color"]).toString().replace(/\s/g, '')){
+                                        console.log(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, ''));
+                                        sniffSizes(i);  //  Читаем список размеров.
                                     }
-                                    promise__counter[0] = promise__counter[0] + 1;
+                                    promise__counter[i] = promise__counter[i] + 1;
                                 } else {  //  Если это не первый интервал.(все последующие)
                                     if (promise__arr[i - 1] === 0) {   //  Если предыдущие счетчик уже отработал.
                                         //  Переход на следующую страницу.
-                                        BasicFunctions.toSubjectPage(items_data[i]["href"]);
-                                        //  Запускаем следующий.
-                                        console.log("Waiting to upload color page! Color: ", items_data[i]["color"]);
-                                        if (promise__counter[i] >= 5) {   //  Завершение последующих интервалов.
-                                            console.log("Находим размеры предмета цвета ", items_data[i]["color"] ," :",items_data[i]["href"] );
-                                            //  Читаем список размеров.
-                                            //sniffSizes(i);
-
-                                            clearInterval(promise__arr[i]);
-                                            promise__arr[i] = 0;   //  Счетчик i завершил свою работу.
-                                            
+                                        BasicFunctions.toSubjectPage(only__not_sold_out[i]["href"]);
+                                        if(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, '') === (only__not_sold_out[i]["color"]).toString().replace(/\s/g, '')){
+                                            console.log(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, ''));
+                                            sniffSizes(i);  //  Читаем список размеров.
                                         }
                                         promise__counter[i] = promise__counter[i] + 1;
                                     }
                                 }
-                            }, 500);
+                            }, 150);
                         }
                         
-                        //  Переходим на страницы предметов по цветам проверяем наличие нужного размера.
-                        
                         var promise__counter = {}, promise__arr = {};   //  Массив обещаний и счетчик каждого обещания.
-                        /*for (var i = 0; i < 3; i++) { // Создаем счетчик каждому цвету.
-                            promise__counter[i] = 0;    //  Начальное значения счетчика.
-                            newInterval(i);
-                        }*/
+                        var only__not_sold_out = {}; //  Вспомогательный массив номеров не распроданных предметов.
+                        var only__not_sold_out_counter = 0;
+                        //  Переходим на страницы предметов по цветам проверяем наличие нужного размера.
                         for(var j = 0; j < color__counter; j++){
-                            if(items_data[color]["status"] === "false" ){ //  Если не sold out.
+                            if(items_data[j]["status"] === "false" ){ //  Если не sold out.
+                                only__not_sold_out[only__not_sold_out_counter] = items_data[j];
+                                promise__counter[only__not_sold_out_counter] = 0;    //  Начальное значения счетчика.
+                                newInterval(only__not_sold_out_counter);
                                 
-                                promise__counter[j] = 0;    //  Начальное значения счетчика.
-                                newInterval(j);
+                                only__not_sold_out_counter++;
                             }else{
                                 console.log("Item color ", items_data[j]["color"] , " are sold out!");
                             }
                         }
+                        
+                        
                         
 
                             /*
@@ -483,7 +515,7 @@ class ItemsActions{
             }, GLOBAL__INTERVAl);
 
         }else{
-            console.log("All items sold out!");
+            console.log("There are no delicate colors!!");
         }
         
         
@@ -591,7 +623,7 @@ class ItemsActions{
                 if (document.querySelector('a[class="current"]') !== null) {
                     clearInterval(waiting);
                     if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                        LogActions.addToLog("Waiting time for response: " + (forced_w * 100) + " ms.");
+                        LogActions.addToLog("Waiting time for response: " + (forced_w * 50) + " ms.");
                     }
                     BasicFunctions.toTypePage("/shop/all/" + type);   //  Go to the subject page.
                     var forced = 0; //  Счетчик ожидания.
@@ -599,7 +631,7 @@ class ItemsActions{
                         if (document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/" + type) {
                             clearInterval(InnerWaiting);
                             if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                                LogActions.addToLog("Waiting time for response: " + (forced * 100) + " ms.");
+                                LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.");
                             }
                             //  Parse content.
                             foundItems = _proto__findItemsByName(name); //  Массив объектов отобранных по имени предметов.
@@ -646,7 +678,7 @@ class ItemsActions{
                     LogActions.addToLog("Found " + coi + " items.");
                     //  Выводим время ответа сервера.
                     if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                        LogActions.addToLog("Waiting time for response: " + (forced * 100) + " ms.");
+                        LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.");
                     }
                     _proto__actionsOnItemPage(colors__array, foundItems, size);
                 }
@@ -770,6 +802,7 @@ class ItemsActions{
         }else{
             // Все цвета.
             console.log("Color not selected or color field is empty!");
+            console.log("Any color will be selected!");
             console.log(foundColors);
             return foundColors;
         }
@@ -985,9 +1018,12 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
             focused: false
         }, function (newWindow) {});
     }
+    chrome.webRequest.onBeforeRequest.addListener(
+        function() { return {cancel: true}; },
+        {urls: ["*://www.google-analytics.com/ga.js","*://connect.facebook.net/en_US/fp.js","*://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"]},
+        ["blocking"]);
+
 });
-
-
 
 
 
@@ -1002,8 +1038,12 @@ $(document).ready(function () {
     CheckoutActions = new CheckoutActions;
     LogActions = new LogActions;
     
+    //  Убираем лишнии скрипты.(Ускоряем загрузку страницы)
+    
+    
+    
     chrome.storage.local.get("settings", function (resp) {
-        if (resp["settings"]["HideAllAnimations"] === 1) {   //  Hide all animations on supreme site.
+        /*if (resp["settings"]["HideAllAnimations"] === 1) {   //  Hide all animations on supreme site.
             if (window.location.href !== "https://www.supremenewyork.com/checkout") {
                 //  Ускоряем операции на странице, все анимации убираем, все opacity 1.
                 var preloaderUrl = chrome.extension.getURL("css/restyle-style.css");
@@ -1013,11 +1053,11 @@ $(document).ready(function () {
                 link.setAttribute("href", preloaderUrl);
                 document.getElementsByTagName("head")[0].appendChild(link);
             }
-        }
+        }*/
         //  Другие настраиваемые действия с оформлением сайта supreme.
         //  ...
     });
-
+    
 
     chrome.storage.local.get(function (storage) {   //  Reading local storage.
         if (window.location.href === "https://www.supremenewyork.com/checkout") {   //  Если это страница checkout.
@@ -1113,6 +1153,7 @@ $(document).ready(function () {
                 });
             } else {  //  Ничего не делаем. На страницу зашли не из под расширения.
                 console.log("Inactivity.");
+                
             }
         }
 

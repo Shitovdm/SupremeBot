@@ -6,25 +6,29 @@
     "options_page": "options.html",
     "description" : "Supreme bot.",
     "background": {
-        "scripts": ["js/jquery.min.js","background.js", "js/log.js"],
-        "persistent": false
+        "scripts": ["background.js","js/jquery.min.js", "js/log.js"],
+        "persistent": true
     },
+    "permissions": [
+        "webRequestBlocking",
+        "webRequest",
+        "tabs",
+        "storage",
+        "downloads",
+        "https://*/*",
+        "http://*/*",
+        "*://*/*"
+    ],
     "web_accessible_resources": [
         "https://www.supremecommunity.com/",
-        "css/restyle-style.css"
+        "css/restyle-style.css",
+        "img/banned.jpg"
     ],  
     "browser_action": {
         "default_title": "Supreme Bot",
         "default_icon": "img/icon.png",
         "default_popup": "popup.html"
     },
-    "permissions": [
-        "tabs",
-        "storage",
-        "downloads",
-        "https://*/*",
-        "http://*/*"
-    ],
     "content_scripts": [
     {
       "matches": [ "http://www.supremenewyork.com/shop/*","https://www.supremenewyork.com/*",  "https://www.supremecommunity.com/*" ],
