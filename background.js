@@ -341,24 +341,23 @@ class ItemsActions{
             var waiting = setInterval(function () {   //  Ждем прогрузки контента страницы выбранного предмета.
                 if (document.querySelector('span[itemprop="price"]')) {   //  Если страница загрузилась.
                     clearInterval(waiting);
-                    
                     //  Находим все ссылки
                     var colors__container = $("#details").children("ul").children("li");
                     //  Строим массив цветов, которые будем проверять.
                     var items_data = {};
-                    var items__counter = 0;
                     var soldout__all = true;    //  Пусть все предметы проданы.
+                    var color__counter = 0;
                     for (var color in colors__array) {    //  Перебираем все цвета, в отсортированном виде.(которые нам подходят.)
                         if (colors__array.hasOwnProperty(color)) {
                             for (var i = 0; i < colors__container.length; i++) {  //  Перебираем все найденные цвета.
                                 if (colors__array[color].toString().replace(/\s/g, '') === $(colors__container[i]).children("a").attr("data-style-name").toString().replace(/\s/g, '')) {
                                     console.log("Найдено соответствие цвета.", colors__array[color]);
-                                    items_data[items__counter] = {
+                                    items_data[color__counter] = {
                                         "color" : colors__array[color],
                                         "href" : $(colors__container[i]).children("a").attr("href"),
                                         "status" : $(colors__container[i]).children("a").attr("data-sold-out")
                                     };
-                                    items__counter++;
+                                    color__counter++;
                                     //  Если есть еще не проданные предмет.
                                     if( ($(colors__container[i]).children("a").attr("data-sold-out") === "false") && (soldout__all) ){
                                         soldout__all = false;
@@ -369,55 +368,73 @@ class ItemsActions{
                         }
                     }
                     
-                    
-                    var index, promise, _i;
-                    //  Переходим на страницы предметов по цветам проверяем наличие нужного размера.
                     if(!soldout__all){  //  Если есть еще не проданные предметы.
-                        console.log(items_data.length);
-                        for(var color in items_data){   //  Перебираем все цвета.
+                        
+                        function sniffSizes(j){
                             
-                            
-                            
-                            if(items_data.hasOwnProperty(color)){
-                                if(items_data[color]["status"] === "false" ){ //  Если не sold out.
-                                    console.log("Находим размеры предмета цвета ", items_data[color]["color"] ," :",items_data[color]["href"] );
-                                    
-                                    promise = (function (color) {
-                                        var dfd;
-                                        dfd = new $.Deferred();
+                        }
+                        
+                        /**
+                         * Функция создания нового счетчика ожидания подгрузки контента страницы.
+                         * @param {integer} i Порядковый номер предмета.
+                         * @returns {undefined}
+                         */
+                        function newInterval(i) {
+                            promise__arr[i] = setInterval(function () {  //  Создаем новый счетчик.
+                                if (i === 0) {    //  Если это первый интервал.
+                                    console.log("Waiting to upload color page! Color: ", items_data[i]["color"]);
+                                    //if (promise__counter[0] >= 5) {  //  Если страница корректно загрузилась.
+                                    if(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, '') === (items_data[i]["color"]).toString().replace(/\s/g, '')){
+                                        console.log("Находим размеры предмета цвета ", items_data[0]["color"] ," :",items_data[0]["href"] );
+                                        //  Читаем список размеров.
+                                        var sizes = document.querySelector('select[name="size"]');
+                                        console.log(sizes);
+                                        
+                                        //  Счетчик 0 завершил свою работу.
+                                        clearInterval(promise__arr[0]);
+                                        promise__arr[0] = 0;   
+                                        
+                                    }
+                                    promise__counter[0] = promise__counter[0] + 1;
+                                } else {  //  Если это не первый интервал.(все последующие)
+                                    if (promise__arr[i - 1] === 0) {   //  Если предыдущие счетчик уже отработал.
+                                        //  Переход на следующую страницу.
+                                        BasicFunctions.toSubjectPage(items_data[i]["href"]);
+                                        //  Запускаем следующий.
+                                        console.log("Waiting to upload color page! Color: ", items_data[i]["color"]);
+                                        if (promise__counter[i] >= 5) {   //  Завершение последующих интервалов.
+                                            console.log("Находим размеры предмета цвета ", items_data[i]["color"] ," :",items_data[i]["href"] );
+                                            //  Читаем список размеров.
+                                            //sniffSizes(i);
 
-                                        setTimeout(function () {
-                                            BasicFunctions.toSubjectPage(items_data[color]["href"]);
-                                            console.log(document.querySelector('p[itemprop="model"]')); 
-
-
-                                            return dfd.resolve();
-                                        }, 5000);
-
-                                        return dfd.promise();
-                                    })(color);
-                            
-                                    
-                                    //  Переходим на страницу предмета, нажав на соответствующий цвет.
-                                    //console.log(document.querySelector('p[itemprop="model"]'));
-                                    
-                                        
-                                        
-                                        
-                                        
-                                        
-                                    console.log('Next');
-                                    
-                                    
-                                    
-                                }else{  // Предмета уже нет.
-                                    
+                                            clearInterval(promise__arr[i]);
+                                            promise__arr[i] = 0;   //  Счетчик i завершил свою работу.
+                                            
+                                        }
+                                        promise__counter[i] = promise__counter[i] + 1;
+                                    }
                                 }
+                            }, 500);
+                        }
+                        
+                        //  Переходим на страницы предметов по цветам проверяем наличие нужного размера.
+                        
+                        var promise__counter = {}, promise__arr = {};   //  Массив обещаний и счетчик каждого обещания.
+                        /*for (var i = 0; i < 3; i++) { // Создаем счетчик каждому цвету.
+                            promise__counter[i] = 0;    //  Начальное значения счетчика.
+                            newInterval(i);
+                        }*/
+                        for(var j = 0; j < color__counter; j++){
+                            if(items_data[color]["status"] === "false" ){ //  Если не sold out.
+                                
+                                promise__counter[j] = 0;    //  Начальное значения счетчика.
+                                newInterval(j);
+                            }else{
+                                console.log("Item color ", items_data[j]["color"] , " are sold out!");
                             }
+                        }
+                        
 
-                            
-                            
-                            
                             /*
                             if(items_data.hasOwnProperty(color)){
                                 if(items_data[color]["status"] === "false" ){ //  Если не sold out.
@@ -432,8 +449,8 @@ class ItemsActions{
                                 }else{  // Предмета уже нет.
                                     
                                 }
-                            }*/
-                        }
+                            }
+                        }*/
                     }else{
                         console.log("All items are sold out!");
                     }
