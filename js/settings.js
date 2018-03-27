@@ -9,6 +9,8 @@ function setDefaultParams(){
                 HideAllAnimations : 1,
                 HideSoldOutItemsOnSupreme : 1,
                 EnableTimeSynchronization : 0,
+                ShowWarnings : 1,
+                DisableSomeScripts: 1,
                 
                 MinimalisticDesign : 0,
                 OneStaticPicture: 0,
@@ -42,6 +44,13 @@ function removeAllParams(){
         console.log('All settings removed!');
     });
 }
+
+function  ClearLog(){
+    chrome.storage.local.remove( "log", function() {
+        console.log('Log cleared!');
+    });
+}
+
 
 //  Устанавливает параметры записанные в локальном хранилище.
 function getParams(){
@@ -127,5 +136,5 @@ $(document).ready(function() {
     document.getElementById("purchase-settings").addEventListener("click", function(){showPage("purchase-settings");});
     document.getElementById("support-settings").addEventListener("click", function(){showPage("support-settings");});
     document.getElementById("RemoveAllSettings").addEventListener("click", function(){removeAllParams();});
-    
+    document.getElementById("ClearLog").addEventListener("click", function(){ClearLog();});
 });
