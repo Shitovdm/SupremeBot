@@ -11,24 +11,26 @@
  * GLOBAL__LOG - Local array of current actions.
  * GLOBAL__LAP_FLAG - Specified flag of first lap.
  * GLOBAL__ITEMS_ARRAY - Array of items participating in auto buying.
- * GLOBAL__SETTINGS - Array of settings setup on setting page.(file "/settins.js").
+ * GLOBAL["SETTINGS"] - Array of settings setup on setting page.(file "/settins.js").
  * GLOBAL__CARDS - Array with data on payment cards.
  * GLOBAL__MATCHING_ARRAY - Array with matching data for convert items array by id key.
  * GLOBAL__TIMEOUT - The maximum time to wait for a page response.
  * GLOBAL__INTERVAl - Interval of page access, while waiting for content.
  */
-var GLOBAL__ITEMS_COUNTER = 0;
-var GLOBAL__CARD_COUNTER = 0;
-var GLOBAL__LOG = new Array();
-var GLOBAL__LAP_FLAG = false;
-var GLOBAL__ITEMS_ARRAY = {};
-var GLOBAL__SETTINGS = {};
-var GLOBAL__CARDS = {};
-var GLOBAL__MATCHING_ARRAY = {};
-var GLOBAL__TIMEOUT = 100;  //  Equalse 5000 ms (100 segments of 50ms);
-var GLOBAL__INTERVAl = 50;
-
-
+var GLOBAL = {
+    "ITEMS_COUNTER": 0,
+    "CARD_COUNTER": 0,
+    "ITEMS_ARRAY": {},
+    "SETTINGS": {},
+    "CARDS": {},
+    "LOG": new Array(),
+    "LAP_FLAG": false,
+    "MATCHING_ARRAY": {},
+    "TIMEOUT": 100, //  Equalse 5000 ms (100 segments of 50ms);
+    "INTERVAL": 50,
+    "LAST_LOCATION": "http://www.supremenewyork.com/shop/all",
+    "NEW_LOCATION": "http://www.supremenewyork.com/shop/all"
+};
 
 /**
  * All simple and basic functions.
@@ -55,8 +57,8 @@ class BasicFunctions{
      * Функция добавления предмета в корзину, эмитация клика на кнопку "Add to backet".
      * @returns {undefined}
      */
-    addToBasket() {
-        LogActions.addToLog("Adding to basket.");
+    addToBasket(GLOBAL) {
+        LogActions.addToLog("Adding to basket.",GLOBAL);
         var element = document.querySelector('input[value="add to basket"]');
         this.simulateClick(element);
     }
@@ -76,47 +78,34 @@ class BasicFunctions{
      * @param {string} sub__href
      * @returns {undefined}
      */
-    /*toTypePage(sub__href) {
-        window.location.href = "http://www.supremenewyork.com" + sub__href;
-        /*var what = document.querySelector('a[href="' + sub__href + '"]');
-        if (what === null) {  //  Если предмет был добавлен в корзину, то переходим через основную страницу.
-            LogActions.addToLog("Go to type page: /shop/all");
-            var what = document.querySelector('a[href="http://www.supremenewyork.com/shop/all"]');
-            this.simulateClick(what);
-        } else {
-            LogActions.addToLog("Go to type page: " + sub__href);
-            this.simulateClick(what);
-        }
-    }*/
-    
-    
-     toTypePage(sub__href) {
-        var what = document.querySelector('a[href="' + sub__href + '"]');
-        if (what === null) {  //  Если предмет был добавлен в корзину, то переходим через основную страницу.
-            LogActions.addToLog("Go to type page: /shop/all");
-            var what = document.querySelector('a[href="http://www.supremenewyork.com/shop/all"]');
-            this.simulateClick(what);
-        } else {
-            LogActions.addToLog("Go to type page: " + sub__href);
-            this.simulateClick(what);
-        }
+    toTypePage(sub__href,GLOBAL) {
+        // Remember last and new localion.
+        GLOBAL["LAST_LOCATION"] = "http://www.supremenewyork.com/shop/all";
+        GLOBAL["NEW_LOCATION"] = "http://www.supremenewyork.com" + sub__href;
+        //  Save global vars.
+        LogActions.addToLog("Redirect to " + sub__href ,GLOBAL);
+        console.log("Redirect to " , sub__href);
+        chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {
+            window.location.href = "http://www.supremenewyork.com" + sub__href; // Redirect.
+        }); 
     }
+        
     
+    
+        
     /**
      * Прослойка рекурсивного алгоритма обхода всех предметов и карт.
      * Выполняет функцию вызова основного алгоритма перебора и поиска.
      * @returns {undefined}
      */
-    stub() {
-        console.log(GLOBAL__LAP_FLAG, GLOBAL__CARD_COUNTER, GLOBAL__ITEMS_COUNTER);
-        var CURRENT__ITEM = GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER]][GLOBAL__ITEMS_COUNTER];
-        LogActions.addToLog("Processing of the object: " + CURRENT__ITEM["name"]);
-        ItemsActions.actionsOnTypePage({
-            "name": CURRENT__ITEM["name"],
-            "type": CURRENT__ITEM["type"],
-            "size": CURRENT__ITEM["size"],
-            "colors": CURRENT__ITEM["color"]
-        });
+    stub(GLOBAL) {
+        var CURRENT__ITEM = GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"]]][GLOBAL["ITEMS_COUNTER"]];
+        //  Исключение названия типа.
+        if (CURRENT__ITEM["type"] === "tops") {
+            CURRENT__ITEM["type"] = "tops_sweaters";
+        }
+        //  Redirect to type page.
+        this.toTypePage("/shop/all/" + CURRENT__ITEM["type"],GLOBAL);   //  Go to the subject page.
     }
 
     /**
@@ -124,14 +113,14 @@ class BasicFunctions{
      * Выполняет инкрементирующую функцию. Первыми перебираются предметы на карте, затем карты.
      * @returns {Boolean} Если предметов больше нет, возвращает false;
      */
-    startActions() {
-        if (!GLOBAL__LAP_FLAG) {  //  Вход.
+    startActions(GLOBAL) {
+        if (!GLOBAL["LAP_FLAG"]) {  //  Вход.
             //  Предусматривает наличие хотя бы 1й карты и 1 предмета на ней.
-            this.stub();
-            GLOBAL__LAP_FLAG = true;
+            this.stub(GLOBAL);
+            GLOBAL["LAP_FLAG"] = true;
         } else {  //  Последующие.
-            if (GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER]][GLOBAL__ITEMS_COUNTER + 1] !== undefined) {   //  Если есть еще предметы на данной карте.
-                GLOBAL__ITEMS_COUNTER++;    //  Переход к следующему предмету на карте.
+            if (GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"]]][GLOBAL["ITEMS_COUNTER"] + 1] !== undefined) {   //  Если есть еще предметы на данной карте.
+                GLOBAL["ITEMS_COUNTER"]++;    //  Переход к следующему предмету на карте.
                 this.stub();
             } else {  //  Предметов на карте нет, переходим к оплате. Переход к следующей карте.
 
@@ -140,14 +129,14 @@ class BasicFunctions{
                 //  Запоминаем все глобальные переменные.
 
                 //  Запоминаем номер карты, с которой производить оплату.
-                chrome.storage.local.set({"currentCard": GLOBAL__CARD_COUNTER}, function () {});
+                chrome.storage.local.set({"currentCard": GLOBAL["CARD_COUNTER"]}, function () {});
                 //  Checkout and payment.
                 //var checkout_finish = CheckoutActions.goToCheckoutPage();
                 // Сохраняем все данные, потому что переменные сбросятся при переходе на формально другую чтраницу.
-                chrome.storage.local.set({"log": GLOBAL__LOG}, function () {});
+                chrome.storage.local.set({"log": GLOBAL["LOG"]}, function () {});
 
 
-                if (GLOBAL__ITEMS_ARRAY[GLOBAL__MATCHING_ARRAY[GLOBAL__CARD_COUNTER + 1]] !== undefined) {    //  Если есть еще одна карта.
+                if (GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"] + 1]] !== undefined) {    //  Если есть еще одна карта.
 
                     //  Редирек к началу.
 
@@ -250,7 +239,7 @@ class ItemsActions{
      * @param {type} established__size
      * @returns {pure__sizes.code|Boolean|pure__sizes0.code}
      */
-    choiceSize(sizes, established__size) {
+    choiceSize(sizes, established__size, GLOBAL) {
         var pure__sizes = {};
         //  Если у предмета нет параметров выбора размера. Например кепки или аксессуаров.
         if(sizes !== undefined){
@@ -290,11 +279,11 @@ class ItemsActions{
                 //  Если размер не выбран из установленных:
                 //  Если стоит галочка в настройках, установки любого рамера из присутствующих, если не найден указанный;
                 //  Выбираем наименьший размер из присутствующих.
-                if (GLOBAL__SETTINGS["SelectAnySize"] === 1) {    //  Если в настройках установлена галочка выбора любого размера.
-                    LogActions.addToLog("The size is selected based on the settings.");
+                if (GLOBAL["SETTINGS"]["SelectAnySize"] === 1) {    //  Если в настройках установлена галочка выбора любого размера.
+                    LogActions.addToLog("The size is selected based on the settings.",GLOBAL);
                     return pure__sizes["0"]["code"];
                 } else {
-                    LogActions.addToLog("This color does not have the required size!");
+                    LogActions.addToLog("This color does not have the required size!",GLOBAL);
                     return false;
                 }
             }
@@ -308,19 +297,19 @@ class ItemsActions{
      * @param {type} established__size
      * @returns {Boolean}
      */
-    selectItemSize(established__size) {
+    selectItemSize(established__size,GLOBAL) {
         //  Выбор размера, установленного пользователем.
         var sizes = document.querySelector('select[name="size"]');
-        var item__size__code = ItemsActions.prototype.choiceSize(sizes, established__size);
+        var item__size__code = ItemsActions.prototype.choiceSize(sizes, established__size,GLOBAL);
         if (item__size__code !== false) {   //  Если размер был найден.
             if(item__size__code === true){   //  Если у предмета нет размера.
-                LogActions.addToLog("Item does not have a size.");
+                LogActions.addToLog("Item does not have a size.",GLOBAL);
                 return true;
             }else{
                 //  Выбираем его на странице.
                 $(sizes).val(item__size__code); //  Устанавливаем в выпадающем списке.
                 var resp = $(sizes).children('option[value="' + item__size__code + '"]').text();
-                LogActions.addToLog("Selected size : " + resp);
+                LogActions.addToLog("Selected size : " + resp,GLOBAL);
                 return true;    //  Отвечаем что размер выбран.
             }
         } else {
@@ -336,7 +325,7 @@ class ItemsActions{
      * @param {string} established__size Строка с выбранными размерами.
      * @returns {undefined}
      */
-    actionsOnItemPage(colors__array, foundItems, established__size) {
+    actionsOnItemPage(colors__array, foundItems, established__size,GLOBAL) {
         var _proto__selectItemSize = ItemsActions.selectItemSize;
         if(colors__array[0] !== undefined){ //  Если есть хотя бы один цвет предмета.
             //  Переходим на страницу первого найденного предмета.
@@ -385,7 +374,7 @@ class ItemsActions{
                     //  Если есть не распроданные предметы.
                     if(!soldout__all){  //  Если есть еще не проданные предметы.
                         
-                        function sniffSizes(i){
+                        function sniffSizes(i, color){
                             var search__size = setInterval(function () {    //  Если список размеров загружен.
                                 if(document.querySelector('select[name="size"]') !== null){
                                     clearInterval(search__size);
@@ -394,7 +383,7 @@ class ItemsActions{
                                     promise__arr[i] = 0;   
                                     
                                      //  Размер данного цвета считан, ищем совпадения.
-                                    var size__flag = ItemsActions.prototype.selectItemSize(established__size);
+                                    var size__flag = ItemsActions.prototype.selectItemSize(established__size, GLOBAL);
                                     if (size__flag){
                                         //  Если нужный размер был выбран, удаляем все последующие таймеры.
                                         for (var k in promise__arr) {
@@ -403,19 +392,35 @@ class ItemsActions{
                                                     //  Удаляем интервал.
                                                     clearInterval(promise__arr[k]);
                                                     promise__arr[k] = 0;
-                                                    console.log("Remove interval ", k);
+                                                    LogActions.addToLog("Delete the check item with color " + only__not_sold_out[k]["color"],GLOBAL);
                                                 }
                                             }
                                         }
                                         
+                                        //  Цвет выбран.
+                                        LogActions.addToLog("Selected color: " + color,GLOBAL);
+                                        BasicFunctions.addToBasket(GLOBAL);
+                                        
+                                        
+                                        var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
+                                        LogActions.addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs,GLOBAL);
+                                        chrome.storage.local.get("timestamp", function (stor) {
+                                            var time_diff = Math.floor(timeStampInMs - stor["timestamp"]);
+                                            LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
+                                            LogActions.showLogPage(GLOBAL);
+                                            // Удаляем 
+                                            //chrome.storage.local.remove("operations", function () {});
+                                            //chrome.storage.local.remove("operations", function () {});
+                                        });
                                         // Добавляем в корзину.
-                                        // BasicFunctions.addToBasket();
+                                        
                                         
                                     }else{
                                         if(promise__arr[i+1] === undefined){   //  Если это последний проверяемый цвет.
-                                            console.log("Fatal! Size was not selected!");
+                                            LogActions.addToLog("Fatal! Size was not select!",GLOBAL);
+                                            LogActions.showLogPage(GLOBAL);
                                         }
-                                    }
+                                    } 
                                 }
                             },100);
                         }
@@ -425,13 +430,13 @@ class ItemsActions{
                          * @param {integer} i Порядковый номер предмета.
                          * @returns {undefined}
                          */
-                        function newInterval(i) {
+                        function newInterval(i, color) {
                             promise__arr[i] = setInterval(function () {  //  Создаем новый счетчик.
                                 if (i === 0) {    //  Если это первый интервал.
                                     BasicFunctions.toSubjectPage(only__not_sold_out[i]["href"]);
                                     if(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, '') === (only__not_sold_out[i]["color"]).toString().replace(/\s/g, '')){
                                         console.log(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, ''));
-                                        sniffSizes(i);  //  Читаем список размеров.
+                                        sniffSizes(i, color);  //  Читаем список размеров.
                                     }
                                     promise__counter[i] = promise__counter[i] + 1;
                                 } else {  //  Если это не первый интервал.(все последующие)
@@ -440,7 +445,7 @@ class ItemsActions{
                                         BasicFunctions.toSubjectPage(only__not_sold_out[i]["href"]);
                                         if(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, '') === (only__not_sold_out[i]["color"]).toString().replace(/\s/g, '')){
                                             console.log(document.querySelector('p[itemprop="model"]').textContent.toString().replace(/\s/g, ''));
-                                            sniffSizes(i);  //  Читаем список размеров.
+                                            sniffSizes(i, color);  //  Читаем список размеров.
                                         }
                                         promise__counter[i] = promise__counter[i] + 1;
                                     }
@@ -456,131 +461,27 @@ class ItemsActions{
                             if(items_data[j]["status"] === "false" ){ //  Если не sold out.
                                 only__not_sold_out[only__not_sold_out_counter] = items_data[j];
                                 promise__counter[only__not_sold_out_counter] = 0;    //  Начальное значения счетчика.
-                                newInterval(only__not_sold_out_counter);
-                                
+                                newInterval(only__not_sold_out_counter, only__not_sold_out[only__not_sold_out_counter]["color"]);
                                 only__not_sold_out_counter++;
                             }else{
-                                console.log("Item color ", items_data[j]["color"] , " are sold out!");
+                                LogActions.addToLog("Item color " + items_data[j]["color"] + " are sold out!",GLOBAL);
                             }
                         }
-                        
-                        
-                        
-
-                            /*
-                            if(items_data.hasOwnProperty(color)){
-                                if(items_data[color]["status"] === "false" ){ //  Если не sold out.
-                                    console.log("Находим размеры предмета цвета ", items_data[color]["color"] ," :",items_data[color]["href"] );
-                                    //  Переходим на страницу предмета, нажав на соответствующий цвет.
-                                    //console.log(document.querySelector('p[itemprop="model"]'));
-                                    
-                                        BasicFunctions.toSubjectPage(items_data[color]["href"]);
-                                        console.log(document.querySelector('p[itemprop="model"]')); 
-                                        
-                                    console.log('Next');
-                                }else{  // Предмета уже нет.
-                                    
-                                }
-                            }
-                        }*/
                     }else{
-                        console.log("All items are sold out!");
+                        LogActions.addToLog("Fatal!All items are sold out!",GLOBAL);
+                        LogActions.showLogPage(GLOBAL);
                     }
-                    
-                    /*
-                    console.log(colors__container.length);
-                    var color__counter = 0;
-                    for(var color in colors__array){    //  Перебираем все цвета, в отсортированном виде.
-                        if(colors__array.hasOwnProperty(color)){
-                            // Открываем страницу предмета по полученной ссылке.
-                            //$(colors__container[1]).children("li").children("a");
-                            //var next__color = colors__array[color].toString().replace(/\s/g, '');
-                            //var next__element = document.querySelector('a[data-style-name="' + next__color + '"]');
-                            console.log($(colors__container[0]).children("a").attr("href"));
-                            //  Проверяем наличие.
-                            //  
-                            //  
-                            //  Проверяем размер.
-                            console.log(colors__array[color]);
-                        }
-                    }*/
-
-
                 }
-                if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
-                    LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>");
+                if (forced > GLOBAL["TIMEOUT"]) {    //  Если ожидание слишком долгое.
+                    LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>",GLOBAL);
                     clearInterval(waiting);
                 }
                 forced++;
-            }, GLOBAL__INTERVAl);
-
+            }, GLOBAL["INTERVAL"]);
         }else{
-            console.log("There are no delicate colors!!");
+            LogActions.addToLog("Fatal!There are no delicate colors!",GLOBAL);
+            LogActions.showLogPage(GLOBAL); 
         }
-        
-        
-        
-        /*
-        var _proto__selectItemSize = ItemsActions.selectItemSize;
-        var endFlag = 0;
-        for (var obj in href__array) {    //  Перебираем все найденные предметы.
-            if (href__array.hasOwnProperty(obj) && (endFlag === 0)) {
-                var container = document.querySelector('a[href="' + href__array[obj] + '"]');
-                if ($(container).children("div").text().toString().replace(/\s/g, '') !== "soldout") {    //  Проверяем наличие предмета в магазине.
-                    //  Действия на странице предмета.
-                    BasicFunctions.toSubjectPage(href__array[obj]);   //  Go to the subject page.
-                    LogActions.addToLog("Go to item page: " + href__array[obj]);
-                    //  Задержка подгрузки страницы.
-                    var forced = 0;
-                    var waiting = setInterval(function () {   //  Ждем прогрузки контента страницы выбранного предмета.
-                        if (document.querySelector('span[itemprop="price"]')) {   //  Если страница загрузилась.
-                            clearInterval(waiting);
-                            //  Если предмета еще нет в корзине.
-                            if (document.querySelector('input[value="add to basket"]')) { //  Если есть кнопка добавления в корзину.
-                                //  Выбор размера.
-                                var size__flag = ItemsActions.prototype.selectItemSize(established__size);
-                                if (size__flag !== false) {
-                                    //  Добавление в корзину.
-                                    BasicFunctions.addToBasket();
-                                    setTimeout(function () {
-                                        endFlag = 1;
-                                        BasicFunctions.startActions(); //  Переход к другим предметам.
-                                        
-                                    }, GLOBAL__INTERVAl);
-                                } else {
-                                    //  Размер не был выбран.
-                                    LogActions.addToLog("Size was not selected.");
-                                    
-                                    
-                                    console.log("К этому же предмету другого цвета.");
-                                    //BasicFunctions.startActions(); //  Переход к другим предметам.
-                                }
-                            } else {
-                                LogActions.addToLog("<b class='warning'>The item is already in the basket.<b>");
-                                BasicFunctions.startActions(); //  Переход к другим предметам.
-                            }
-                        }
-                        if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
-                            LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>");
-                            clearInterval(waiting);
-                        }
-                        forced++;
-                    }, GLOBAL__INTERVAl);
-                    break;
-                } else {  //  Все экземпляры предмета данного цвета раскуплены.
-                    LogActions.addToLog("<b class='warning'>All copies of the item are sold out.</b>");
-                    if(GLOBAL__SETTINGS["SelectAnyColor"] === 1){   //  Если стоит галочка выбор любого цвета.
-                        //  Переход к данному предмету другого цвета.
-                        console.log("Переход к данному предмету другого цвета.");
-                    }else{
-                        //  Переход к другому предмету.
-                        
-                    }
-                    //BasicFunctions.startActions(); //  Переход к другим предметам.
-                    //break;
-                }
-            }
-        }*/
     }
     
     
@@ -601,7 +502,7 @@ class ItemsActions{
      * size    Установленные пользователем размеры предмета.
      * @returns {string} href Ссылка на страницу предмета.
      */
-    actionsOnTypePage(data) {
+    actionsOnTypePage(data, GLOBAL) {
         var _proto__findItemsByName = this.findItemsByName;
         var _proto__сolorSelection = this.сolorSelection;
         var _proto__actionsOnItemPage = this.actionsOnItemPage;
@@ -610,56 +511,50 @@ class ItemsActions{
         var type = data["type"];
         var size = data["size"];
         var colors = data["colors"];
-        //  Исключение названия типа.
-        if (type === "tops") {
-            type = "tops_sweaters";
-        }
-        //  Переходим на страницу типа предмета.
-        BasicFunctions.toTypePage("/shop/all/" + type);   //  Go to the subject page.
         if (document.querySelector('span[itemprop="price"]')) {   //  Если переход осуществляется со страницы предмета.
             //  Дожидаемся загрузки страницы.
             var forced_w = 0; //  Счетчик ожидания.
             var waiting = setInterval(function () {   //  Ждем прогрузки контента страницы.
                 if (document.querySelector('a[class="current"]') !== null) {
                     clearInterval(waiting);
-                    if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                        LogActions.addToLog("Waiting time for response: " + (forced_w * 50) + " ms.");
+                    if (GLOBAL["SETTINGS"]["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                        LogActions.addToLog("Waiting time for response: " + (forced_w * 50) + " ms.",GLOBAL);
                     }
                     BasicFunctions.toTypePage("/shop/all/" + type);   //  Go to the subject page.
                     var forced = 0; //  Счетчик ожидания.
                     var InnerWaiting = setInterval(function () {   //  Ждем прогрузки контента страницы.
                         if (document.querySelector('a[class="current"]').href === "http://www.supremenewyork.com/shop/all/" + type) {
                             clearInterval(InnerWaiting);
-                            if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                                LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.");
+                            if (GLOBAL["SETTINGS"]["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                                LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.",GLOBAL);
                             }
                             //  Parse content.
                             foundItems = _proto__findItemsByName(name); //  Массив объектов отобранных по имени предметов.
-                            var colors__array = _proto__сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
+                            var colors__array = _proto__сolorSelection(colors, foundItems,GLOBAL);   //  Получение ссылок на подходящие предметы.
                             var coi = 0;
                             for (var g in colors__array) {
                                 if (colors__array.hasOwnProperty(g)) {
                                     coi++;
                                 }
                             }
-                            LogActions.addToLog("Found " + coi + " items.");
-                            _proto__actionsOnItemPage(colors__array, foundItems, size);
+                            LogActions.addToLog("Found " + coi + " suitable items.",GLOBAL);
+                            _proto__actionsOnItemPage(colors__array, foundItems, size, GLOBAL);
                         }
-                        if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
-                            LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>");
+                        if (forced > GLOBAL["TIMEOUT"]) {    //  Если ожидание слишком долгое.
+                            LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>",GLOBAL);
                             clearInterval(InnerWaiting);
                             return false;
                         }
                         forced++;
-                    }, GLOBAL__INTERVAl);
+                    }, GLOBAL["INTERVAL"]);
                 }
-                if (forced_w > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
-                    LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>");
+                if (forced_w > GLOBAL["TIMEOUT"]) {    //  Если ожидание слишком долгое.
+                    LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>",GLOBAL);
                     clearInterval(waiting);
                     return false;
                 }
                 forced_w++;
-            }, GLOBAL__INTERVAl);
+            }, GLOBAL["INTERVAL"]);
         } else {  //  Если переход осуществляется из /all.
             //  Дожидаемся загрузки страницы.
             var forced = 0; //  Счетчик ожидания.
@@ -668,27 +563,27 @@ class ItemsActions{
                     clearInterval(waiting);
                     //  Parse content.
                     foundItems = _proto__findItemsByName(name); //  Массив объектов отобранных по имени предметов.
-                    var colors__array = _proto__сolorSelection(colors, foundItems);   //  Получение ссылок на подходящие предметы.
+                    var colors__array = _proto__сolorSelection(colors, foundItems, GLOBAL);   //  Получение ссылок на подходящие предметы.
                     var coi = 0;
                     for (var g in colors__array) {
                         if (colors__array.hasOwnProperty(g)) {
                             coi++;
                         }
                     }
-                    LogActions.addToLog("Found " + coi + " items.");
+                    LogActions.addToLog("Found " + coi + " suitable items.",GLOBAL);
                     //  Выводим время ответа сервера.
-                    if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                        LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.");
+                    if (GLOBAL["SETTINGS"]["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                        LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.",GLOBAL);
                     }
-                    _proto__actionsOnItemPage(colors__array, foundItems, size);
+                    _proto__actionsOnItemPage(colors__array, foundItems, size, GLOBAL);
                 }
-                if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
-                    LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>");
+                if (forced > GLOBAL["TIMEOUT"]) {    //  Если ожидание слишком долгое.
+                    LogActions.addToLog("<b class='error'>The page's wait period has expired.</b>",GLOBAL);
                     clearInterval(waiting);
                     return false;
                 }
                 forced++;
-            }, GLOBAL__INTERVAl);
+            }, GLOBAL["INTERVAL"]);
         }
     }
     
@@ -698,10 +593,7 @@ class ItemsActions{
      * @param {object} foundItems   Массив объектов найденных предметов после поиска по имени.
      * @returns {object} Массив цветов, соответствующих условию поиска.
      */
-    сolorSelection(selectedColor, foundItems) {
-        //  Формируем массив цветов, из которых следует выбрать в дальнейшем.
-        var selectedColors = {};    //  Массив заданных цветов.
-
+    сolorSelection(selectedColor, foundItems, GLOBAL) {
         //  Строим массив всех существующих цветов.
         var foundColors = {}, colorsAmount = 0;
         for (var i = 0; i < foundItems.length; i++) {
@@ -790,20 +682,38 @@ class ItemsActions{
             }
             
             //  Если указано выбирать любой размер. Первыми проверятся только приоритетные затем все остальные.
-            if(GLOBAL__SETTINGS["SelectAnyColor"] === 1){
-                console.log("Первые приоритетные, затем все остальные.");
-                console.log(resolved_plus_finded);
+            if(GLOBAL["SETTINGS"]["SelectAnyColor"] === 1){
+                //  Первые приоритетные, затем все остальные.
+                var temp_str = "";
+                for(var i in resolved_plus_finded){
+                    if(resolved_plus_finded.hasOwnProperty(i)){
+                        temp_str += resolved_plus_finded[i] + ",";
+                    }
+                }
+                LogActions.addToLog("Set any size in the settings!", GLOBAL);
+                LogActions.addToLog("The first priority, then all the rest: " + temp_str, GLOBAL);
                 return resolved_plus_finded;
             }else{  //  Если галочки нет, берем только указанные цвета. Возвращаем массив цветов, только подходящих под условия поиска.
-                console.log("Только присутствующие разрешенные.");
-                console.log(only_resolved);
+                //  Только присутствующие разрешенные.
+                var temp_str = "";
+                for(var i in only_resolved){
+                    if(only_resolved.hasOwnProperty(i)){
+                        temp_str += only_resolved[i] + ",";
+                    }
+                }
+                LogActions.addToLog("Only those present are allowed: " + temp_str, GLOBAL);
                 return only_resolved;
             }
         }else{
             // Все цвета.
-            console.log("Color not selected or color field is empty!");
-            console.log("Any color will be selected!");
-            console.log(foundColors);
+            var temp_str = "";
+            for(var i in foundColors){
+                if(foundColors.hasOwnProperty(i)){
+                    temp_str += foundColors[i] + ",";
+                }
+            }
+            LogActions.addToLog("Color not selected or color field is empty!", GLOBAL);
+            LogActions.addToLog("Any color will be selected: " + temp_str, GLOBAL);
             return foundColors;
         }
     }
@@ -840,7 +750,7 @@ class CheckoutActions{
      * @returns {undefined}
      */
     formFilling() {
-        LogActions.addToLog("Filling in the card data.");
+        LogActions.addToLog("Filling in the card data.",GLOBAL);
         //  Common.
         this.fillingField("order_billing_name", "fullName");
         this.fillingField("order_email", "email");
@@ -867,7 +777,7 @@ class CheckoutActions{
      * @returns {undefined}
      */
     pressProcessPayment() {
-        LogActions.addToLog("Send a request for payment.");
+        LogActions.addToLog("Send a request for payment.",GLOBAL);
         var selector = document.querySelector('input[name="commit"]');
         BasicFunctions.simulateClick(selector);
     }
@@ -878,9 +788,9 @@ class CheckoutActions{
      */
     goToCheckoutPage() {
         chrome.storage.local.set({"checkout": "start_actions"}, function () {}); // Указываем место, откуда был сделан редирект на страницу checkout.
-        LogActions.addToLog("Go to checkout page.");
-        if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-            LogActions.addToLog("Waiting time for response: 200 ms.");
+        LogActions.addToLog("Go to checkout page.",GLOBAL);
+        if (GLOBAL["SETTINGS"]["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+            LogActions.addToLog("Waiting time for response: 200 ms.",GLOBAL);
         }
         setTimeout(function () {
             var selector = document.querySelector('a[href="https://www.supremenewyork.com/checkout"]');
@@ -903,8 +813,8 @@ class CheckoutActions{
         var waiting = setInterval(function () {
             if ($(checkbox[1]).hasClass("checked")) {
                 clearInterval(waiting);
-                if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                    LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.");
+                if (GLOBAL["SETTINGS"]["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                    LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.",GLOBAL);
                 }
                 //  Проводим платежную операцию.
                 // CheckoutActions.prototype.pressProcessPayment();
@@ -916,21 +826,21 @@ class CheckoutActions{
                     //  Ожидание загрузки страницы.
                     if (document.querySelector('div[id="confirmation"]') !== null) {
                         clearInterval(waiting_p);
-                        LogActions.addToLog("Payment request was successfully sent.");
-                        if (GLOBAL__SETTINGS["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
-                            LogActions.addToLog("Payment timeout: " + (forced_p * 50) + " ms.");
+                        LogActions.addToLog("Payment request was successfully sent.",GLOBAL);
+                        if (GLOBAL["SETTINGS"]["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
+                            LogActions.addToLog("Payment timeout: " + (forced_p * 50) + " ms.",GLOBAL);
                         }
                         // Читаем ответ сервера.
                         var response = $("#confirmation").children("p");
-                        LogActions.addToLog($(response[0]).text());
+                        LogActions.addToLog($(response[0]).text(),GLOBAL);
 
                         //  Расчет времени выполнения.
-                        if (GLOBAL__SETTINGS["CalculateTotalTime"] === 1) {
+                        if (GLOBAL["SETTINGS"]["CalculateTotalTime"] === 1) {
                             var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
-                            LogActions.addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs);
+                            LogActions.addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs,GLOBAL);
                             chrome.storage.local.get("timestamp", function (stor) {
                                 var time_diff = Math.floor(timeStampInMs - stor["timestamp"]);
-                                LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.");
+                                LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
                                 LogActions.showLogPage();
                                 // Удаляем 
                                 chrome.storage.local.remove("operations", function () {});
@@ -938,22 +848,22 @@ class CheckoutActions{
                             });
                         }
                     }
-                    if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
-                        LogActions.addToLog("<b class='error'>Payment timeout expired.</b>");
+                    if (forced > GLOBAL["TIMEOUT"]) {    //  Если ожидание слишком долгое.
+                        LogActions.addToLog("<b class='error'>Payment timeout expired.</b>",GLOBAL);
                         clearInterval(waiting);
                         return false;
                     }
                     forced_p++;
-                }, GLOBAL__INTERVAl);
+                }, GLOBAL["INTERVAL"]);
                 
             }
-            if (forced > GLOBAL__TIMEOUT) {    //  Если ожидание слишком долгое.
-                LogActions.addToLog("<b class='error'>The payment page is not responding.</b>");
+            if (forced > GLOBAL["TIMEOUT"]) {    //  Если ожидание слишком долгое.
+                LogActions.addToLog("<b class='error'>The payment page is not responding.</b>",GLOBAL);
                 clearInterval(waiting);
                 return false;
             }
             forced++;
-        }, GLOBAL__INTERVAl);
+        }, GLOBAL["INTERVAL"]);
     }
     
     
@@ -970,21 +880,21 @@ class LogActions{
      * @param {string} note 
      * @returns {undefined}
      */
-    addToLog(note) {
+    addToLog(note,GLOBAL) {
         console.log(note);
-        GLOBAL__LOG.push(note);
+        GLOBAL["LOG"].push(note);
     }
 
     /**
      * Функция перехода на конечную страницу вывода результата работы.
      * @returns {undefined}
      */
-    showLogPage() {
-        this.addToLog("Show log page...");
+    showLogPage(GLOBAL) {
+        this.addToLog("Show log page..." ,GLOBAL);
         //console.log(GLOBAL__LOG);
         //  Переносим все записи лога в локальное хранилище.
-        chrome.storage.local.set({"log": GLOBAL__LOG}, function () {
-            if (GLOBAL__SETTINGS["LogInNewWindow"] === 1) {   //  Если в настройках указано показать лог по завершению.
+        chrome.storage.local.set({"log": GLOBAL["LOG"]}, function () {
+            if (GLOBAL["SETTINGS"]["LogInNewWindow"] === 1) {   //  Если в настройках указано показать лог по завершению.
                 chrome.extension.sendMessage('show__log');  //  Вызываем страницу лога.
             }
         });
@@ -1038,125 +948,155 @@ $(document).ready(function () {
     CheckoutActions = new CheckoutActions;
     LogActions = new LogActions;
     
+    
     //  Убираем лишнии скрипты.(Ускоряем загрузку страницы)
-    
-    
-    
     chrome.storage.local.get("settings", function (resp) {
-        /*if (resp["settings"]["HideAllAnimations"] === 1) {   //  Hide all animations on supreme site.
+        if (resp["settings"]["HideAllAnimations"] === 1) {   //  Hide all animations on supreme site.
             if (window.location.href !== "https://www.supremenewyork.com/checkout") {
                 //  Ускоряем операции на странице, все анимации убираем, все opacity 1.
-                var preloaderUrl = chrome.extension.getURL("css/restyle-style.css");
+                var restyle = chrome.extension.getURL("css/restyle-style.css");
                 var link = document.createElement("link");
                 link.setAttribute("rel", "stylesheet");
                 link.setAttribute("type", "text/css");
-                link.setAttribute("href", preloaderUrl);
+                link.setAttribute("href", restyle);
                 document.getElementsByTagName("head")[0].appendChild(link);
             }
-        }*/
+        }
+        //  Добавляем новый блоки на страницу.
+
+        var warningBlock = document.createElement("div");
+        warningBlock.setAttribute("class", "warningBlock");
+        document.getElementsByTagName("body")[0].appendChild(warningBlock); 
+        $(".warningBlock").html('<b>Do not use navigation buttons!</b>'); 
+        
+        
         //  Другие настраиваемые действия с оформлением сайта supreme.
         //  ...
     });
     
-
     chrome.storage.local.get(function (storage) {   //  Reading local storage.
-        if (window.location.href === "https://www.supremenewyork.com/checkout") {   //  Если это страница checkout.
-            if (storage["checkout"] !== undefined) {    //  Определяем откуда открыта страница.
-                GLOBAL__SETTINGS = storage["settings"];
-                //  Переносим лог на эту страницу.
-                for (var note in storage["log"]) {
-                    if (storage["log"].hasOwnProperty(note)) {
-                        GLOBAL__LOG.push(storage["log"][note]);
-                        console.log(storage["log"][note]);
-                    }
-                }
-                // Перестройка массива с платежными картами.
-                GLOBAL__CARD_COUNTER = storage["currentCard"];
-                var cardsArray = storage["card"];
-                var card_counter = 0;
-                for (var card in cardsArray) {
-                    if (cardsArray.hasOwnProperty(card)) {
-                        GLOBAL__CARDS[card_counter] = cardsArray[card];
-                        card_counter++;
-                    }
-                }
-                CheckoutActions.checkoutPayment();
-            } else {
-                console.log("No auto checkout!");
-            }
-            chrome.storage.local.remove("checkout", function () {
-                //console.log('Operations array removed');
-            });
-        } else {
-            if (storage["operations"] !== undefined) {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
-                // Инициализация лога.
-                chrome.storage.local.set({"log": {}}, function () {   // Раскоментить 
-                    // Делаем метку времени, на ее основании вычислим полное время выполнения операций.
-                    var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
-                    LogActions.addToLog("Initialize total running stopwatch. Timestamp: " + timeStampInMs);
-                    chrome.storage.local.set({"timestamp": timeStampInMs}, function () {
-                        LogActions.addToLog("Initialize log page.");
-                        LogActions.clearLog();
-                        LogActions.addToLog("Reading cart and arranging the arrays.");
-                        GLOBAL__SETTINGS = storage["settings"];
-                        var cardsArray = storage["card"];
-
-                        // Перестройка массива с платежными картами.
-                        var card_counter = 0;
-                        for (var card in cardsArray) {
-                            if (cardsArray.hasOwnProperty(card)) {
-                                GLOBAL__CARDS[card_counter] = cardsArray[card];
-                                card_counter++;
-                            }
+        //  Чтение GLOBAL - массив с глобальными переменными.
+        var GLOBAL = storage["GLOBAL"];
+        
+        
+        
+        
+        //  Если перешли на страницу типа предмета.
+        if(window.location.href === GLOBAL["NEW_LOCATION"]){
+            LogActions.addToLog("Actions on type page.",GLOBAL);
+            console.log("Actions on type page.");
+            var CURRENT__ITEM = GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"]]][GLOBAL["ITEMS_COUNTER"]];
+            LogActions.addToLog("Processing of the object: " + CURRENT__ITEM["name"],GLOBAL);
+            
+            ItemsActions.actionsOnTypePage({
+                "name": CURRENT__ITEM["name"],
+                "type": CURRENT__ITEM["type"],
+                "size": CURRENT__ITEM["size"],
+                "colors": CURRENT__ITEM["color"]
+            },GLOBAL);
+        }else{
+            //  Если перешли на страницу checkout.
+            if (window.location.href === "https://www.supremenewyork.com/checkout") {   //  Если это страница checkout.
+                if (storage["checkout"] !== undefined) {    //  Определяем откуда открыта страница.
+                    GLOBAL["SETTINGS"] = storage["settings"];
+                    //  Переносим лог на эту страницу.
+                    for (var note in storage["log"]) {
+                        if (storage["log"].hasOwnProperty(note)) {
+                            GLOBAL["LOG"].push(storage["log"][note]);
+                            console.log(storage["log"][note]);
                         }
-                        console.log(GLOBAL__CARDS);
+                    }
+                    // Перестройка массива с платежными картами.
+                    GLOBAL["CARD_COUNTER"] = storage["currentCard"];
+                    var cardsArray = storage["card"];
+                    var card_counter = 0;
+                    for (var card in cardsArray) {
+                        if (cardsArray.hasOwnProperty(card)) {
+                            GLOBAL["CARDS"][card_counter] = cardsArray[card];
+                            card_counter++;
+                        }
+                    }
+                    CheckoutActions.checkoutPayment();
+                } else {
+                    console.log("No auto checkout!");
+                }
+                chrome.storage.local.remove("checkout", function () {
+                    //console.log('Operations array removed');
+                });
+            } else {
+                if (storage["operations"] !== undefined) {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
+                    //  Удаление старых логов.
+                    GLOBAL["LOG"] = new Array();
+                    chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {   // Запысываем изменения в логе.
+                        // Делаем метку времени, на ее основании вычислим полное время выполнения операций.
+                        var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
+                        LogActions.addToLog("Initialize total running stopwatch. Timestamp: " + timeStampInMs,GLOBAL);
+                        chrome.storage.local.set({"timestamp": timeStampInMs}, function () {
+                            // Инициализация лога.
+                            LogActions.addToLog("Initialize log page.",GLOBAL);
+                            LogActions.clearLog();
+                            LogActions.addToLog("Reading cart and arranging the arrays.",GLOBAL);
+                            GLOBAL["SETTINGS"] = storage["settings"];
+                            var cardsArray = storage["card"];
 
-                        var cart = storage["cart"], cardItems__counter = {};
-                        for (var item in cart) {
-                            if (cart.hasOwnProperty(item)) {
-                                // Сортировка по id карты.
-                                if (cardItems__counter[cart[item]["card"]] !== undefined) {
-                                    cardItems__counter[cart[item]["card"]] += 1;
-                                } else {
-                                    cardItems__counter[cart[item]["card"]] = 0;
+                            // Перестройка массива с платежными картами.
+                            var card_counter = 0;
+                            for (var card in cardsArray) {
+                                if (cardsArray.hasOwnProperty(card)) {
+                                    GLOBAL["CARDS"][card_counter] = cardsArray[card];
+                                    card_counter++;
                                 }
-                                if (GLOBAL__ITEMS_ARRAY[cart[item]["card"]] !== undefined) {   //  Если в глобальном массиве уже есть эта карта.
-                                    GLOBAL__ITEMS_ARRAY[cart[item]["card"]][cardItems__counter[cart[item]["card"]]] = {
-                                        name: cart[item]["name"],
-                                        type: cart[item]["type"],
-                                        size: cart[item]["size"],
-                                        color: cart[item]["color"]
-                                    };
-                                } else {
-                                    GLOBAL__ITEMS_ARRAY[cart[item]["card"]] = {
-                                        0: {
+                            }
+                            console.log(GLOBAL["CARDS"]);
+
+                            var cart = storage["cart"], cardItems__counter = {};
+                            for (var item in cart) {
+                                if (cart.hasOwnProperty(item)) {
+                                    // Сортировка по id карты.
+                                    if (cardItems__counter[cart[item]["card"]] !== undefined) {
+                                        cardItems__counter[cart[item]["card"]] += 1;
+                                    } else {
+                                        cardItems__counter[cart[item]["card"]] = 0;
+                                    }
+                                    if (GLOBAL["ITEMS_ARRAY"][cart[item]["card"]] !== undefined) {   //  Если в глобальном массиве уже есть эта карта.
+                                        GLOBAL["ITEMS_ARRAY"][cart[item]["card"]][cardItems__counter[cart[item]["card"]]] = {
                                             name: cart[item]["name"],
                                             type: cart[item]["type"],
                                             size: cart[item]["size"],
                                             color: cart[item]["color"]
-                                        }
-                                    };
+                                        };
+                                    } else {
+                                        GLOBAL["ITEMS_ARRAY"][cart[item]["card"]] = {
+                                            0: {
+                                                name: cart[item]["name"],
+                                                type: cart[item]["type"],
+                                                size: cart[item]["size"],
+                                                color: cart[item]["color"]
+                                            }
+                                        };
+                                    }
                                 }
                             }
-                        }
-                        //  Сопоставление ключа и id карты.
-                        var matching_counter = 0;
-                        for (var card in GLOBAL__ITEMS_ARRAY) {
-                            if (GLOBAL__ITEMS_ARRAY.hasOwnProperty(card)) {
-                                GLOBAL__MATCHING_ARRAY[matching_counter] = card;
-                                matching_counter++;
+                            //  Сопоставление ключа и id карты.
+                            var matching_counter = 0;
+                            for (var card in GLOBAL["ITEMS_ARRAY"]) {
+                                if (GLOBAL["ITEMS_ARRAY"].hasOwnProperty(card)) {
+                                    GLOBAL["MATCHING_ARRAY"][matching_counter] = card;
+                                    console.log(card);
+                                    matching_counter++;
+                                }
                             }
-                        }
-                        LogActions.addToLog("Start auto actions on page.");
-                        BasicFunctions.startActions();
+                            LogActions.addToLog("Start auto actions on page.",GLOBAL);
+                            BasicFunctions.startActions(GLOBAL);
+                        });
                     });
-                });
-            } else {  //  Ничего не делаем. На страницу зашли не из под расширения.
-                console.log("Inactivity.");
-                
+                } else {  //  Ничего не делаем. На страницу зашли не из под расширения.
+                    console.log("Inactivity.");
+
+                }
             }
         }
-
+        
     });
     //  Удаление массива операций, сделано для того, чтобы при каждом посещении страницы магазина самопроизвольно не запускался скрипт расширения.
     chrome.storage.local.remove("operations", function () {});
