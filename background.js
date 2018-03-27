@@ -401,9 +401,9 @@ class ItemsActions{
                                             LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
                                             LogActions.showLogPage(GLOBAL);
                                             // Удаляем 
-                                            chrome.storage.local.remove("operations", function () {
+                                            /*chrome.storage.local.remove("operations", function () {
                                                 console.log("Operations removed!");
-                                            });
+                                            });*/
                                         });
                                     }else{  //  Если предмета еще нет в корзине.
                                          //  Размер данного цвета считан, ищем совпадения.
@@ -434,9 +434,9 @@ class ItemsActions{
                                                 LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
                                                 LogActions.showLogPage(GLOBAL);
                                                 // Удаляем 
-                                                chrome.storage.local.remove("operations", function () {
+                                                /*chrome.storage.local.remove("operations", function () {
                                                     console.log("Operations removed!");
-                                                });
+                                                });*/
                                             });
                                         }else{
                                             if(promise__arr[i+1] === undefined){   //  Если это последний проверяемый цвет.
@@ -1054,7 +1054,7 @@ $(document).ready(function () {
                     //console.log('Operations array removed');
                 });
             } else {
-                if (storage["operations"] !== undefined) {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
+                if (storage["operations"] !== "") {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
                     //  Удаление старых логов.
                     GLOBAL["LOG"] = new Array();
                     chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {   // Запысываем изменения в логе.
@@ -1129,5 +1129,6 @@ $(document).ready(function () {
         
     });
     //  Удаление массива операций, сделано для того, чтобы при каждом посещении страницы магазина самопроизвольно не запускался скрипт расширения.
-    chrome.storage.local.remove("operations", function () {});
+    //chrome.storage.local.remove("operations", function () {});
+    chrome.storage.local.set({'operations': ""},function(){});
 });
