@@ -370,22 +370,20 @@ class ItemsActions{
                             }
                         }
                     }
-                    
                     //  Если есть не распроданные предметы.
                     if(!soldout__all){  //  Если есть еще не проданные предметы.
-                        
+                        /*
+                         * 
+                         */
                         function sniffSizes(i, color){
                             var search__size = setInterval(function () {    //  Если список размеров загружен.
-                                if(document.querySelector('select[name="size"]') !== null){
+                                if( (document.querySelector('select[name="size"]') !== null) || (document.querySelector('b[class="button in-cart"]') !== null)){
                                     clearInterval(search__size);
                                     //  Счетчик i завершил свою работу.
                                     clearInterval(promise__arr[i]);
                                     promise__arr[i] = 0;   
-                                    
-                                     //  Размер данного цвета считан, ищем совпадения.
-                                    var size__flag = ItemsActions.prototype.selectItemSize(established__size, GLOBAL);
-                                    if (size__flag){
-                                        //  Если нужный размер был выбран, удаляем все последующие таймеры.
+                                    if(document.querySelector('b[class="button in-cart"]') !== null){   //  Если предмет уже в корзине.
+                                        LogActions.addToLog("Item already in the basket!",GLOBAL);
                                         for (var k in promise__arr) {
                                             if (promise__arr.hasOwnProperty(k)) {
                                                 if (promise__arr[k] !== 0) {   //  Если интервал еще не удален.
@@ -396,12 +394,6 @@ class ItemsActions{
                                                 }
                                             }
                                         }
-                                        
-                                        //  Цвет выбран.
-                                        LogActions.addToLog("Selected color: " + color,GLOBAL);
-                                        BasicFunctions.addToBasket(GLOBAL);
-                                        
-                                        
                                         var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
                                         LogActions.addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs,GLOBAL);
                                         chrome.storage.local.get("timestamp", function (stor) {
@@ -409,17 +401,49 @@ class ItemsActions{
                                             LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
                                             LogActions.showLogPage(GLOBAL);
                                             // Удаляем 
-                                            //chrome.storage.local.remove("operations", function () {});
-                                            //chrome.storage.local.remove("operations", function () {});
+                                            chrome.storage.local.remove("operations", function () {
+                                                console.log("Operations removed!");
+                                            });
                                         });
-                                        // Добавляем в корзину.
-                                        
-                                        
-                                    }else{
-                                        if(promise__arr[i+1] === undefined){   //  Если это последний проверяемый цвет.
-                                            LogActions.addToLog("Fatal! Size was not select!",GLOBAL);
-                                            LogActions.showLogPage(GLOBAL);
-                                        }
+                                    }else{  //  Если предмета еще нет в корзине.
+                                         //  Размер данного цвета считан, ищем совпадения.
+                                        var size__flag = ItemsActions.prototype.selectItemSize(established__size, GLOBAL);
+                                        if (size__flag){
+                                            //  Если нужный размер был выбран, удаляем все последующие таймеры.
+                                            for (var k in promise__arr) {
+                                                if (promise__arr.hasOwnProperty(k)) {
+                                                    if (promise__arr[k] !== 0) {   //  Если интервал еще не удален.
+                                                        //  Удаляем интервал.
+                                                        clearInterval(promise__arr[k]);
+                                                        promise__arr[k] = 0;
+                                                        LogActions.addToLog("Delete the check item with color " + only__not_sold_out[k]["color"],GLOBAL);
+                                                    }
+                                                }
+                                            }
+
+                                            //  Цвет выбран.
+                                            LogActions.addToLog("Selected color: " + color,GLOBAL);
+
+                                            // Добавляем в корзину.
+                                            BasicFunctions.addToBasket(GLOBAL);
+                                            
+                                            var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
+                                            LogActions.addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs,GLOBAL);
+                                            chrome.storage.local.get("timestamp", function (stor) {
+                                                var time_diff = Math.floor(timeStampInMs - stor["timestamp"]);
+                                                LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
+                                                LogActions.showLogPage(GLOBAL);
+                                                // Удаляем 
+                                                chrome.storage.local.remove("operations", function () {
+                                                    console.log("Operations removed!");
+                                                });
+                                            });
+                                        }else{
+                                            if(promise__arr[i+1] === undefined){   //  Если это последний проверяемый цвет.
+                                                LogActions.addToLog("Fatal! Size was not select!",GLOBAL);
+                                                LogActions.showLogPage(GLOBAL);
+                                            }
+                                        } 
                                     } 
                                 }
                             },100);
@@ -928,11 +952,19 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
             focused: false
         }, function (newWindow) {});
     }
-    chrome.webRequest.onBeforeRequest.addListener(
-        function() { return {cancel: true}; },
-        {urls: ["*://www.google-analytics.com/ga.js","*://connect.facebook.net/en_US/fp.js","*://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"]},
-        ["blocking"]);
-
+    
+    chrome.storage.local.get("settings", function (resp) {
+        if(resp["settings"]["DisableSomeScripts"] === 1){
+            chrome.webRequest.onBeforeRequest.addListener(
+                function() { return {cancel: true}; },
+                {urls: [
+                    "*://www.google-analytics.com/ga.js",
+                    "*://connect.facebook.net/en_US/fp.js",
+                    "*://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"]},
+                ["blocking"]
+            );
+        }
+    });
 });
 
 
@@ -948,7 +980,6 @@ $(document).ready(function () {
     CheckoutActions = new CheckoutActions;
     LogActions = new LogActions;
     
-    
     //  Убираем лишнии скрипты.(Ускоряем загрузку страницы)
     chrome.storage.local.get("settings", function (resp) {
         if (resp["settings"]["HideAllAnimations"] === 1) {   //  Hide all animations on supreme site.
@@ -962,14 +993,13 @@ $(document).ready(function () {
                 document.getElementsByTagName("head")[0].appendChild(link);
             }
         }
-        //  Добавляем новый блоки на страницу.
-
-        var warningBlock = document.createElement("div");
-        warningBlock.setAttribute("class", "warningBlock");
-        document.getElementsByTagName("body")[0].appendChild(warningBlock); 
-        $(".warningBlock").html('<b>Do not use navigation buttons!</b>'); 
-        
-        
+        //  Добавляем блок "Не используйте навигационные кнопки".
+        if(resp["settings"]["ShowWarnings"] === 1){
+            var warningBlock = document.createElement("div");
+            warningBlock.setAttribute("class", "warningBlock");
+            document.getElementsByTagName("body")[0].appendChild(warningBlock); 
+            $(".warningBlock").html('<b>Do not use navigation buttons when bot works!</b>'); 
+        }
         //  Другие настраиваемые действия с оформлением сайта supreme.
         //  ...
     });
