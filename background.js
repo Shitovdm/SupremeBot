@@ -86,6 +86,7 @@ class BasicFunctions{
         LogActions.addToLog("Redirect to " + sub__href ,GLOBAL);
         console.log("Redirect to " , sub__href);
         chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {
+            chrome.storage.local.set({"operations": "start_actions"}, function () { });
             window.location.href = "http://www.supremenewyork.com" + sub__href; // Redirect.
         }); 
     }
@@ -974,7 +975,58 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
  * Массив корзины перестраивается по первичному ключу id карты.
  * Добавляется массив сопоставления ключа и id карты.
  */
-$(document).ready(function () {
+
+
+window.onload = function(){
+    //  Когда пользователь подтверждает покупку выбраннных предметов.
+    var old_mark = $("#container article:first-child() div a").attr("href");  //  First item href.
+    old_mark = old_mark.toString().replace(/\s/g, '');
+    //  chrome.storage.local.set({"start_mark": old_mark, "redirect_counter": 0}, function () {});
+    
+    
+    //  Команда подается за 5 секунд до дропа и удаляется при успешном поиске новых предметов.
+    if(1 === 1){    //  Если есть команда на обновление дроплиста.
+        //  Определение обновления списка предметов. Проверка осуществляется примерно каждую секунду.
+        var mark = $("#container article:first-child() div a").attr("href");  //  Берем метку первого предмета.
+        //  Очень злой рекурсивный алгоритм.
+        mark = mark.toString().replace(/\s/g, '');
+
+        var maximum__attempts = 1;
+        chrome.storage.local.get(function (storage) {
+            if(storage["redirect_counter"] < maximum__attempts){ //  Максимальное количество попыток.
+                if( (mark.substr(0,6) === "/shop/") && (mark !== storage["start_mark"]) ){  //  Если формат ссылки похож на правду и метка не равна предыдущей.
+                    console.log("Start auto actions.");
+                }else{
+                    //  Перезагружаем до тех пор, пока страница не станет доступна/ не появятся новые предметы, или пока не привысим количество попыток.
+                    console.log("Try again. Reloading... Attempt #" + storage["redirect_counter"]);
+                    evilRedirect(storage);
+                }
+            }else{
+                console.log("The maximum number of attempts has been exceeded!");
+            }
+        });
+    }
+};
+
+//  Тут добавить алгоритм принудительной перезагрузке, чтобы он выполнялся только когда страница полностью в оффлайне.
+
+function evilRedirect(storage){
+    chrome.storage.local.set({"redirect_counter": (storage["redirect_counter"] + 1)}, function () {});
+    window.location.href = "http://www.supremenewyork.com/shop/all/"; // Redirect.
+}
+
+function main(){
+    var waiting2 = setInterval(function () {   //  Ждем прогрузки контента страницы.
+        console.log(document.getElementById("container"));
+        console.log(document.location.href);
+        if(document.querySelector('nav[class="sidebar"]') !== null){
+            clearInterval(waiting2);
+            console.log("Страница успешно загружена.");
+        }else{
+            console.log("Ждем загрузки страницы...");
+        }
+    },500);
+    /*
     BasicFunctions = new BasicFunctions;
     ItemsActions = new ItemsActions;
     CheckoutActions = new CheckoutActions;
@@ -1013,17 +1065,20 @@ $(document).ready(function () {
         
         //  Если перешли на страницу типа предмета.
         if(window.location.href === GLOBAL["NEW_LOCATION"]){
-            LogActions.addToLog("Actions on type page.",GLOBAL);
-            console.log("Actions on type page.");
-            var CURRENT__ITEM = GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"]]][GLOBAL["ITEMS_COUNTER"]];
-            LogActions.addToLog("Processing of the object: " + CURRENT__ITEM["name"],GLOBAL);
+            if(storage["operations"] === "start_actions"){
+                LogActions.addToLog("Actions on type page.",GLOBAL);
+                console.log("Actions on type page.");
+                var CURRENT__ITEM = GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"]]][GLOBAL["ITEMS_COUNTER"]];
+                LogActions.addToLog("Processing of the object: " + CURRENT__ITEM["name"],GLOBAL);
+
+                ItemsActions.actionsOnTypePage({
+                    "name": CURRENT__ITEM["name"],
+                    "type": CURRENT__ITEM["type"],
+                    "size": CURRENT__ITEM["size"],
+                    "colors": CURRENT__ITEM["color"]
+                },GLOBAL);
+            }
             
-            ItemsActions.actionsOnTypePage({
-                "name": CURRENT__ITEM["name"],
-                "type": CURRENT__ITEM["type"],
-                "size": CURRENT__ITEM["size"],
-                "colors": CURRENT__ITEM["color"]
-            },GLOBAL);
         }else{
             //  Если перешли на страницу checkout.
             if (window.location.href === "https://www.supremenewyork.com/checkout") {   //  Если это страница checkout.
@@ -1054,7 +1109,7 @@ $(document).ready(function () {
                     //console.log('Operations array removed');
                 });
             } else {
-                if (storage["operations"] !== "") {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
+                if (storage["operations"] === "start_actions") {  //  Определяем откуда была открыта страница. Скрипт запускается только при редиректе со страницы options.
                     //  Удаление старых логов.
                     GLOBAL["LOG"] = new Array();
                     chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {   // Запысываем изменения в логе.
@@ -1131,4 +1186,6 @@ $(document).ready(function () {
     //  Удаление массива операций, сделано для того, чтобы при каждом посещении страницы магазина самопроизвольно не запускался скрипт расширения.
     //chrome.storage.local.remove("operations", function () {});
     chrome.storage.local.set({'operations': ""},function(){});
-});
+    */
+}
+    //});
