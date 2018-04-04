@@ -13,14 +13,15 @@ function getTime() {
     //var time = (h > 12) ? (h - 12 + ':' + m + ':' + s + ' pm') : (h + ':' + m + ':' + s + ' am');
     var time = (h + ':' + m + ':' + s );
     $("#LDN-time").text("UTC: " + time);
-
-console.log(h);
+/*
+        console.log(h);
         console.log(M);
         console.log(S);
-
+*/
     //  Действия по таймеру. Установить значение времени и все.
-    if (h === 18 && M === 8 && S === 0) {
-        acceptCart();
+    //if (h === 9 && M === 59 && S === 50) {
+    if (h === 19 && M === 20 && S === 50) {
+        buyNow();
         console.log(h);
         console.log(M);
         console.log(S);
@@ -270,9 +271,7 @@ function loadDropContent(droplist){
 
 
 document.addEventListener("DOMContentLoaded", function () { //  Дроплист
-    
-    
-    
+  
     
     chrome.storage.local.get('settings',function(settings){
         var changeBg_FLAG = settings["settings"]["AutoChangeBg"];   //  Флаг слены фона.
@@ -302,11 +301,7 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
     chrome.storage.local.get(function(resp){
         console.log(resp);
     });
-    /*
-    chrome.storage.local.remove("cart",function(resp){
-        console.log(resp);
-    });
-    */
+
      // Timer on start page;
      getTime();
      $("#LDN-time").css("z-index","5");
@@ -378,16 +373,11 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
             // Loading and inject items data.
             loadDropContent($(droplists[1]).attr("href").split("/")[4]);
         }else{
-             /*alert("ERR_INTERNET_DISCONNECTED");
-             var errorContainer = document.createElement("div");
-             errorContainer.setAttribute("class", "error-container");
-             errorContainer.innerHTML = "<h1>Network error!</h1>";
-             document.getElementById("items-content").appendChild(errorContainer);
-             $("#content-droplist").fadeIn(1000);*/
         }
     };
 
     document.getElementById("cart-preview").addEventListener("click", showCart);
+   
 });
 
 
@@ -697,6 +687,7 @@ function  buildCart(){
             }
 
             document.getElementById("accept-button").addEventListener("click", acceptCart);
+            document.getElementById("buy-now").addEventListener("click", buyNow);
             recalculation();
         });
 
@@ -704,13 +695,12 @@ function  buildCart(){
     
 }
 
-
-/**
- * The function of confirmation of the contents of the basket.
- * Функция подтверждения распределения предметов по картам
+/*
+ * Функция покупки выбранных предметов прямо сейчас.
  * @returns {undefined}
  */
-function acceptCart(){
+function buyNow(){
+    //  Команда подается за 5-10 секунд до дропа и удаляется при успешном поиске новых предметов.
     // Distribute items by cards.
     var cards = $(".card-block");
     var dist = new Array();
@@ -746,6 +736,29 @@ function acceptCart(){
             chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
         });
     });   
+}
+
+/**
+ * The function of confirmation of the contents of the basket.
+ * Функция подтверждения распределения предметов по картам
+ * @returns {undefined}
+ */
+function acceptCart(){
+    //  Получаем метку текущих вещей последнего дропа.
+    /*
+    chrome.runtime.sendMessage("getStartMark");
+    var old_mark = $("#container article:first-child() div a").attr("href");  //  First item href.
+    old_mark = old_mark.toString().replace(/\s/g, '');
+    */
+    
+    //  Записываем данные в локальное хранилище.
+    chrome.storage.local.set({
+        //"start_mark": old_mark, 
+        "redirect_counter": 0, 
+        "check_drop": "check"
+    }, function () {});
+    
+    console.log("The choice is approved!");
 }
 
 function hideCart(){

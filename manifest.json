@@ -6,7 +6,7 @@
     "options_page": "options.html",
     "description" : "Supreme bot.",
     "background": {
-        "scripts": ["background.js","js/jquery.min.js", "js/log.js"],
+        "scripts": ["background.js", "js/jquery.min.js", "js/log.js"],
         "persistent": true
     },
     "permissions": [
@@ -21,6 +21,7 @@
     ],
     "web_accessible_resources": [
         "https://www.supremecommunity.com/",
+        "https://www.ssupremecommunity.com/",
         "css/restyle-style.css",
         "img/banned.jpg"
     ],  
@@ -31,7 +32,7 @@
     },
     "content_scripts": [
     {
-      "matches": [ "http://www.supremenewyork.com/shop/*","https://www.supremenewyork.com/*",  "https://www.supremecommunity.com/*" ],
+      "matches": ["https://www.ssupremecommunity.com/","http://www.supremenewyork.com/shop/*","https://www.supremenewyork.com/*",  "https://www.supremecommunity.com/*" ],
       "js": [ "js/jquery.min.js", "background.js" , "js/log.js"]
     }
   ]

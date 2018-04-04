@@ -117,6 +117,10 @@ class BasicFunctions{
     startActions(GLOBAL) {
         if (!GLOBAL["LAP_FLAG"]) {  //  Вход.
             //  Предусматривает наличие хотя бы 1й карты и 1 предмета на ней.
+            
+            //  Запоминаем номер карты, с которой производить оплату.
+            chrome.storage.local.set({"currentCard": GLOBAL["CARD_COUNTER"]}, function () {});
+            
             this.stub(GLOBAL);
             GLOBAL["LAP_FLAG"] = true;
         } else {  //  Последующие.
@@ -132,7 +136,7 @@ class BasicFunctions{
                 //  Запоминаем номер карты, с которой производить оплату.
                 chrome.storage.local.set({"currentCard": GLOBAL["CARD_COUNTER"]}, function () {});
                 //  Checkout and payment.
-                //var checkout_finish = CheckoutActions.goToCheckoutPage();
+                var checkout_finish = CheckoutActions.goToCheckoutPage(GLOBAL);
                 // Сохраняем все данные, потому что переменные сбросятся при переходе на формально другую чтраницу.
                 chrome.storage.local.set({"log": GLOBAL["LOG"]}, function () {});
 
@@ -395,17 +399,15 @@ class ItemsActions{
                                                 }
                                             }
                                         }
+                                        CheckoutActions.goToCheckoutPage(GLOBAL);
+                                        /*
                                         var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
                                         LogActions.addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs,GLOBAL);
                                         chrome.storage.local.get("timestamp", function (stor) {
                                             var time_diff = Math.floor(timeStampInMs - stor["timestamp"]);
                                             LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
                                             LogActions.showLogPage(GLOBAL);
-                                            // Удаляем 
-                                            /*chrome.storage.local.remove("operations", function () {
-                                                console.log("Operations removed!");
-                                            });*/
-                                        });
+                                        });*/
                                     }else{  //  Если предмета еще нет в корзине.
                                          //  Размер данного цвета считан, ищем совпадения.
                                         var size__flag = ItemsActions.prototype.selectItemSize(established__size, GLOBAL);
@@ -427,7 +429,8 @@ class ItemsActions{
 
                                             // Добавляем в корзину.
                                             BasicFunctions.addToBasket(GLOBAL);
-                                            
+                                            CheckoutActions.goToCheckoutPage(GLOBAL);
+                                            /*
                                             var timeStampInMs = window.performance && window.performance.now && window.performance.timing && window.performance.timing.navigationStart ? window.performance.now() + window.performance.timing.navigationStart : Date.now();
                                             LogActions.addToLog("The end value of the stopwatch. Timestamp: " + timeStampInMs,GLOBAL);
                                             chrome.storage.local.get("timestamp", function (stor) {
@@ -435,11 +438,7 @@ class ItemsActions{
                                                 LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
                                                 LogActions.showLogPage(GLOBAL);
                                                 chrome.storage.local.set({'operations': ""},function(){});
-                                                // Удаляем 
-                                                /*chrome.storage.local.remove("operations", function () {
-                                                    console.log("Operations removed!");
-                                                });*/
-                                            });
+                                            });*/
                                         }else{
                                             if(promise__arr[i+1] === undefined){   //  Если это последний проверяемый цвет.
                                                 LogActions.addToLog("Fatal! Size was not select!",GLOBAL);
@@ -758,12 +757,13 @@ class CheckoutActions{
      * @param {string} fieldType    Особые флаги. Определяют положение текста в поле ввода или тип поля.
      * @returns {undefined}
      */
-    fillingField(fieldID, fieldName, fieldType) {
+    fillingField(GLOBAL,fieldID, fieldName, fieldType) {
+        console.log("Paste in field ",fieldName ," value ",GLOBAL["CARDS"][GLOBAL["CARD_COUNTER"]][fieldName]);
         if ((fieldType === "drop-list") || (fieldType === "nonfloating")) {   //  If Drop-down list.
-            $("#" + fieldID).val(GLOBAL__CARDS[GLOBAL__CARD_COUNTER][fieldName]);
+            $("#" + fieldID).val(GLOBAL["CARDS"][GLOBAL["CARD_COUNTER"]][fieldName]);
         } else {  //  Обычное поле.
-            if (GLOBAL__CARDS[GLOBAL__CARD_COUNTER][fieldName] !== "") {
-                $("#" + fieldID).val(GLOBAL__CARDS[GLOBAL__CARD_COUNTER][fieldName]);
+            if (GLOBAL["CARDS"][GLOBAL["CARD_COUNTER"]][fieldName] !== "") {
+                $("#" + fieldID).val(GLOBAL["CARDS"][GLOBAL["CARD_COUNTER"]][fieldName]);
                 $("#" + fieldID).addClass("floating");
                 $("#" + fieldID).parent("div").children("label").addClass("floating");
             }
@@ -775,44 +775,46 @@ class CheckoutActions{
      * Функция заполнения всех полей на странице checkout.
      * @returns {undefined}
      */
-    formFilling() {
+    formFilling(GLOBAL) {
         LogActions.addToLog("Filling in the card data.",GLOBAL);
         //  Common.
-        this.fillingField("order_billing_name", "fullName");
-        this.fillingField("order_email", "email");
-        this.fillingField("order_tel", "tel");
-        this.fillingField("bo", "address");
-        this.fillingField("oba3", "address2");
-        this.fillingField("order_billing_address_3", "address3");
-        this.fillingField("order_billing_city", "city");
-        this.fillingField("order_billing_zip", "postcode");
-        this.fillingField("order_billing_country", "country", "drop-list");
+        this.fillingField(GLOBAL, "order_billing_name", "fullName");
+        this.fillingField(GLOBAL, "order_email", "email");
+        this.fillingField(GLOBAL, "order_tel", "tel");
+        this.fillingField(GLOBAL, "bo", "address");
+        this.fillingField(GLOBAL, "oba3", "address2");
+        this.fillingField(GLOBAL, "order_billing_address_3", "address3");
+        this.fillingField(GLOBAL, "order_billing_city", "city");
+        this.fillingField(GLOBAL, "order_billing_zip", "postcode");
+        this.fillingField(GLOBAL, "order_billing_country", "country", "drop-list");
         //  Payment.
-        this.fillingField("credit_card_type", "cardType", "drop-list");
-        this.fillingField("cnb", "cardNumber", "nonfloating");
-        this.fillingField("credit_card_month", "cardMonth", "drop-list");
-        this.fillingField("credit_card_year", "cardYear", "drop-list");
-        this.fillingField("vval", "cardCVV", "nonfloating");
+        this.fillingField(GLOBAL, "credit_card_type", "cardType", "drop-list");
+        this.fillingField(GLOBAL, "cnb", "cardNumber", "nonfloating");
+        this.fillingField(GLOBAL, "credit_card_month", "cardMonth", "drop-list");
+        this.fillingField(GLOBAL, "credit_card_year", "cardYear", "drop-list");
+        this.fillingField(GLOBAL, "vval", "cardCVV", "nonfloating");
         //  Confirmation terms.
         var selector = document.querySelector('input[name="order[terms]"]');
         BasicFunctions.simulateClick(selector);
     }
 
+
     /**
      * Функция эмуляции нажатия кнопки "process payment";
      * @returns {undefined}
      */
-    pressProcessPayment() {
+    pressProcessPayment(GLOBAL) {
         LogActions.addToLog("Send a request for payment.",GLOBAL);
         var selector = document.querySelector('input[name="commit"]');
         BasicFunctions.simulateClick(selector);
     }
     
+    
     /**
      * Функция редиректа на страницу checkout.
      * @returns {undefined}
      */
-    goToCheckoutPage() {
+    goToCheckoutPage(GLOBAL) {
         chrome.storage.local.set({"checkout": "start_actions"}, function () {}); // Указываем место, откуда был сделан редирект на страницу checkout.
         LogActions.addToLog("Go to checkout page.",GLOBAL);
         if (GLOBAL["SETTINGS"]["ServerResponseTime"] === 1) {   //  Если в настройкох установлена галочка, выводить время ответа сервера.
@@ -829,11 +831,9 @@ class CheckoutActions{
      * Функция обработки страницы chrckout.
      * @returns {undefined}
      */
-    checkoutPayment() {
+    checkoutPayment(GLOBAL) {
         //  Заполнение формы.
-        this.formFilling();
-        //console.log(GLOBAL__CARD_COUNTER);
-        //console.log(GLOBAL__CARDS[GLOBAL__CARD_COUNTER]);
+        this.formFilling(GLOBAL);
         var forced = 0;
         var checkbox = $(".icheckbox_minimal");
         var waiting = setInterval(function () {
@@ -843,8 +843,7 @@ class CheckoutActions{
                     LogActions.addToLog("Waiting time for response: " + (forced * 50) + " ms.",GLOBAL);
                 }
                 //  Проводим платежную операцию.
-                // CheckoutActions.prototype.pressProcessPayment();
-                 LogActions.showLogPage();
+                CheckoutActions.prototype.pressProcessPayment(GLOBAL);
                 
                 //  Ожидание ответа сервера.
                 var forced_p = 0;
@@ -867,7 +866,7 @@ class CheckoutActions{
                             chrome.storage.local.get("timestamp", function (stor) {
                                 var time_diff = Math.floor(timeStampInMs - stor["timestamp"]);
                                 LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
-                                LogActions.showLogPage();
+                                LogActions.showLogPage(GLOBAL);
                                 // Удаляем 
                                 chrome.storage.local.remove("operations", function () {});
                                 return true;
@@ -877,6 +876,7 @@ class CheckoutActions{
                     if (forced > GLOBAL["TIMEOUT"]) {    //  Если ожидание слишком долгое.
                         LogActions.addToLog("<b class='error'>Payment timeout expired.</b>",GLOBAL);
                         clearInterval(waiting);
+                        LogActions.showLogPage(GLOBAL);
                         return false;
                     }
                     forced_p++;
@@ -886,6 +886,7 @@ class CheckoutActions{
             if (forced > GLOBAL["TIMEOUT"]) {    //  Если ожидание слишком долгое.
                 LogActions.addToLog("<b class='error'>The payment page is not responding.</b>",GLOBAL);
                 clearInterval(waiting);
+                LogActions.showLogPage(GLOBAL);
                 return false;
             }
             forced++;
@@ -942,8 +943,6 @@ class LogActions{
  * Если было принято сообщение из options.js, редиректим на пришедший в сообщении адрес.
  */
 
-
-
 chrome.runtime.onMessage.addListener(function (request, sender) {
     //  Определяем с какой целью было отправлено сообщение в background.
     if((request !== 'show__log') && (request !== 'reload') && (request !== 'removeListener')){
@@ -953,6 +952,7 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
         /*
          * Отключаем загрузку лишних скриптов, дабы ускорить загрузку страницы.
          */
+        /*
         chrome.storage.local.get("settings", function (resp) {
             if(resp["settings"]["DisableSomeScripts"] === 1){
                 chrome.webRequest.onBeforeRequest.addListener(
@@ -965,7 +965,7 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
                 );
             }
         });
-        
+        */
         /*
          * Вешаем обработчик на перезагрузку таба.
          * Отбираем нужный таб, определяем его состояние после перезагрузки, применяем действия.
@@ -976,59 +976,33 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
          * Задержка между перезагрузками равняется 500 мс(без учета таймаута ответа сервера).
          * Задержка может варьироваться, усходя из требуемой злости алгоритма.
          */
-        /*
-        chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+        function loadingListener(tabId, changeInfo, tab) {
             //console.info("This is the url of the tab = " + tab.url);
             //console.log(changeInfo, tab);
-            setTimeout(function () {
-                if((tab.url === "http://www.supremenewyork.com/shop/all/") && (tab.status === "complete")){
-                    if(tab.title === "www.supremenewyork.com"){
-                        //  Неудачная загрузка страницы.
-                        //console.log(tab.id, request.redirect);
-                        chrome.tabs.update(tab.id, {url: request.redirect});
-                    }else{
-                        if(tab.title === "Supreme"){
-                            //  Удачная загрузка страницы.
-                            console.log("Go!");
-                        }
-                    }
-                }else{
-                    //  Другой домен либо момент загрузки таба.
-                    console.log("Another domen or loading page or site is down!");
-                }
-            }, 500);
-        });
-        */
-        
-        function loadingListener(tabId, changeInfo, tab){
-            //console.info("This is the url of the tab = " + tab.url);
-            //console.log(changeInfo, tab);
-            if(tab.url === "http://www.supremenewyork.com/shop/all/"){
+            if (tab.url === "http://www.supremenewyork.com/shop/all/") {
                 setTimeout(function () {
-                    if((tab.url === "http://www.supremenewyork.com/shop/all/") && (tab.status === "complete")){
-                        if(tab.title === "www.supremenewyork.com"){
+                    if ((tab.url === "http://www.supremenewyork.com/shop/all/") && (tab.status === "complete")) {
+                        if (tab.title === "www.supremenewyork.com") {
                             //  Неудачная загрузка страницы.
                             //console.log(tab.id, request.redirect);
                             chrome.tabs.update(tab.id, {url: request.redirect});
-                        }else{
-                            if(tab.title === "Supreme"){  
+                        } else {
+                            if (tab.title === "Supreme") {
                                 //  Удачная загрузка страницы.
-                                chrome.tabs.onUpdated.removeListener(loadingListener);  
+                                chrome.tabs.onUpdated.removeListener(loadingListener);
                                 console.log("Go!");
                             }
                         }
-                    }else{
+                    } else {
                         //  Другой домен либо момент загрузки таба.
                         console.log("Another domen or loading page or site is down!");
                     }
                 }, 500);
             }
-            
+
         }
         
-        
         chrome.tabs.onUpdated.addListener(loadingListener);
-        
         
         /*
          * Ожидание загрузки первичного таба(стартовая страница, на которой размещен весь дроп).
@@ -1074,14 +1048,19 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
             if(request === 'removeListener'){
                 chrome.tabs.onUpdated.removeListener(loadingListener);  
             }else{
-                //  Другие команды...
+                if(request === 'getStartMark'){
+                    //  Получение метки предметов текущего дропа.(для сравнения и последующего поиска новых предметов.)
+                    //  Вызывается из options.js.
+                    
+                    
+                }else{
+                     //  Другие команды...
+                }
+               
             }
         }
     }
 });
-
-
-
 
 
 
@@ -1093,15 +1072,6 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
  * 
  */
 window.onload = function(){
-    
-    //  Когда пользователь подтверждает покупку выбраннных предметов.
-    
-    /*var old_mark = $("#container article:first-child() div a").attr("href");  //  First item href.
-    old_mark = old_mark.toString().replace(/\s/g, '');
-    chrome.storage.local.set({"start_mark": old_mark, "redirect_counter": 0, "check_drop": "check"}, function () {});
-    */
-    //  Команда подается за 5 секунд до дропа и удаляется при успешном поиске новых предметов.
-    
     //  Стартует только при загрузке страницы с дропом.
     if(window.location.href === "http://www.supremenewyork.com/shop/all/"){
         chrome.extension.sendMessage('removeListener');
@@ -1113,11 +1083,16 @@ window.onload = function(){
                 mark = mark.toString().replace(/\s/g, '');
                 var maximum__attempts = 20; //  Максимальное количество попыток обновления страницы с дропом.
                     if(storage["redirect_counter"] < maximum__attempts){ //  Максимальное количество попыток.
-                        if( (mark.substr(0,6) === "/shop/") && (mark === storage["start_mark"]) ){  //  Если дроплист не изменился.(для тестов) 
-                        /*
-                         *  Раскомент. строчку ниже.
-                         */
-                        //if( (mark.substr(0,6) === "/shop/") && (mark !== storage["start_mark"]) ){  //  Если формат ссылки похож на правду и метка не равна предыдущей.
+                        
+                          //Для тестов!!!
+                        if(storage["redirect_counter"] === 0){
+                            mark = "/shop/jackets/u7j4k0y3w/k49fgym2j";
+                        }
+                        console.log(mark);
+                        //if( (mark.substr(0,6) === "/shop/") && (mark === storage["start_mark"]) ){  //  Если дроплист не изменился.(для тестов) 
+                        
+                        
+                        if( (mark.substr(0,6) === "/shop/") && (mark !== storage["start_mark"]) ){  //  Если формат ссылки похож на правду и метка не равна предыдущей.
                         
                             chrome.storage.local.set({"check_drop": ""}, function () {});   //  Стираем команду обновления страницы.
                             if (storage["operations"] === "start_actions") {    //  Если есть команда на покупку предметов.
@@ -1147,6 +1122,10 @@ window.onload = function(){
             var GLOBAL = storage["GLOBAL"];
             if(window.location.href === GLOBAL["NEW_LOCATION"]){
                 main(); //  Продолжаем действия.
+            }else{
+                if(window.location.href === "https://www.supremenewyork.com/checkout"){
+                    main(); //  Продолжаем действия.
+                }
             }
         });
     }
@@ -1246,7 +1225,7 @@ function main(){
                             card_counter++;
                         }
                     }
-                    CheckoutActions.checkoutPayment();
+                    CheckoutActions.checkoutPayment(GLOBAL);
                 } else {
                     console.log("No auto checkout!");
                 }
