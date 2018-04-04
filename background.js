@@ -946,7 +946,7 @@ class LogActions{
 
 chrome.runtime.onMessage.addListener(function (request, sender) {
     //  Определяем с какой целью было отправлено сообщение в background.
-    if((request !== 'show__log') && (request !== 'reload')){
+    if((request !== 'show__log') && (request !== 'reload') && (request !== 'removeListener')){
         chrome.tabs.update(sender.tab.id, {url: request.redirect}); //  Первичный редирект на страницу всех предметов на сайте.
         chrome.storage.local.set({"operations": "start_actions"}, function () { }); //  Ставим флаг выполнения автоматических действий.
         
@@ -976,6 +976,7 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
          * Задержка между перезагрузками равняется 500 мс(без учета таймаута ответа сервера).
          * Задержка может варьироваться, усходя из требуемой злости алгоритма.
          */
+        /*
         chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
             //console.info("This is the url of the tab = " + tab.url);
             //console.log(changeInfo, tab);
@@ -997,6 +998,37 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
                 }
             }, 500);
         });
+        */
+        
+        function loadingListener(tabId, changeInfo, tab){
+            //console.info("This is the url of the tab = " + tab.url);
+            //console.log(changeInfo, tab);
+            if(tab.url === "http://www.supremenewyork.com/shop/all/"){
+                setTimeout(function () {
+                    if((tab.url === "http://www.supremenewyork.com/shop/all/") && (tab.status === "complete")){
+                        if(tab.title === "www.supremenewyork.com"){
+                            //  Неудачная загрузка страницы.
+                            //console.log(tab.id, request.redirect);
+                            chrome.tabs.update(tab.id, {url: request.redirect});
+                        }else{
+                            if(tab.title === "Supreme"){  
+                                //  Удачная загрузка страницы.
+                                chrome.tabs.onUpdated.removeListener(loadingListener);  
+                                console.log("Go!");
+                            }
+                        }
+                    }else{
+                        //  Другой домен либо момент загрузки таба.
+                        console.log("Another domen or loading page or site is down!");
+                    }
+                }, 500);
+            }
+            
+        }
+        
+        
+        chrome.tabs.onUpdated.addListener(loadingListener);
+        
         
         /*
          * Ожидание загрузки первичного таба(стартовая страница, на которой размещен весь дроп).
@@ -1039,7 +1071,11 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
                 focused: false
             }, function (newWindow) {});
         }else{
-            //  Другие команды...
+            if(request === 'removeListener'){
+                chrome.tabs.onUpdated.removeListener(loadingListener);  
+            }else{
+                //  Другие команды...
+            }
         }
     }
 });
@@ -1047,75 +1083,94 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
 
 
 
-/**
- * При загрузке выполняется чтение локального хранилища, достаются массивы: корзины и настроек.
- * Массив корзины перестраивается по первичному ключу id карты.
- * Добавляется массив сопоставления ключа и id карты.
+
+
+/*
+ * Если страница была успешно загружена.
+ * 1. Проверяем наличие новых предметов в дроплисте.
+ * Если предметов нет - перезагрузка таба, лимит попыток учтен.
+ * Если найдены новые предметы, летим в функцию main().
+ * 
  */
-
-
 window.onload = function(){
     
-    console.log("Loaded!");
     //  Когда пользователь подтверждает покупку выбраннных предметов.
     
     /*var old_mark = $("#container article:first-child() div a").attr("href");  //  First item href.
     old_mark = old_mark.toString().replace(/\s/g, '');
     chrome.storage.local.set({"start_mark": old_mark, "redirect_counter": 0, "check_drop": "check"}, function () {});
     */
-    
     //  Команда подается за 5 секунд до дропа и удаляется при успешном поиске новых предметов.
-    /*
-    chrome.storage.local.get(function (storage) {
-        if(storage["check_drop"] === "check"){    //  Если есть команда на обновление дроплиста.
-            //  Определение обновления списка предметов. Проверка осуществляется примерно каждую секунду.
-            var mark = $("#container article:first-child() div a").attr("href");  //  Берем метку первого предмета.
-            //  Очень злой рекурсивный алгоритм.
-            mark = mark.toString().replace(/\s/g, '');
-
-
-            var maximum__attempts = 10;
-
-                if(storage["redirect_counter"] < maximum__attempts){ //  Максимальное количество попыток.
-                    if( (mark.substr(0,6) === "/shop/") && (mark !== storage["start_mark"]) ){  //  Если формат ссылки похож на правду и метка не равна предыдущей.
-                    //if( (mark.substr(0,6) === "/shop/") && (mark === storage["start_mark"]) ){  //  Если формат ссылки похож на правду и метка не равна предыдущей.    
-                        //  Стираем команду обновления страницы.
-                        chrome.storage.local.set({"check_drop": ""}, function () {});   //  Завершение автоматического обновления.
+    
+    //  Стартует только при загрузке страницы с дропом.
+    if(window.location.href === "http://www.supremenewyork.com/shop/all/"){
+        chrome.extension.sendMessage('removeListener');
+        chrome.storage.local.get(function (storage) {
+            if(storage["check_drop"] === "check"){    //  Если есть команда на обновление дроплиста.
+                //  Определение обновления списка предметов. Проверка осуществляется примерно каждую секунду.
+                var mark = $("#container article:first-child() div a").attr("href");  //  Берем метку первого предмета.
+                //  Злой рекурсивный алгоритм.
+                mark = mark.toString().replace(/\s/g, '');
+                var maximum__attempts = 20; //  Максимальное количество попыток обновления страницы с дропом.
+                    if(storage["redirect_counter"] < maximum__attempts){ //  Максимальное количество попыток.
+                        if( (mark.substr(0,6) === "/shop/") && (mark === storage["start_mark"]) ){  //  Если дроплист не изменился.(для тестов) 
+                        /*
+                         *  Раскомент. строчку ниже.
+                         */
+                        //if( (mark.substr(0,6) === "/shop/") && (mark !== storage["start_mark"]) ){  //  Если формат ссылки похож на правду и метка не равна предыдущей.
                         
-                        if (storage["operations"] === "start_actions") {    //  Если есть команда на покупку предметов.
-                            //  Начинаем автоматические действия.
-                            console.log("Auto actions start!");
-                            main();
+                            chrome.storage.local.set({"check_drop": ""}, function () {});   //  Стираем команду обновления страницы.
+                            if (storage["operations"] === "start_actions") {    //  Если есть команда на покупку предметов.
+                                //  Начинаем автоматические действия.
+                                console.log("Auto actions start!");
+                                main();
+                            }
+                        }else{
+                            //  Перезагружаем до тех пор, пока страница не станет доступна/ не появятся новые предметы, или пока не привысим количество попыток.
+                            console.log("Try again. Reloading... Attempt #" + storage["redirect_counter"]);
+                            evilRedirect(storage);
                         }
                     }else{
-                        //  Перезагружаем до тех пор, пока страница не станет доступна/ не появятся новые предметы, или пока не привысим количество попыток.
-                        console.log("Try again. Reloading... Attempt #" + storage["redirect_counter"]);
-                        evilRedirect(storage);
+                        console.log("The maximum number of attempts has been exceeded!");
                     }
-                }else{
-                    console.log("The maximum number of attempts has been exceeded!");
+            }else{
+                if (storage["operations"] === "start_actions") {    //  Если есть команда на покупку предметов.
+                    //  Начинаем автоматические действия.
+                    console.log("Auto actions start!");
+                    main();
                 }
-        }else{
-            if (storage["operations"] === "start_actions") {    //  Если есть команда на покупку предметов.
-                //  Начинаем автоматические действия.
-                console.log("Auto actions start!");
-                main();
             }
-        }
-        
-    });*/
+
+        });
+    }else{  //  Если это не первое действие, а, допустим после перехода на страницу типа предмета.
+        chrome.storage.local.get(function (storage) {
+            var GLOBAL = storage["GLOBAL"];
+            if(window.location.href === GLOBAL["NEW_LOCATION"]){
+                main(); //  Продолжаем действия.
+            }
+        });
+    }
 };
 
 
 
-
+/*
+ * Функция редиректа на стартовую страницу.
+ * Выполняется при поиске новых предметов в дроплисте.
+ * @param {type} storage Объект локального хранилища.
+ * @returns {undefined}
+ */
 function evilRedirect(storage){
     chrome.storage.local.set({"redirect_counter": (storage["redirect_counter"] + 1)}, function () {});
     window.location.href = "http://www.supremenewyork.com/shop/all/"; // Redirect.
 }
 
 
-
+/**
+ * При загрузке выполняется чтение локального хранилища, достаются массивы: корзины и настроек.
+ * Массив корзины перестраивается по первичному ключу id карты.
+ * Добавляется массив сопоставления ключа и id карты.
+ */
 function main(){
     BasicFunctions = new BasicFunctions;
     ItemsActions = new ItemsActions;
