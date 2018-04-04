@@ -434,6 +434,7 @@ class ItemsActions{
                                                 var time_diff = Math.floor(timeStampInMs - stor["timestamp"]);
                                                 LogActions.addToLog("Total execution time: " + (time_diff / 1000) + " sec.",GLOBAL);
                                                 LogActions.showLogPage(GLOBAL);
+                                                chrome.storage.local.set({'operations': ""},function(){});
                                                 // Удаляем 
                                                 /*chrome.storage.local.remove("operations", function () {
                                                     console.log("Operations removed!");
@@ -944,85 +945,103 @@ class LogActions{
 
 
 chrome.runtime.onMessage.addListener(function (request, sender) {
-    chrome.tabs.update(sender.tab.id, {url: request.redirect});
-    chrome.storage.local.set({"operations": "start_actions"}, function () { });
-    // На сообщение из контекста страницы, описанного здесь, ниже.
-    if (request === 'show__log') { //проверяется, от того ли окна и скрипта отправлено
-        chrome.windows.create({
-            url: "log.html",
-            type: "popup",
-            height: 800,
-            width: 500,
-            focused: false
-        }, function (newWindow) {});
-    }
-    
-    chrome.storage.local.get("settings", function (resp) {
-        if(resp["settings"]["DisableSomeScripts"] === 1){
-            chrome.webRequest.onBeforeRequest.addListener(
-                function() { return {cancel: true}; },
-                {urls: [
-                    "*://www.google-analytics.com/ga.js",
-                    "*://connect.facebook.net/en_US/fp.js",
-                    "*://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"]},
-                ["blocking"]
-            );
-        }
-    });
-    
-    
-    
-    
-    
-});
-/*
-chrome.runtime.onMessage.addListener(function (request, sender) {
-    console.log("sender: ",sender);
-    if (request === 'loaded') { //проверяется, от того ли окна и скрипта отправлено
-        chrome.tabs.onUpdated.addListener(function (id , info) {
-            console.log(info.status);
-            if (info.status !== 'complete') {
-               console.log("unsuccess");
-               //chrome.tabs.update(id, {url: "http://www.supremenewyork.com/shop/all/"});
-            }else{
-                console.log("OK:)");
+    //  Определяем с какой целью было отправлено сообщение в background.
+    if((request !== 'show__log') && (request !== 'reload')){
+        chrome.tabs.update(sender.tab.id, {url: request.redirect}); //  Первичный редирект на страницу всех предметов на сайте.
+        chrome.storage.local.set({"operations": "start_actions"}, function () { }); //  Ставим флаг выполнения автоматических действий.
+        
+        /*
+         * Отключаем загрузку лишних скриптов, дабы ускорить загрузку страницы.
+         */
+        chrome.storage.local.get("settings", function (resp) {
+            if(resp["settings"]["DisableSomeScripts"] === 1){
+                chrome.webRequest.onBeforeRequest.addListener(
+                    function() { return {cancel: true}; },
+                    {urls: [
+                        "*://www.google-analytics.com/ga.js",
+                        "*://connect.facebook.net/en_US/fp.js",
+                        "*://cdn.mxpnl.com/libs/mixpanel-2-latest.min.js"]},
+                    ["blocking"]
+                );
             }
         });
-    }
-});*/
-
-
-
-chrome.tabs.onUpdated.addListener(function (id , info) {    //  При обновлении страницы.
-    chrome.storage.local.get("loading_status", function (resp) {   //  Достаем состояние страницы.
-        var loading_status = resp["loading_status"];
-        if(info.status === "loading"){
-            chrome.storage.local.set({"loading_status": 1}, function () { });
-        }
-        if(loading_status === 1 && info.status === "complete"){
-            //console.log("Page loading complete!");
-            chrome.tabs.query({active: true, currentWindow: true}, function(arrayOfTabs) {
-                 var activeTab = arrayOfTabs[0];
-                 if(activeTab.url === "http://www.supremenewyork.com/shop/all"){
-                     if(activeTab.title === "Supreme"){
-                         //  Успешная загрузка страницы.
-                         //console.log("Page loading complete!");
-                     }else{
-                         if(activeTab.title !== "Supreme"){
-                             console.log("Error when loading data!");
-                             // GO REDIRECT!
-                         }
-                     }
-                 }else{
-                     // Other page.
-                 }
+        
+        /*
+         * Вешаем обработчик на перезагрузку таба.
+         * Отбираем нужный таб, определяем его состояние после перезагрузки, применяем действия.
+         * Обрабатывается 2 состояния таба:
+         * 1. Сайт лежит(error 500).
+         * 2. Сайт корректно работает.
+         * Алгоритм является рекурсивным, выход только при успешном получении контента страницы.
+         * Задержка между перезагрузками равняется 500 мс(без учета таймаута ответа сервера).
+         * Задержка может варьироваться, усходя из требуемой злости алгоритма.
+         */
+        chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+            //console.info("This is the url of the tab = " + tab.url);
+            //console.log(changeInfo, tab);
+            setTimeout(function () {
+                if((tab.url === "http://www.supremenewyork.com/shop/all/") && (tab.status === "complete")){
+                    if(tab.title === "www.supremenewyork.com"){
+                        //  Неудачная загрузка страницы.
+                        //console.log(tab.id, request.redirect);
+                        chrome.tabs.update(tab.id, {url: request.redirect});
+                    }else{
+                        if(tab.title === "Supreme"){
+                            //  Удачная загрузка страницы.
+                            console.log("Go!");
+                        }
+                    }
+                }else{
+                    //  Другой домен либо момент загрузки таба.
+                    console.log("Another domen or loading page or site is down!");
+                }
+            }, 500);
+        });
+        
+        /*
+         * Ожидание загрузки первичного таба(стартовая страница, на которой размещен весь дроп).
+         * Определение состояния данной страницы и выполнение сообветствующих действий.
+         * Либо перезагрузка, либо продолжение нормальной работы.
+         * @returns {undefined}
+         */
+        setTimeout(function () {
+            var tab;
+            chrome.tabs.query({active: true, currentWindow: true}, function (tabs) {
+                tab = tabs[0];
+                console.log("Reloading!");
+                console.log(tab.url);
+                console.log(tab.status);
+                if ((tab.url === "http://www.supremenewyork.com/shop/all/") && (tab.status === "complete")) {
+                    if (tab.title === "www.supremenewyork.com") {
+                        //  Неудачная загрузка страницы.
+                        chrome.tabs.update(tab.id, {url: request.redirect});    //  Перезагружаем таб.
+                    } else {
+                        if (tab.title === "Supreme") {
+                            //  Удачная загрузка страницы.
+                            console.log("Go!");
+                        }
+                    }
+                } else {
+                    //  Другой домен либо момент загрузки таба.
+                    console.log("Another domen!");
+                }
             });
+        }, 1000);
+        
+    }else{  //  Если подана определенная команда.
+        if(request === 'show__log'){   //  Если подана команда вывести лог.
+            //  Создание нового таба лога.
+            chrome.windows.create({
+                url: "log.html",
+                type: "popup",
+                height: 800,
+                width: 500,
+                focused: false
+            }, function (newWindow) {});
         }else{
-            if(info.status !== "loading"){
-                //console.log("Error when loading page!");
-            }
+            //  Другие команды...
         }
-    });
+    }
 });
 
 
@@ -1034,18 +1053,19 @@ chrome.tabs.onUpdated.addListener(function (id , info) {    //  При обно�
  * Добавляется массив сопоставления ключа и id карты.
  */
 
-var WORLD_SUCCESS_LOAD = 0;
 
 window.onload = function(){
-    WORLD_SUCCESS_LOAD = 1;
+    
+    console.log("Loaded!");
     //  Когда пользователь подтверждает покупку выбраннных предметов.
+    
     /*var old_mark = $("#container article:first-child() div a").attr("href");  //  First item href.
     old_mark = old_mark.toString().replace(/\s/g, '');
     chrome.storage.local.set({"start_mark": old_mark, "redirect_counter": 0, "check_drop": "check"}, function () {});
     */
     
     //  Команда подается за 5 секунд до дропа и удаляется при успешном поиске новых предметов.
-    
+    /*
     chrome.storage.local.get(function (storage) {
         if(storage["check_drop"] === "check"){    //  Если есть команда на обновление дроплиста.
             //  Определение обновления списка предметов. Проверка осуществляется примерно каждую секунду.
@@ -1058,13 +1078,14 @@ window.onload = function(){
 
                 if(storage["redirect_counter"] < maximum__attempts){ //  Максимальное количество попыток.
                     if( (mark.substr(0,6) === "/shop/") && (mark !== storage["start_mark"]) ){  //  Если формат ссылки похож на правду и метка не равна предыдущей.
+                    //if( (mark.substr(0,6) === "/shop/") && (mark === storage["start_mark"]) ){  //  Если формат ссылки похож на правду и метка не равна предыдущей.    
+                        //  Стираем команду обновления страницы.
                         chrome.storage.local.set({"check_drop": ""}, function () {});   //  Завершение автоматического обновления.
-                        console.log("Start auto actions.");
-                        //  Команда на обновление дроплиста.
-
+                        
                         if (storage["operations"] === "start_actions") {    //  Если есть команда на покупку предметов.
                             //  Начинаем автоматические действия.
-
+                            console.log("Auto actions start!");
+                            main();
                         }
                     }else{
                         //  Перезагружаем до тех пор, пока страница не станет доступна/ не появятся новые предметы, или пока не привысим количество попыток.
@@ -1077,22 +1098,14 @@ window.onload = function(){
         }else{
             if (storage["operations"] === "start_actions") {    //  Если есть команда на покупку предметов.
                 //  Начинаем автоматические действия.
-
+                console.log("Auto actions start!");
+                main();
             }
         }
-    });
+        
+    });*/
 };
 
-//  Тут добавить алгоритм принудительной перезагрузки, выполняется только когда страница полностью в оффлайне.
-/*
-setTimeout(function(){
-    if(WORLD_SUCCESS_LOAD !== 1){
-        console.log("Error when loading page!");
-    }else{
-        console.log("Loading page success!");
-    }
-},1500);
-*/
 
 
 
@@ -1104,17 +1117,6 @@ function evilRedirect(storage){
 
 
 function main(){
-    var waiting2 = setInterval(function () {   //  Ждем прогрузки контента страницы.
-        console.log(document.getElementById("container"));
-        console.log(document.location.href);
-        if(document.querySelector('nav[class="sidebar"]') !== null){
-            clearInterval(waiting2);
-            console.log("Страница успешно загружена.");
-        }else{
-            console.log("Ждем загрузки страницы...");
-        }
-    },500);
-    /*
     BasicFunctions = new BasicFunctions;
     ItemsActions = new ItemsActions;
     CheckoutActions = new CheckoutActions;
@@ -1274,6 +1276,6 @@ function main(){
     //  Удаление массива операций, сделано для того, чтобы при каждом посещении страницы магазина самопроизвольно не запускался скрипт расширения.
     //chrome.storage.local.remove("operations", function () {});
     chrome.storage.local.set({'operations': ""},function(){});
-    */
+    
 }
     //});
