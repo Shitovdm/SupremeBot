@@ -13,14 +13,14 @@ function getTime() {
     //var time = (h > 12) ? (h - 12 + ':' + m + ':' + s + ' pm') : (h + ':' + m + ':' + s + ' am');
     var time = (h + ':' + m + ':' + s );
     $("#LDN-time").text("UTC: " + time);
-/*
+
         console.log(h);
         console.log(M);
         console.log(S);
-*/
+
     //  Действия по таймеру. Установить значение времени и все.
-    //if (h === 9 && M === 59 && S === 50) {
-    if (h === 19 && M === 20 && S === 50) {
+    if (h === 9 && M === 59 && S === 55) {
+    //if (h === 19 && M === 20 && S === 50) {
         buyNow();
         console.log(h);
         console.log(M);

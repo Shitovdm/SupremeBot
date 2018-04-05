@@ -492,9 +492,18 @@ class ItemsActions{
                                 LogActions.addToLog("Item color " + items_data[j]["color"] + " are sold out!",GLOBAL);
                             }
                         }
-                    }else{
-                        LogActions.addToLog("Fatal!All items are sold out!",GLOBAL);
-                        LogActions.showLogPage(GLOBAL);
+                    }else{  //  Если все предметы sold out.
+                        if (GLOBAL["SETTINGS"]["EnableRestockes"] === 1) {
+                            //  Если задан параметр ожидания рестока.
+                            LogActions.addToLog("Restockes are enable! Reloading...",GLOBAL);
+                            //  Повторяем попытку загрузить предметы, с указанным таймаутом между попытками.
+                            setTimeout(function(){
+                                chrome.runtime.sendMessage({redirect: "http://www.supremenewyork.com/shop/all/"});
+                            },GLOBAL["SETTINGS"]["RestocksDelay"]);
+                        }else{  //  Если ожидание рестока отключено.
+                            LogActions.addToLog("Fatal! All items are sold out!",GLOBAL);
+                            LogActions.showLogPage(GLOBAL);
+                        }
                     }
                 }
                 if (forced > GLOBAL["TIMEOUT"]) {    //  Если ожидание слишком долгое.
@@ -504,7 +513,7 @@ class ItemsActions{
                 forced++;
             }, GLOBAL["INTERVAL"]);
         }else{
-            LogActions.addToLog("Fatal!There are no delicate colors!",GLOBAL);
+            LogActions.addToLog("Fatal! There are no delicate colors!",GLOBAL);
             LogActions.showLogPage(GLOBAL); 
         }
     }
@@ -1081,13 +1090,13 @@ window.onload = function(){
                 var mark = $("#container article:first-child() div a").attr("href");  //  Берем метку первого предмета.
                 //  Злой рекурсивный алгоритм.
                 mark = mark.toString().replace(/\s/g, '');
-                var maximum__attempts = 20; //  Максимальное количество попыток обновления страницы с дропом.
+                var maximum__attempts = 60; //  Максимальное количество попыток обновления страницы с дропом.
                     if(storage["redirect_counter"] < maximum__attempts){ //  Максимальное количество попыток.
                         
                           //Для тестов!!!
-                        if(storage["redirect_counter"] === 0){
+                        /*if(storage["redirect_counter"] === 0){
                             mark = "/shop/jackets/u7j4k0y3w/k49fgym2j";
-                        }
+                        }*/
                         console.log(mark);
                         //if( (mark.substr(0,6) === "/shop/") && (mark === storage["start_mark"]) ){  //  Если дроплист не изменился.(для тестов) 
                         

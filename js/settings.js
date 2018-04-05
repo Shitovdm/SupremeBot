@@ -1,4 +1,5 @@
 
+
 //  Выставление параметров по умолчанию, если ранее они не были установлены.
 function setDefaultParams(){
     chrome.storage.local.get(function(resp){
@@ -10,7 +11,7 @@ function setDefaultParams(){
                 HideSoldOutItemsOnSupreme : 1,
                 EnableTimeSynchronization : 0,
                 ShowWarnings : 1,
-                DisableSomeScripts: 1,
+                DisableSomeScripts: 0,
                 
                 MinimalisticDesign : 0,
                 OneStaticPicture: 0,
@@ -21,6 +22,9 @@ function setDefaultParams(){
                 
                 SelectAnySize : 0,
                 SelectAnyColor : 0,
+                
+                EnableRestockes : 1,
+                RestocksDelay : "500",
                 
                 AutoFillPaymentForm : 1,
                 MaintainFullLog : 1,
@@ -74,7 +78,6 @@ function getParams(){
 
 //  Изменяет значение параметра в локальном хранилище.
 function changeParam(param){
-    console.log();
     var state = 0;
     var newParamArray = {};
     if($("#" + param).attr("type") === "checkbox"){  //  Работа с checkbox.

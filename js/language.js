@@ -131,5 +131,25 @@ chrome.storage.local.get('settings',function(settings){
             }
         }
     }
+    
+    //  Динамическое заполнение всех выпадающих списков.
+    
+    //  Массив задержек между попытками рестока.
+    var delays = {
+        "0": 0,
+        "500" : 500,
+        "1000" : 1000,
+        "2000" : 2000,
+        "3000" : 3000,
+        "5000" : 5000,
+        "10000" : 10000
+    };
+    //  Заполнение выпадающего списка задержек между попытками рестока.
+    for(var delay in delays){
+        if(delays.hasOwnProperty(delay)){
+            $("#RestocksDelay").append("<option>" + delay + "</option>");
+        }
+    }
+    
 });
 
