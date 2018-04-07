@@ -286,12 +286,12 @@ document.addEventListener("DOMContentLoaded", function () { //  Дроплист
                 setInterval(function(){
                      // Change bg image.
                      if(BgImageCounter === 5){ BgImageCounter = 1; }
-                     $(".data-options").css("background-image","url('/img/store/store-" + BgImageCounter + ".jpg')");
+                     $(".data-options").css("background-image","url('../img/store/store-" + BgImageCounter + ".jpg')");
                      BgImageCounter++;
                  }, 20000); 
             }else{
                 if(OneStaticPicture_FLAG === 1){
-                    $(".data-options").css("background-image","url('/img/store/store-2.jpg')");
+                    $(".data-options").css("background-image","url('../img/store/store-2.jpg')");
                 }
             }
         }

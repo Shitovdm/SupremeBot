@@ -3,10 +3,10 @@
     "name" : "SupremeBot", 
     "version" : "0.5",
     
-    "options_page": "options.html",
-    "description" : "Supreme bot.",
+    "options_page": "/html/options.html",
+    "description" : "Supreme bot",
     "background": {
-        "scripts": ["background.js", "js/jquery.min.js", "js/log.js"],
+        "scripts": ["js/background.js", "js/external/jquery.min.js", "js/log.js"],
         "persistent": true
     },
     "permissions": [
@@ -28,12 +28,12 @@
     "browser_action": {
         "default_title": "Supreme Bot",
         "default_icon": "img/icon.png",
-        "default_popup": "popup.html"
+        "default_popup": "html/popup.html"
     },
     "content_scripts": [
     {
-      "matches": ["https://www.ssupremecommunity.com/","http://www.supremenewyork.com/shop/*","https://www.supremenewyork.com/*",  "https://www.supremecommunity.com/*" ],
-      "js": [ "js/jquery.min.js", "background.js" , "js/log.js"]
+      "matches": ["http://www.supremenewyork.com/shop/*","https://www.supremenewyork.com/*"],
+      "js": [ "js/external/jquery.min.js", "js/background.js" , "js/log.js"]
     }
   ]
 }
