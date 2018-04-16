@@ -1,8 +1,7 @@
 # SupremeBot
 Supreme Bot is a Google Chrome extension to automate the process of buying items from the Supreme™ market.
 
-### Features  
-***  
+# Features  
 The bot has many advantages, such as:
 - **User-friendly interface** - Clear and convenient interface.
 - **Full automatic** - The actions of the bot are completely automatic.
@@ -26,7 +25,7 @@ The bot has many advantages, such as:
 - **Languages** - Ability to change interface language.
 This is not a complete list of benefits, with the full can be found in the process of operation.
 
-### On development stage
+# On development stage
 Some functions that are currently in development:
 - **A lot of orders** - Execution of several orders at once.
 - **E-mail notifications** - Notification of the results of work by e-mail.
@@ -35,8 +34,7 @@ Some functions that are currently in development:
 - **Processing store replies** - Automatic processing of responses to an attempt to buy an item.
 - **Mixture droplists** - Adding items from different droplists.
 
-### Installation  
-*** 
+# Installation  
 1. Download the full project by clicking "Clone or download".
 2. In Chrome browser go to "More tools" -> "Extensions".
 3. Turn on "Developer Mode" by clicking the relevant radio button.
@@ -44,8 +42,7 @@ Some functions that are currently in development:
 5. Go to Droplists & Payment page.
 
 
-### Screenshots
-***
+# Screenshots
 **Main Page (Droplist's)**  
 ![screen](https://raw.githubusercontent.com/Shitovdm/SupremeBot/master/img/screenshots/screenshot-1.png) 
 **Payment information Page (Cards)**  
