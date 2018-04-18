@@ -5,8 +5,8 @@ Supreme Bot is a Google Chrome extension to automatize the process of buying ite
 The bot has many advantages, such as:
 - **User-friendly interface** - Clear and convenient interface.
 - **Full automatic** - The bot actions are completely automatized.
-- **Any Droplist** - The ability to buy items from any current season droplist.
-~~- **Custom Timer** - Ability to adjust the start time of the bot.~~
+- **Any Droplist** - The ability to buy items from any current season droplist.  
+- ~~**Custom Timer** - Ability to adjust the start time of the bot.~~  
 - **Full log** - Maintenance of a full log of perfect actions.
 - **Automatic search** - Automatic search for upcoming droplist items.
 - **Basket** - Items are added to the shopping cart as in the store.
