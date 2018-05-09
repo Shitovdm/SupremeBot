@@ -1071,6 +1071,46 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
     }
 });
 
+/**
+ * При установке расширения:
+ * 1. Создпем и заполняем массив с дефолтными настройками.
+ * 
+ * 
+ */
+chrome.runtime.onInstalled.addListener(function () {
+    var settingsArray = {
+        LabelSoldOutItems : 0,
+        HideAllAnimations : 1,
+        HideSoldOutItemsOnSupreme : 1,
+        EnableTimeSynchronization : 0,
+        ShowWarnings : 1,
+        DisableSomeScripts: 0,
+
+        MinimalisticDesign : 0,
+        OneStaticPicture: 0,
+        AutoChangeBg : 1,
+        InterfaceLanguage : "en",
+
+        AutomaticPurchaseItems : 0,
+
+        SelectAnySize : 0,
+        SelectAnyColor : 0,
+
+        EnableRestockes : 1,
+        RestocksDelay : "500",
+
+        AutoFillPaymentForm : 1,
+        MaintainFullLog : 1,
+        OutputResponseInLog: 1,
+        LogInNewWindow: 1,
+        ServerResponseTime: 1,
+        CalculateTotalTime: 1
+    };
+    chrome.storage.local.set({ 'settings' : settingsArray},function(){
+        console.log("Создано локальное хранилище.");
+    });
+});
+
 
 
 /*

@@ -3,7 +3,6 @@
 //  Выставление параметров по умолчанию, если ранее они не были установлены.
 function setDefaultParams(){
     chrome.storage.local.get(function(resp){
-        console.log(resp);
         if(resp["settings"] === undefined){  //  Если в локальном хранилище еще нет сохраненных настроек.
             var settingsArray = {
                 LabelSoldOutItems : 0,
@@ -16,7 +15,7 @@ function setDefaultParams(){
                 MinimalisticDesign : 0,
                 OneStaticPicture: 0,
                 AutoChangeBg : 1,
-                InterfaceLanguage : "ru",
+                InterfaceLanguage : "en",
                 
                 AutomaticPurchaseItems : 0,
                 
@@ -38,7 +37,7 @@ function setDefaultParams(){
                 getParams();
             });
         }else{
-            console.log("Параметры уже были сохранены.");
+            console.log("Параметры уже были сохранены ранее.");
         }
     });
 }
@@ -47,6 +46,7 @@ function removeAllParams(){
     chrome.storage.local.remove( "settings", function() {
         console.log('All settings removed!');
     });
+    setDefaultParams();
 }
 
 function  ClearLog(){
@@ -54,7 +54,6 @@ function  ClearLog(){
         console.log('Log cleared!');
     });
 }
-
 
 //  Устанавливает параметры записанные в локальном хранилище.
 function getParams(){
@@ -126,7 +125,9 @@ $(document).ready(function() {
     //  Проверяем присутствие дефолтных настроек.
     setDefaultParams();
     //  Загружаем ранее установленные настройки из локального хранилища.
+    console.log("мы тут");
     getParams();
+    console.log("мы тут2");
     //  Вешаем на все чекбоксы и селекты лиснеры.
     var tunings = $(".tuning");
     for(var i = 0; i < $(tunings).length; i++){
@@ -134,6 +135,7 @@ $(document).ready(function() {
             changeParam(t.target.id);
         });
     }
+    
     //  Nav bar button actions.
     document.getElementById("common-settings").addEventListener("click", function(){showPage("common-settings");}); 
     document.getElementById("purchase-settings").addEventListener("click", function(){showPage("purchase-settings");});
