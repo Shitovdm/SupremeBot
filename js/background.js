@@ -1109,6 +1109,11 @@ chrome.runtime.onInstalled.addListener(function () {
     chrome.storage.local.set({ 'settings' : settingsArray},function(){
         console.log("Создано локальное хранилище.");
     });
+    
+    // Запысываем все дефолтные переменные. 
+    chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {   
+        console.log("Все дефолтные временные переменные записаны в хранилище..");
+    });
 });
 
 
