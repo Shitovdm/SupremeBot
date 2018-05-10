@@ -121,6 +121,18 @@ function showPage(pageId){
 }
 
 $(document).ready(function() {
+    
+    var slideEl = $(".slide--parent");
+
+    slideEl.flickity({
+            imagesLoaded: true,
+            wrapAround: true,
+            autoPlay: true,
+            pauseAutoPlayOnHover: false
+    });
+
+    
+    
     $("#common-settings-content").fadeIn(500);
     //  Проверяем присутствие дефолтных настроек.
     setDefaultParams();
