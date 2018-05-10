@@ -1076,8 +1076,9 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
  * 1. Создпем и заполняем массив с дефолтными настройками.
  * 
  * 
- */
-chrome.runtime.onInstalled.addListener(function () {
+ *//*
+chrome.runtime.onInstalled.addListener(function (details) {
+    console.log(details);
     var settingsArray = {
         LabelSoldOutItems : 0,
         HideAllAnimations : 1,
@@ -1115,7 +1116,53 @@ chrome.runtime.onInstalled.addListener(function () {
         console.log("Все дефолтные временные переменные записаны в хранилище..");
     });
 });
+*/
 
+if (window.location.href.substr(0, 4) !== "http") {
+    console.log("Add listener on installation or update..");
+    chrome.runtime.onInstalled.addListener(function (details) {
+        if(details.reason === "install" || details.reason === "update"){
+            var settingsArray = {
+                LabelSoldOutItems: 0,
+                HideAllAnimations: 1,
+                HideSoldOutItemsOnSupreme: 1,
+                EnableTimeSynchronization: 0,
+                ShowWarnings: 1,
+                DisableSomeScripts: 0,
+
+                MinimalisticDesign: 0,
+                OneStaticPicture: 0,
+                AutoChangeBg: 1,
+                InterfaceLanguage: "en",
+
+                AutomaticPurchaseItems: 0,
+
+                SelectAnySize: 0,
+                SelectAnyColor: 0,
+
+                EnableRestockes: 1,
+                RestocksDelay: "500",
+
+                AutoFillPaymentForm: 1,
+                MaintainFullLog: 1,
+                OutputResponseInLog: 1,
+                LogInNewWindow: 1,
+                ServerResponseTime: 1,
+                CalculateTotalTime: 1
+            };
+            chrome.storage.local.set({'settings': settingsArray}, function () {
+                console.log("Создано локальное хранилище.");
+            });
+
+            // Запысываем все дефолтные переменные. 
+            chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {
+                console.log("Все дефолтные временные переменные записаны в хранилище..");
+            });
+
+            chrome.tabs.create({ url: chrome.extension.getURL('google.com')});  
+        }
+    });
+}
 
 
 /*
