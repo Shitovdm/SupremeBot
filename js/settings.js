@@ -121,25 +121,12 @@ function showPage(pageId){
 }
 
 $(document).ready(function() {
-    
-    var slideEl = $(".slide--parent");
 
-    slideEl.flickity({
-            imagesLoaded: true,
-            wrapAround: true,
-            autoPlay: true,
-            pauseAutoPlayOnHover: false
-    });
-
-    
-    
     $("#common-settings-content").fadeIn(500);
     //  Проверяем присутствие дефолтных настроек.
     setDefaultParams();
     //  Загружаем ранее установленные настройки из локального хранилища.
-    console.log("мы тут");
     getParams();
-    console.log("мы тут2");
     //  Вешаем на все чекбоксы и селекты лиснеры.
     var tunings = $(".tuning");
     for(var i = 0; i < $(tunings).length; i++){
@@ -153,5 +140,5 @@ $(document).ready(function() {
     document.getElementById("purchase-settings").addEventListener("click", function(){showPage("purchase-settings");});
     document.getElementById("support-settings").addEventListener("click", function(){showPage("support-settings");});
     document.getElementById("RemoveAllSettings").addEventListener("click", function(){removeAllParams();});
-    document.getElementById("ClearLog").addEventListener("click", function(){ClearLog();});
+    document.getElementById("ClearLog").addEventListener("click", function(){ClearLog();}); 
 });

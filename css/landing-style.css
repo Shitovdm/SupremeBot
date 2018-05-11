@@ -1,0 +1,174 @@
+body{
+    margin: 0 auto;
+    overflow: hidden;
+    overflow-y: scroll;
+    
+}
+body::-webkit-scrollbar {width:0px;}
+.clear{
+    clear: both;
+}
+
+.welcome-page{
+    position: absolute;
+    top: 0px;
+    left: 0px;
+    width:100%;
+    height:100%;
+    
+}
+.slider{
+    text-align: center;
+    background-image: radial-gradient(circle farthest-side at center bottom,#c0392b 0,#2c3e50 100%);
+    border-top: 5px solid red;
+    width: 100%;
+    position: absolute;
+    height:calc(100% - 5px);
+    z-index: 3;
+}
+.features{
+    width: 100%;
+    position:absolute;
+    top:100%;
+    height: 100%;
+}
+.leader{
+    width: 100%;
+    margin-top: 10%;
+    text-align: center;
+    user-select: none;
+}
+.leader h1{
+    font-size: 50px;
+    color: #ffffff;
+    font-weight: 300;
+}
+.leader h2{
+    font-weight: 300;
+    font-size: 17px;
+    color: white;
+}
+.welcome-shift{
+    position: absolute;
+    top:45%;
+    margin: 0 auto;
+    background:url("../img/icons/go_to_white.png");
+    background-repeat: no-repeat;
+    background-size: 40px 40px;
+    background-position: 10px 10px;
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    -webkit-transition-duration: 0.5s;
+    -moz-transition-duration: 0.5s;
+    -o-transition-duration: 0.5s;
+    transition-duration: 0.5s;
+    cursor: pointer;
+    opacity: 0.1;
+    user-select: none;
+    z-index: 10;
+}
+.right-shift{
+    right: 0px;
+}
+.left-shift{
+    left: 0px;
+    transform: rotate(180deg);
+}
+.welcome-shift:hover{
+    opacity: 1;
+}
+
+.leader-buttons{
+    margin:0 auto;
+}
+
+.btn-container{
+    width: 30%;
+    margin:0 auto;
+}
+
+.btn{
+    float: left;
+    width: calc(40% - 2px);
+    padding: 10px 0px;
+    color: #ffffff;
+    background-color: #2ECC71;
+    margin: 5%;
+    border: 1px solid #2ECC71;
+    border-radius: 5px;
+    cursor: pointer;
+    -webkit-transition-duration: 0.5s;
+    -moz-transition-duration: 0.5s;
+    -o-transition-duration: 0.5s;
+    transition-duration: 0.5s;
+}
+.btn:hover{
+    background-color: #27AD60;
+}
+
+.one-btn{
+    
+}
+.one-btn a div{
+    width: calc(30% - 2px);
+    margin-left: calc(35% - 2px);
+    padding: 0px;
+    min-width: 140px;
+}
+.no-bg{
+    background: none;
+}
+.btn img{
+    float:left;
+    margin-left: 20%;
+}
+.btn span{
+    float: left;
+    margin: 8px;
+}
+.leader-imgs{
+    position: absolute;
+    bottom: 80px;
+    width:100%;
+    height: 35%;
+    max-height: 35%;
+    margin: 0 auto;
+    text-align: center;
+}
+.img-1{
+    height: 100%;
+    width: fit-content;
+    margin: 0 auto;  
+    /*27.6%*/
+    z-index: 3;
+}
+
+
+
+.sole{
+    position: absolute;
+    bottom: 0;
+}
+
+.leader-imgs div img{
+    border-radius: 5px;
+}
+
+
+.features-page{
+    display: none;
+}
+
+.features-page{
+    position: absolute;
+    width:100%;
+    height:100%;
+    top:0px;
+    left:-100%;
+ 
+}
+
+
+
+
