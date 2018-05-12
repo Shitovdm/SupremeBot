@@ -9,14 +9,7 @@ body::-webkit-scrollbar {width:0px;}
     clear: both;
 }
 
-.welcome-page{
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    width:100%;
-    height:100%;
-    
-}
+
 .slider{
     text-align: center;
     background-image: radial-gradient(circle farthest-side at center bottom,#c0392b 0,#2c3e50 100%);
@@ -47,36 +40,6 @@ body::-webkit-scrollbar {width:0px;}
     font-weight: 300;
     font-size: 17px;
     color: white;
-}
-.welcome-shift{
-    position: absolute;
-    top:45%;
-    margin: 0 auto;
-    background:url("../img/icons/go_to_white.png");
-    background-repeat: no-repeat;
-    background-size: 40px 40px;
-    background-position: 10px 10px;
-    padding: 10px;
-    width: 40px;
-    height: 40px;
-    -webkit-transition-duration: 0.5s;
-    -moz-transition-duration: 0.5s;
-    -o-transition-duration: 0.5s;
-    transition-duration: 0.5s;
-    cursor: pointer;
-    opacity: 0.1;
-    user-select: none;
-    z-index: 10;
-}
-.right-shift{
-    right: 0px;
-}
-.left-shift{
-    left: 0px;
-    transform: rotate(180deg);
-}
-.welcome-shift:hover{
-    opacity: 1;
 }
 
 .leader-buttons{
@@ -156,19 +119,61 @@ body::-webkit-scrollbar {width:0px;}
 }
 
 
-.features-page{
-    display: none;
+.junction-arrow{
+    position: absolute;
+    top:45%;
+    margin: 0 auto;
+    background:url("../img/icons/go_to_white.png");
+    background-repeat: no-repeat;
+    background-size: 40px 40px;
+    background-position: 10px 10px;
+    padding: 10px;
+    width: 40px;
+    height: 40px;
+    -webkit-transition-duration: 0.5s;
+    -moz-transition-duration: 0.5s;
+    -o-transition-duration: 0.5s;
+    transition-duration: 0.5s;
+    cursor: pointer;
+    opacity: 0.1;
+    user-select: none;
+    z-index: 10;
+}
+.right-arrow{
+    right: 0px;
+}
+.left-arrow{
+    left: 0px;
+    transform: rotate(180deg);
+}
+.junction-arrow:hover{
+    opacity: 1;
 }
 
-.features-page{
+.slide{
     position: absolute;
     width:100%;
     height:100%;
-    top:0px;
-    left:-100%;
- 
+    top: 0px;
+    display: block;
+    z-index: 3;
 }
 
+.slide-0{
+    left: 0px;  
+}
+.slide--1{
+    left:-100%;
+}
+.slide--2{
+    left:-200%;
+}
+.slide-1{
+    left:100%;
+}
+.slide-2{
+    left:200%;
+}
 
 
 
