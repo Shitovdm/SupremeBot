@@ -6,6 +6,7 @@
         <link href="../css/landing-style.css" rel="stylesheet" type="text/css">
         <script src="../js/external/jquery.min.js"></script>
         <script src="../js/landing.js"></script>
+        <script src="../js/own/HorizontalSlider.js"></script>
         <script src="../js/language.js"></script>
 
         <title>SupremeBot</title>
@@ -13,10 +14,23 @@
 <body>
    
     <div class="slider">
+        <!-- Nav bar -->
+        <div class="nav-bar">
+            <div class="logo"><!-- Logo absent :( --></div>
+            <div class="nav-btns">
+                <div class="nav-btn"><a href="#features">Features</a></div>
+                <div class="nav-btn"><a href="#demo">Demo</a></div>
+                <div class="nav-btn"><a href="#capabilities">Capabilities</a></div>
+                <div class="nav-btn"><a href="#qa">Q&A</a></div>
+            </div>
+            <div class="clear"></div>
+        </div>
+        
         <!-- Junction arrows -->
         <div class="junction-arrow left-arrow"></div>
         <div class="junction-arrow right-arrow"></div>
-        <!-- Block 1 -->
+        
+        <!-- Block 0 -->
         <div class="slide slide-0">
             <div class="leader">
                 <h1>Welcome to Supreme Bot!</h1>
@@ -28,11 +42,11 @@
                 </div>
             </div>
             <div class="leader-imgs">
-                <div class="img-1"><img src="../img/screenshots/preview/set-2.png" height="100%"></div>
+                <div class="img-1"><img src="../img/screenshots/screenshot-1.png" height="100%"></div>
             </div>
         </div>
         
-        <!-- Block 2 -->
+        <!-- Block 1 -->
         <div class="slide slide--1">
             <div class="leader">
                 <h1>Full open source code</h1>
@@ -56,13 +70,13 @@
         <!-- Block 2 -->
         <div class="slide slide--2">
             <div class="leader">
-                <h1>Page -2</h1>
-                <h2>All source code of the bot is publicly available. Anyone can study it and make some edits.</h2>
+                <h1>Ongoing support</h1>
+                <h2>The boat is constantly improving and has constant support.<br> You can tell me about any error detection, or leave issue in the repository on Github.</h2>
                 <div class="btn-container one-btn">
-                    <a href="https://github.com/Shitovdm/SupremeBot" target="_blank">
+                    <a href="mailto:shitov.dm@gmail.com">
                         <div class="btn">
-                            <img src="../img/icons/github.png">
-                            <span>GITHUB</span>
+                            <img src="../img/icons/message.png">
+                            <span>CONTACT</span>
                             <div class="clear"></div>
                         </div>
                     </a>
@@ -70,25 +84,16 @@
                 </div>
             </div>
             <div class="leader-imgs">
-                <div class="img-1"><img src="../img/screenshots/preview/github.png" height="100%"></div>
+                <div class="img-1"><img src="../img/screenshots/screenshot-4.png" height="100%"></div>
             </div>
         </div>
         
         <!-- Block 3 -->
         <div class="slide slide-1">
             <div class="leader">
-                <h1>Page 1</h1>
-                <h2>All source code of the bot is publicly available. Anyone can study it and make some edits.</h2>
-                <div class="btn-container one-btn">
-                    <a href="https://github.com/Shitovdm/SupremeBot" target="_blank">
-                        <div class="btn">
-                            <img src="../img/icons/github.png">
-                            <span>GITHUB</span>
-                            <div class="clear"></div>
-                        </div>
-                    </a>
-                    <div class="clear"></div>
-                </div>
+                <h1>Stable and Fast</h1>
+                <h2>The bot works quickly and stably, unlike its competitors.<br> Buying one thing takes 2-3 seconds. In addition, the bot is constantly improved.</h2>
+
             </div>
             <div class="leader-imgs">
                 <div class="img-1"><img src="../img/screenshots/preview/github.png" height="100%"></div>
@@ -98,15 +103,20 @@
         <!-- Block 4 -->
         <div class="slide slide-2">
             <div class="leader">
-                <h1>Page 2</h1>
-                <h2>All source code of the bot is publicly available. Anyone can study it and make some edits.</h2>
+                <h1>Convenience and clarity</h1>
+                <h2>
+                    The entire interface of the bot is simple and understandable, it does not need to be understood, all the functionality is intuitive.<br> 
+                    If you have any difficulties while working, you can always watch the video instruction.
+                </h2>
                 <div class="btn-container one-btn">
                     <a href="https://github.com/Shitovdm/SupremeBot" target="_blank">
-                        <div class="btn">
-                            <img src="../img/icons/github.png">
-                            <span>GITHUB</span>
-                            <div class="clear"></div>
-                        </div>
+                        <a href="#demo">
+                            <div class="btn">
+                                <img src="../img/icons/play.png" width="24px" style="margin: 4px 0px 4px 20%;">
+                                <span>DEMO</span>
+                                <div class="clear"></div>
+                            </div>
+                        </a>
                     </a>
                     <div class="clear"></div>
                 </div>
@@ -118,19 +128,89 @@
         
     </div>
     <div class="clear"></div>
-    <div class="features">
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
-        <h1>features</h1>
+    <div class="features" id="features">
+        <div class="features-container">
+            <p class="description">Supreme Bot - multifunctional Google Chrome extension to automatize the process of buying items from the Supreme™ market.</p>
+            <div class="sep"></div>
+            <table class="features-table">
+                <tr>
+                    <td>
+                        <h2 class="feature-title"><img src="../img/icons/safely.png">Safely</h2>
+                        <div class="feature-description">
+                            <p>
+                                The security of data storage of payment cards is ensured by 
+                                the method of storage in local storage directly in the browser. 
+                                The data is not transmitted to the Internet.
+                            </p>
+                        </div>
+                    </td>
+                    <td>
+                        <h2 class="feature-title"><img src="../img/icons/collaboration.png">Collaboration</h2>
+                        <div class="feature-description">
+                            <p>
+                                You can always participate in the development process of the bot. 
+                                Make changes to the source code for your taste, this is allowed and encouraged.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h2 class="feature-title"><img src="../img/icons/service.png">Service</h2>
+                        <div class="feature-description">
+                            <p>
+                                Bot has support, so for any questions you can contact my personal mail, 
+                                or leave issue in the repository on Github.
+                            </p>
+                        </div>
+                    </td>
+                    <td>
+                        <h2 class="feature-title"><img src="../img/icons/open_source.png">Open Source</h2>
+                        <div class="feature-description">
+                            <p>
+                                The source code is publicly available, 
+                                if you are not sure about the developer's honesty, 
+                                you can always study the code. 
+                                In addition, you can make your own changes.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <h2 class="feature-title"><img src="../img/icons/interface.png">Interface</h2>
+                        <div class="feature-description">
+                            <p>
+                                The bot has a simple and convenient interface. 
+                                Therefore, you can freely use it without having special skills for this.
+                            </p>
+                        </div>
+                    </td>
+                    <td>
+                        <h2 class="feature-title"><img src="../img/icons/no_spy.png">No Spy</h2>
+                        <div class="feature-description">
+                            <p>
+                                All operations with payment data are completely transparent, 
+                                you can independently verify this by studying the source code of the application.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <h2 class="feature-title"><img src="../img/icons/chrome.png">Chrome</h2>
+                        <div class="feature-description">
+                            <p>
+                                Google Chrome is the most popular browser in the world, 
+                                it has support on almost all platforms, 
+                                and hence the bot is multiplatform, with the exception of mobile version.
+                            </p>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div class="sep"></div>
+        </div> 
     </div>
 
 

@@ -1,71 +1,49 @@
 
 /**
- * Simple slider for landing page.
- * Can work in Google Chrome extension.
- * @author Shitov Dmitry 2018
+ * 
+ * 
  */
 
-var currentSlide = 0;   //  Number of current slide.
-var limitSlide = 2; //  Amount of slides(half withput null).
+$(document).ready(function () {
+    $(document).on("scroll", onScroll);
 
-$(document).ready(function() {
-    //  Welcome page slider.
-    $(".right-arrow").on("click",function(){
-        _changeSlide("forth");
-    });
-    $(".left-arrow").on("click",function(){
-        _changeSlide("back");
+    //smoothscroll
+    $('a[href^="#"]').on('click', function (e) {
+        e.preventDefault();
+        $(document).off("scroll");
+
+        $('a').each(function () {
+            $(this).removeClass('active');
+        });
+        $(this).addClass('active');
+
+        var target = this.hash,
+                menu = target;
+        $target = $(target);
+        $('html, body').stop().animate({
+            'scrollTop': $target.offset().top + 2
+        }, 500, 'swing', function () {
+            window.location.hash = target;
+            $(document).on("scroll", onScroll);
+        });
     });
 });
 
-
 /**
- * Function calculated number of current slide and motion direction.
- * @param {type} action
- * @returns {undefined}
- */
-function _changeSlide(action){
-    if(action === "forth"){
-        //  Forward;
-        if(currentSlide < limitSlide){
-            currentSlide++;
-            toSlide(currentSlide,"forth");
-        }
-        (currentSlide === limitSlide) ? ($(".right-arrow").fadeOut(600)) : ($(".left-arrow").fadeIn(600));
-    }else{
-        if(action === "back"){
-            //  Go to back page.
-            if(currentSlide > -limitSlide){
-                currentSlide--;
-                toSlide(currentSlide,"back");
-            }
-            (currentSlide === -limitSlide) ? ($(".left-arrow").fadeOut(600)) : ($(".right-arrow").fadeIn(600));
-        }
-    }  
-}
-
-/**
- * Function hide/show determinated slide.
- * @param {Integer} slideNumber     This slide was removed.
- * @param {String} direction    Direction of motion.
- * @returns {undefined}
  * 
+ * @param {type} event
+ * @returns {undefined}
  */
-function toSlide(slideNumber,direction) {
-    var lastSlideClassName = "";
-    var lastSlidePos = 0;
-    
-    if(direction === "forth"){
-        lastSlideClassName = "slide-" + (slideNumber - 1);
-        lastSlidePos = -100 + "%";
-    }else{
-        if(direction === "back"){
-            lastSlideClassName = "slide-" + (slideNumber + 1);
-            lastSlidePos = 100 + "%";
-        } 
-    }
-    
-    $(".slide-" + slideNumber).fadeIn(50);
-    $(".slide-" + slideNumber).animate({'left': "0%"}, 400);
-    $("." + lastSlideClassName).animate({'left': lastSlidePos}, 400);
+function onScroll(event) {
+    var scrollPos = $(document).scrollTop();
+    $('#menu-center a').each(function () {
+        var currLink = $(this);
+        var refElement = $(currLink.attr("href"));
+        if (refElement.position().top <= scrollPos && refElement.position().top + refElement.height() > scrollPos) {
+            $('#menu-center ul li a').removeClass("active");
+            currLink.addClass("active");
+        } else {
+            currLink.removeClass("active");
+        }
+    });
 }
