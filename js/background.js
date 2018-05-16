@@ -99,14 +99,128 @@ class BasicFunctions{
      * Выполняет функцию вызова основного алгоритма перебора и поиска.
      * @returns {undefined}
      */
-    stub(GLOBAL) {
+    stub(GLOBAL,action) {
+        
+        
         var CURRENT__ITEM = GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"]]][GLOBAL["ITEMS_COUNTER"]];
         //  Исключение названия типа.
         if (CURRENT__ITEM["type"] === "tops") {
             CURRENT__ITEM["type"] = "tops_sweaters";
         }
         //  Redirect to type page.
-        this.toTypePage("/shop/all/" + CURRENT__ITEM["type"],GLOBAL);   //  Go to the subject page.
+        // this.toTypePage("/shop/all/" + CURRENT__ITEM["type"],GLOBAL);   //  Go to the subject page.
+        
+        console.log("in stub",GLOBAL,action);
+        console.log("Current item:",CURRENT__ITEM);
+        var CARD__ITEMS_ARRAY = GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"]]];
+        
+        console.log(CARD__ITEMS_ARRAY);
+        
+        switch(action){
+            case "createNewTabs":
+                var match_array = new Array();
+                for (var item in CARD__ITEMS_ARRAY) {    //  Перебор всех предметов выбранной карты.
+                    if (CARD__ITEMS_ARRAY.hasOwnProperty(item)) {
+                        console.log(CARD__ITEMS_ARRAY[item]);
+                        //  Создаем временный массив, в котором проведем привязку вкладки с нужным предметом.
+                        //  Привязка осуществляется через тип предмета.
+                        //  После обраьотки предмета во вкладке, из массива соответствия он удаляется.
+                        
+                        match_array.push(CARD__ITEMS_ARRAY[item]);
+
+                        //  Для каждого предмета создаем новую вкладку со страницей типа предмета.
+                        //  Массив, который идет в background;
+                        var data = {
+                            action: "create_new_window",
+                            link: CARD__ITEMS_ARRAY[item]["type"]
+                        };
+                        //  Create new tabs
+                        chrome.storage.local.set({"operations": "start_actions"}, function () { });
+                        chrome.extension.sendMessage(data);
+                    }
+                    
+                    //  If this is last item remove flag. 
+                }
+                chrome.storage.local.set({'operations': ""},function(){});
+                chrome.storage.local.set({"tab_match": match_array}, function () { });
+                console.log(match_array);
+            break;
+            
+            case "placeToBasket":
+                GLOBAL["ADDING_TO_CART"] = 0;
+                chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {});
+                console.log("Помещение в корзину..");
+                
+                //  Определяем назначение созданной вкладки по ее url.
+                var tabURL = window.location.href;
+                var tabItemType = tabURL.substr(39);
+                console.log("Location: ",tabURL);
+                console.log("sudstr: ",tabItemType);
+                
+                var match_counter = 0;  //  Количество найденных соответствий.
+                var current__item = null;
+                var new_match_array = new Array();
+                chrome.storage.local.get(function(storage){
+                    var match_array = storage["tab_match"];
+                    console.log(match_array);
+                    //  Перебираем все предметы;
+                    //  Находим соответствие вкладки и предмета.
+                    for(item in match_array){
+                        if(match_array.hasOwnProperty(item)){
+                            if(match_array[item]["type"] === tabItemType && match_counter === 0){
+                                match_counter++;
+                                console.log("Найдено соответствие! ", match_array[item]["type"]);
+                                current__item = match_array[item];
+                                console.log(current__item);
+                                /*
+                                ItemsActions.actionsOnTypePage({
+                                    "name": CURRENT__ITEM["name"],
+                                    "type": CURRENT__ITEM["type"],
+                                    "size": CURRENT__ITEM["size"],
+                                    "colors": CURRENT__ITEM["color"]
+                                },GLOBAL);
+                                */
+                            }else{
+                                //  Формируем новый массив.
+                                new_match_array.push(match_array[item]);
+                            }
+                        }
+                    }
+                    //  Перестраиваем массив соответствия.
+                    chrome.storage.local.set({"tab_match": new_match_array}, function () { });
+                    if(match_array.length === 0){
+                         //chrome.storage.local.set({'operations': ""},function(){});
+                    }
+                });
+                
+                //chrome.storage.local.set({'tab_match': ""},function(){});
+                
+                
+                
+                
+                //  Переходим к поиску предмета и добавлению в корзину.
+                /*
+                LogActions.addToLog("Actions on type page.",GLOBAL);
+                console.log("Actions on type pages.");
+                var CURRENT__ITEM = GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"]]][GLOBAL["ITEMS_COUNTER"]];
+                LogActions.addToLog("Processing of the object: " + CURRENT__ITEM["name"],GLOBAL);
+
+                ItemsActions.actionsOnTypePage({
+                    "name": CURRENT__ITEM["name"],
+                    "type": CURRENT__ITEM["type"],
+                    "size": CURRENT__ITEM["size"],
+                    "colors": CURRENT__ITEM["color"]
+                },GLOBAL);
+                */
+               
+               //   Если был обработан последний предмет.
+               //if(){
+                   //chrome.storage.local.set({'operations': ""},function(){});
+               //}
+               
+            break;
+        }
+
     }
 
     /**
@@ -117,11 +231,29 @@ class BasicFunctions{
     startActions(GLOBAL) {
         if (!GLOBAL["LAP_FLAG"]) {  //  Вход.
             //  Предусматривает наличие хотя бы 1й карты и 1 предмета на ней.
-            
+            chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {});
             //  Запоминаем номер карты, с которой производить оплату.
             chrome.storage.local.set({"currentCard": GLOBAL["CARD_COUNTER"]}, function () {});
             
-            this.stub(GLOBAL);
+            //  Устанавливаем флаг, говорящий о том, что начался этам добавления предметов в корзину.
+            chrome.storage.local.get(function (storage) {   //  Reading local storage.
+                //  Чтение GLOBAL - массив с глобальными переменными.
+                var GLOBAL = storage["GLOBAL"];
+                //  Если еще не перешли к помещению предметов в корзину.
+                if(GLOBAL["ADDING_TO_CART"] !== undefined && GLOBAL["ADDING_TO_CART"] !== 0){
+                    console.log("Выбор предметов и помещение в корзину.", GLOBAL);
+                    BasicFunctions.prototype.stub(GLOBAL, "placeToBasket");
+                }else{  //  if(GLOBAL["ADDING_TO_CART"] === undefined)
+                    console.log("Создание новых вкладок с выбранными предметами.", GLOBAL);
+                    GLOBAL["ADDING_TO_CART"] = 1;
+                    chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {});
+                    BasicFunctions.prototype.stub(GLOBAL, "createNewTabs");
+                }
+                
+                
+            });
+
+            
             GLOBAL["LAP_FLAG"] = true;
         } else {  //  Последующие.
             if (GLOBAL["ITEMS_ARRAY"][GLOBAL["MATCHING_ARRAY"][GLOBAL["CARD_COUNTER"]]][GLOBAL["ITEMS_COUNTER"] + 1] !== undefined) {   //  Если есть еще предметы на данной карте.
@@ -952,9 +1084,9 @@ class LogActions{
  * Если было принято сообщение из options.js, редиректим на пришедший в сообщении адрес.
  */
 
-chrome.runtime.onMessage.addListener(function (request, sender) {
+chrome.runtime.onMessage.addListener(function (request, sender, data) {
     //  Определяем с какой целью было отправлено сообщение в background.
-    if((request !== 'show__log') && (request !== 'reload') && (request !== 'removeListener')){
+    if((request !== 'show__log') && (request !== 'reload') && (request !== 'removeListener') && (request["action"] !== 'create_new_window')){
         chrome.tabs.update(sender.tab.id, {url: request.redirect}); //  Первичный редирект на страницу всех предметов на сайте.
         chrome.storage.local.set({"operations": "start_actions"}, function () { }); //  Ставим флаг выполнения автоматических действий.
         
@@ -1047,7 +1179,7 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
         if(request === 'show__log'){   //  Если подана команда вывести лог.
             //  Создание нового таба лога.
             chrome.windows.create({
-                url: "log.html",
+                url: "html/log.html",
                 type: "popup",
                 height: 800,
                 width: 500,
@@ -1063,9 +1195,25 @@ chrome.runtime.onMessage.addListener(function (request, sender) {
                     
                     
                 }else{
-                     //  Другие команды...
-                }
-               
+                    if(request["action"] === 'create_new_window'){
+                        
+                        chrome.tabs.create({ url: "http://www.supremenewyork.com/shop/all/" + request["link"]});  
+                        
+                        /*chrome.windows.create({
+                            //url: "/shop/all/" + CARD__ITEMS_ARRAY[item]["type"],
+                            url: "http://www.supremenewyork.com/shop/all/" + request["link"],
+                            type: "normal",
+                            height: 800,
+                            width: 1000,
+                            focused: false
+                        }, function (newWindow) {
+                            console.log("New window created!",newWindow);
+
+                        });*/
+                    }else{
+                         //  Другие команды...
+                    }
+                } 
             }
         }
     }
@@ -1118,7 +1266,7 @@ if (window.location.href.substr(0, 4) !== "http") {
                 console.log("Все дефолтные временные переменные записаны в хранилище..");
             });
 
-            chrome.tabs.create({ url: chrome.extension.getURL('/html/settings.html')});  
+            chrome.tabs.create({ url: chrome.extension.getURL('/html/welcome.html')});  
         }
     });
 }
@@ -1133,6 +1281,7 @@ if (window.location.href.substr(0, 4) !== "http") {
  */
 window.onload = function(){
     //  Стартует только при загрузке страницы с дропом.
+    console.log("NEW TAB!");
     if(window.location.href === "http://www.supremenewyork.com/shop/all/"){
         chrome.extension.sendMessage('removeListener');
         chrome.storage.local.get(function (storage) {
@@ -1181,9 +1330,12 @@ window.onload = function(){
         chrome.storage.local.get(function (storage) {
             var GLOBAL = storage["GLOBAL"];
             if(window.location.href === GLOBAL["NEW_LOCATION"]){
+                console.log("New tab");
                 main(); //  Продолжаем действия.
             }else{
                 if(window.location.href === "https://www.supremenewyork.com/checkout"){
+                    main(); //  Продолжаем действия.
+                }else{
                     main(); //  Продолжаем действия.
                 }
             }
@@ -1368,8 +1520,7 @@ function main(){
         
     });
     //  Удаление массива операций, сделано для того, чтобы при каждом посещении страницы магазина самопроизвольно не запускался скрипт расширения.
-    //chrome.storage.local.remove("operations", function () {});
-    chrome.storage.local.set({'operations': ""},function(){});
+    //  Close all operations.
+    //chrome.storage.local.set({'operations': ""},function(){});
     
 }
-    //});
