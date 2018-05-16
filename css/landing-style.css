@@ -209,14 +209,16 @@ body::-webkit-scrollbar {width:0px;}
 
 
 /*  Features.   */
-.features{
+.page{
     width: 100%;
     position:absolute;
-    top:100%;
     height: 100%;
     user-select:none;
 }
-.features-container{
+.features{
+    top:100%;
+}
+.page-container{
     padding: 40px 10%;
     text-align: center;
     margin: 0 auto;
@@ -242,6 +244,7 @@ body::-webkit-scrollbar {width:0px;}
 }
 
 .features-table{
+    width: 70%;
     text-align: center;
     margin: 0 auto;
 }
@@ -249,8 +252,7 @@ body::-webkit-scrollbar {width:0px;}
     
 }
 .features-table tr td{
-    width: 20%;
-    padding: 10px;
+    padding: 30px 10px;
     font-size: 14px;
     vertical-align: top;
 }
@@ -265,6 +267,12 @@ body::-webkit-scrollbar {width:0px;}
     line-height: 1.4;
 }
 .feature-description p{
+    font-size: 14px;
+    font-weight: 500;
     color: #16A085;
     margin: 0px;
+}
+
+.capabilities{
+    top:200%;
 }
