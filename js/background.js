@@ -244,10 +244,13 @@ class BasicFunctions{
                     console.log("Выбор предметов и помещение в корзину.", GLOBAL);
                     BasicFunctions.prototype.stub(GLOBAL, "placeToBasket");
                 }else{  //  if(GLOBAL["ADDING_TO_CART"] === undefined)
-                    console.log("Создание новых вкладок с выбранными предметами.", GLOBAL);
-                    GLOBAL["ADDING_TO_CART"] = 1;
-                    chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {});
-                    BasicFunctions.prototype.stub(GLOBAL, "createNewTabs");
+                    if(GLOBAL["ADDING_TO_CART"] === undefined){
+                        console.log("Создание новых вкладок с выбранными предметами.", GLOBAL);
+                        GLOBAL["ADDING_TO_CART"] = 1;
+                        chrome.storage.local.set({"GLOBAL": GLOBAL}, function () {});
+                        BasicFunctions.prototype.stub(GLOBAL, "createNewTabs");
+                    }
+                    
                 }
                 
                 
