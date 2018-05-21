@@ -2,13 +2,15 @@ body{
     margin: 0 auto;
     overflow: hidden;
     overflow-y: scroll;
-    
+    font-family: "Segoe UI", Tahoma, sans-serif;
 }
-body::-webkit-scrollbar {width:0px;}
+body::-webkit-scrollbar {
+    width:0px;
+}
+
 .clear{
     clear: both;
 }
-
 
 .slider{
     text-align: center;
@@ -103,8 +105,6 @@ body::-webkit-scrollbar {width:0px;}
     z-index: 3;
 }
 
-
-
 .sole{
     position: absolute;
     bottom: 0;
@@ -113,8 +113,6 @@ body::-webkit-scrollbar {width:0px;}
 .leader-imgs div img{
     border-radius: 5px;
 }
-
-
 
 .nav-bar{
     position: relative;
@@ -131,12 +129,14 @@ body::-webkit-scrollbar {width:0px;}
     float: right;
     height: 100%;
 }
+
 .nav-btn{
     float: left;
     margin: 0px 2px;
     padding: 10px;
     cursor: pointer;
 }
+
 .nav-btn a{
     color: #BDC3C7;
     text-decoration: none;  
@@ -146,10 +146,12 @@ body::-webkit-scrollbar {width:0px;}
     transition-duration: 0.6s;
     text-transform: uppercase;
 }
+
 .nav-btn a:hover{
     color: #fff;
     text-decoration: underline;  
 }
+
 .junction-arrow{
     position: absolute;
     top:45%;
@@ -170,13 +172,16 @@ body::-webkit-scrollbar {width:0px;}
     user-select: none;
     z-index: 10;
 }
+
 .right-arrow{
     right: 0px;
 }
+
 .left-arrow{
     left: 0px;
     transform: rotate(180deg);
 }
+
 .junction-arrow:hover{
     opacity: 1;
 }
@@ -193,19 +198,22 @@ body::-webkit-scrollbar {width:0px;}
 .slide-0{
     left: 0px;  
 }
+
 .slide--1{
     left:-100%;
 }
+
 .slide--2{
     left:-200%;
 }
+
 .slide-1{
     left:100%;
 }
+
 .slide-2{
     left:200%;
 }
-
 
 
 /*  Features.   */
@@ -215,15 +223,18 @@ body::-webkit-scrollbar {width:0px;}
     height: 100%;
     user-select:none;
 }
+
 .features{
     top:100%;
 }
+
 .page-container{
     padding: 40px 10%;
     text-align: center;
     margin: 0 auto;
     color: #2C3E50;
 }
+
 .description{
     line-height: 1.4;
     text-align: center;
@@ -235,6 +246,7 @@ body::-webkit-scrollbar {width:0px;}
     -webkit-margin-start: 0px;
     -webkit-margin-end: 0px;
 }
+
 .sep{
     height: 1px;
     background-color: #f5f5f5;
