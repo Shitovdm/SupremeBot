@@ -1,6 +1,8 @@
 # SupremeBot
 Supreme Bot is a Google Chrome extension to automatize the process of buying items from the Supreme™ market.
 
+<h3>https://shitovdm.github.io/SupremeBot/</h3>
+
 **Attention! The bot is under development. About all errors, please write in issues.**
 
 # Features  
