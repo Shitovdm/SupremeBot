@@ -54,8 +54,4 @@ Some functions that are currently in development:
 **Main Page (Cart)**    
 ![screen](https://raw.githubusercontent.com/Shitovdm/SupremeBot/master/img/screenshots/screenshot-3.png) 
 **Bot Settings Page (Settings)**    
-![screen](https://raw.githubusercontent.com/Shitovdm/SupremeBot/master/img/screenshots/screenshot-4.png)
-
-# Donation
-
-**I will be very grateful if you сlick the star :-)**  
+![screen](https://raw.githubusercontent.com/Shitovdm/SupremeBot/master/img/screenshots/screenshot-4.png)  
